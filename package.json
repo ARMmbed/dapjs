@@ -1,0 +1,16 @@
+{
+  "name": "ocdjs",
+  "version": "0.0.0",
+  "description": "Interface to CMSIS-DAP",
+  "main": "run.js",
+  "private": true,
+  "dependencies": {
+    "bluebird": "^3.3.5",
+    "node-hid": "^0.5.1"
+  },
+  "devDependencies": {
+    "typescript": "^1.8.10"
+  },
+  "author": "Michal Moskal <michal.moskal@microsoft.com>",
+  "license": "MIT"
+}
