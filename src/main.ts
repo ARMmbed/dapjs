@@ -204,21 +204,28 @@ function rid(v: number) {
     return m[v] || "?"
 }
 
+interface CmdEntry {
+    resolve: (v: Buffer) => void;
+    data: number[];
+}
+
 export class Dap {
     dev: any;
 
-    private dataCb: (v: Buffer) => void;
+    private sent: CmdEntry[] = [];
+    private waiting: CmdEntry[] = [];
+    private maxSent = 1;
 
     constructor(path: string) {
         this.dev = new HID.HID(path)
 
         this.dev.on("data", (buf: Buffer) => {
-            let f = this.dataCb
-            this.dataCb = null
-            if (f) {
-                f(buf)
-            } else {
+            let c = this.sent.shift()
+            if (!c) {
                 console.log("DROP", buf)
+            } else {
+                c.resolve(buf)
+                this.pokeWaiting()
             }
         })
 
@@ -227,40 +234,41 @@ export class Dap {
         })
     }
 
-    sendNums(lst: number[]) {
+    private pokeWaiting() {
+        if (this.sent.length < this.maxSent && this.waiting.length > 0) {
+            let w = this.waiting.shift()
+            this.sent.push(w)
+            this.sendNums(w.data)
+        }
+    }
+
+    private sendNums(lst: number[]) {
         lst.unshift(0)
         while (lst.length < 64)
             lst.push(0)
         this.dev.write(lst)
     }
 
-    readAsync() {
-        if (this.dataCb) error("Race in readAsync")
+    cmdNumsAsync(op: DapCmd, data: number[]) {
+        data.unshift(op)
         return new Promise<Buffer>((resolve, reject) => {
-            this.dataCb = resolve
+            this.waiting.push({ resolve, data })
+            this.pokeWaiting()
+        }).then(buf => {
+            if (buf[0] != op) error(`Bad response for ${op} -> ${buf[0]}`)
+            switch (op) {
+                case DapCmd.DAP_CONNECT:
+                case DapCmd.DAP_INFO:
+                case DapCmd.DAP_TRANSFER:
+                    break;
+                default:
+                    if (buf[1] != 0)
+                        error(`Bad status for ${op} -> ${buf[1]}`)
+            }
+            return buf
         })
     }
 
-    cmdNumsAsync(op: DapCmd, args: number[]) {
-        args.unshift(op)
-        this.sendNums(args)
-        return this.readAsync()
-            .then(buf => {
-                if (buf[0] != op) error(`Bad response for ${op} -> ${buf[0]}`)
-                switch (op) {
-                    case DapCmd.DAP_CONNECT:
-                    case DapCmd.DAP_INFO:
-                    case DapCmd.DAP_TRANSFER:
-                        break;
-                    default:
-                        if (buf[1] != 0)
-                            error(`Bad status for ${op} -> ${buf[1]}`)
-                }
-                return buf
-            })
-    }
-
-    // seems useless
     infoAsync(id: Info) {
         return this.cmdNumsAsync(DapCmd.DAP_INFO, [id])
             .then(buf => {
@@ -288,6 +296,8 @@ export class Dap {
                 // 1MHz
                 return this.cmdNumsAsync(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000))
             })
+            .then(() => this.infoAsync(Info.PACKET_COUNT))
+            .then((v: number) => { this.maxSent = v })
             .then(() => this.cmdNumsAsync(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]))
             .then(() => this.cmdNumsAsync(DapCmd.DAP_SWD_CONFIGURE, [0]))
             .then(() => info("Connected."))
@@ -445,7 +455,7 @@ export class Device {
                 this.breakpoints = range(nb_code).map(i => new Breakpoint(this, i))
                 return this.setFpbEnabledAsync(false)
             })
-            .then(() => promiseIterAsync(this.breakpoints, b => b.writeAsync(0)))
+            .then(() => Promise.map(this.breakpoints, b => b.writeAsync(0)))
     }
 
     readCpuRegisterAsync(no: number) {
@@ -487,7 +497,7 @@ export class Device {
             .then(() => {
                 let blocks = range(Math.ceil(words / 15))
                 let bufs: Buffer[] = []
-                return promiseMapSeqAsync(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ), 15))
+                return Promise.map(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ), 15))
                     .then(bufs => Buffer.concat(bufs))
             })
     }
