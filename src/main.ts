@@ -176,7 +176,7 @@ function error(msg: string): any {
 }
 
 function info(msg: string) {
-   // console.log(msg)
+    // console.log(msg)
 }
 
 function addInt32(arr: number[], val: number) {
@@ -239,11 +239,6 @@ export class Dap {
         return new Promise<Buffer>((resolve, reject) => {
             this.dataCb = resolve
         })
-    }
-
-    cmd(op: DapCmd, ...args: number[]) {
-        args.unshift(op)
-        this.sendNums(args)
     }
 
     cmdNumsAsync(op: DapCmd, args: number[]) {
@@ -311,6 +306,12 @@ function promiseIterAsync<T>(elts: T[], f: (v: T) => Promise<void>): Promise<voi
         i >= elts.length ? Promise.resolve()
             : f(elts[i++]).then(loop)
     return loop()
+}
+
+function promiseMapSeqAsync<T, S>(elts: T[], f: (v: T) => Promise<S>): Promise<S[]> {
+    let res: S[] = []
+    return promiseIterAsync(elts, v => f(v).then(z => { res.push(z) }))
+        .then(() => res)
 }
 
 function range(n: number) {
@@ -455,14 +456,10 @@ export class Device {
     }
 
     private regOpAsync(regId: Reg, val: number) {
-        let request = val === null ? DapVal.READ : DapVal.WRITE
-        if (regId < 4)
-            request |= DapVal.DP_ACC
-        else
-            request |= DapVal.AP_ACC
-        request |= (regId & 3) << 2
+        let request = regRequest(regId, val !== null)
         let sendargs = [0, 1, request]
-        addInt32(sendargs, val)
+        if (val !== null)
+            addInt32(sendargs, val)
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
                 if (buf[1] != 1) error("Bad #trans " + buf[1])
@@ -471,8 +468,53 @@ export class Device {
             })
     }
 
+    readRegRepeatAsync(regId: Reg, cnt: number) {
+        assert(cnt <= 15)
+        let request = regRequest(regId)
+        let sendargs = [0, cnt]
+        for (let i = 0; i < cnt; ++i) sendargs.push(request)
+        return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
+            .then(buf => {
+                if (buf[1] != cnt) error("(many) Bad #trans " + buf[1])
+                if (buf[2] != 1) error("(many) Bad transfer status " + buf[2])
+                return buf.slice(3, 3 + cnt * 4)
+            })
+    }
+
+    readBlockAsync(addr: number, words: number) {
+        return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
+            .then(() => this.writeApAsync(ApReg.TAR, addr))
+            .then(() => {
+                let blocks = range(Math.ceil(words / 15))
+                let bufs: Buffer[] = []
+                return promiseMapSeqAsync(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ), 15))
+                    .then(bufs => Buffer.concat(bufs))
+            })
+    }
+
     readIdCodeAsync() {
         return this.readDpAsync(Reg.IDCODE)
+    }
+}
+
+function regRequest(regId: number, isWrite = false) {
+    let request = !isWrite ? DapVal.READ : DapVal.WRITE
+    if (regId < 4)
+        request |= DapVal.DP_ACC
+    else
+        request |= DapVal.AP_ACC
+    request |= (regId & 3) << 2
+    return request
+}
+
+function timeAsync<T>(lbl: string, f: () => Promise<T>): () => Promise<T> {
+    return () => {
+        let n = Date.now()
+        return f().then(v => {
+            let d = Date.now() - n
+            console.log(`${lbl}: ${d}ms`)
+            return v
+        })
     }
 }
 
@@ -481,6 +523,10 @@ let d = new Device(mbedId.path)
 d.initAsync()
     .then(() => d.readMemAsync(0xead0))
     .then(v => console.log(v))
+    .then(timeAsync("readmem", () => d.readBlockAsync(0x20000000, 16 / 4 * 1024)))
+    .then(v => console.log(v.length, v))
+    /*
     .then(() => promiseIterAsync(range(16), k =>
-        d.readCpuRegisterAsync(k)
+        d.readCpuRegisterAsync(k)            
             .then(v => console.log(`r${k} = ${hex(v)}`))))
+            */
