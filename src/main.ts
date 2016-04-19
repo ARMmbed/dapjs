@@ -163,6 +163,16 @@ const enum CortexM {
     DWT_COMP_BLOCK_SIZE = 0x10,
 }
 
+const enum CortexReg {
+    R0 = 0,
+    R1 = 1,
+    R2 = 2,
+    R3 = 3,
+    SP = 13,
+    LR = 14,
+    PC = 15,
+}
+
 function bank(addr: number) {
     const APBANKSEL = 0x000000f0
     return (addr & APBANKSEL) | (addr & 0xff000000)
@@ -248,6 +258,21 @@ export class Dap {
             lst.push(0)
         this.dev.write(lst)
     }
+    
+    private jtagToSwdAsync() {
+        let arrs = [
+            [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+            [0x9e, 0xe7],
+            [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+            [0x00]
+        ]
+        return promiseIterAsync(arrs, a => this.swjSequenceAsync(a))
+    }
+    
+    private swjSequenceAsync(data:number[]) {
+        data.unshift(data.length * 8)
+        return this.cmdNumsAsync(DapCmd.DAP_SWJ_SEQUENCE, data).then(() => {})
+    }
 
     cmdNumsAsync(op: DapCmd, data: number[]) {
         data.unshift(op)
@@ -290,16 +315,18 @@ export class Dap {
 
     connectAsync() {
         info("Connecting...")
-        return this.cmdNumsAsync(DapCmd.DAP_CONNECT, [1])
+        return this.infoAsync(Info.PACKET_COUNT)
+            .then((v: number) => { this.maxSent = v })
+            .then(() => this.cmdNumsAsync(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000)))
+            .then(() => this.cmdNumsAsync(DapCmd.DAP_CONNECT, [1]))
             .then(buf => {
                 if (buf[1] != 1) error("Non SWD")
                 // 1MHz
                 return this.cmdNumsAsync(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000))
             })
-            .then(() => this.infoAsync(Info.PACKET_COUNT))
-            .then((v: number) => { this.maxSent = v })
             .then(() => this.cmdNumsAsync(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]))
             .then(() => this.cmdNumsAsync(DapCmd.DAP_SWD_CONFIGURE, [0]))
+            .then(() => this.jtagToSwdAsync())
             .then(() => info("Connected."))
     }
 }
@@ -458,7 +485,7 @@ export class Device {
             .then(() => Promise.map(this.breakpoints, b => b.writeAsync(0)))
     }
 
-    readCpuRegisterAsync(no: number) {
+    readCpuRegisterAsync(no: CortexReg) {
         return this.writeMemAsync(CortexM.DCRSR, no)
             .then(() => this.readMemAsync(CortexM.DHCSR))
             .then(v => assert(v & CortexM.S_REGRDY))
@@ -505,6 +532,26 @@ export class Device {
     readIdCodeAsync() {
         return this.readDpAsync(Reg.IDCODE)
     }
+
+    readStackAsync() {
+        return this.readCpuRegisterAsync(CortexReg.SP)
+            .then(sp => {
+                let size = 0x20004000 - sp
+                if ((size & 3) || size < 0 || size > 8 * 1024) error("Bad SP: " + hex(sp));
+                return this.readBlockAsync(sp, size / 4)
+            })
+            .then(bufToUint32Array)
+    }
+}
+
+function bufToUint32Array(buf: Buffer) {
+    assert((buf.length & 3) == 0)
+    let r: number[] = []
+    if (!buf.length) return r
+    r[buf.length / 4 - 1] = 0
+    for (let i = 0; i < r.length; ++i)
+        r[i] = buf.readUInt32LE(i << 2)
+    return r
 }
 
 function regRequest(regId: number, isWrite = false) {
@@ -531,8 +578,12 @@ function timeAsync<T>(lbl: string, f: () => Promise<T>): () => Promise<T> {
 let mbedId = devices.filter((d: any) => /MBED CMSIS-DAP/.test(d.product))[0]
 let d = new Device(mbedId.path)
 d.initAsync()
-    .then(() => d.readMemAsync(0xead0))
-    .then(v => console.log(v))
+    .then(() => d.haltAsync())
+    .then(() => d.readStackAsync())
+    .then(arr => {
+        for (let i = 0; i < arr.length; ++i)
+            console.log(i, hex(arr[i]))
+    })
     .then(timeAsync("readmem", () => d.readBlockAsync(0x20000000, 16 / 4 * 1024)))
     .then(v => console.log(v.length, v))
     /*
