@@ -2,7 +2,7 @@
 
 import * as Promise from "bluebird"
 
-const enum DapCmd {
+export const enum DapCmd {
     DAP_INFO = 0x00,
     DAP_LED = 0x01,
     DAP_CONNECT = 0x02,
@@ -65,7 +65,7 @@ const enum Info {
     PACKET_SIZE = 0xff
 }
 
-const enum Reg {
+export const enum Reg {
     DP_0x0 = 0,
     DP_0x4 = 1,
     DP_0x8 = 2,
@@ -82,7 +82,7 @@ const enum Reg {
 
 }
 
-const enum ApReg {
+export const enum ApReg {
     CSW = 0x00,
     TAR = 0x04,
     DRW = 0x0C,
@@ -163,11 +163,15 @@ const enum CortexM {
     DWT_COMP_BLOCK_SIZE = 0x10,
 }
 
-const enum CortexReg {
+export const enum CortexReg {
     R0 = 0,
     R1 = 1,
     R2 = 2,
     R3 = 3,
+    R4 = 4,
+    R5 = 5,
+    R6 = 6,
+    R7 = 7,
     SP = 13,
     LR = 14,
     PC = 15,
@@ -294,7 +298,7 @@ export class Dap {
         })
     }
 
-    infoAsync(id: Info) {
+    private infoAsync(id: Info) {
         return this.cmdNumsAsync(DapCmd.DAP_INFO, [id])
             .then(buf => {
                 if (buf[1] == 0) return null

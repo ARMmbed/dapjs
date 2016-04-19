@@ -5,6 +5,7 @@
         "outDir": "built",
         "rootDir": "src",
         "noImplicitAny": true,
+        "declaration": true,
         "sourceMap": false
     },
     "exclude": [

@@ -1,9 +1,7 @@
 {
-  "name": "ocdjs",
+  "name": "dapjs",
   "version": "0.0.0",
-  "description": "Interface to CMSIS-DAP",
-  "main": "run.js",
-  "private": true,
+  "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "dependencies": {
     "bluebird": "^3.3.5",
     "node-hid": "^0.5.1"
@@ -11,6 +9,17 @@
   "devDependencies": {
     "typescript": "^1.8.10"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Microsoft/dapjs.git"
+  },
   "author": "Michal Moskal <michal.moskal@microsoft.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://github.com/Microsoft/pxt#readme",
+  "files": [
+    "README.md",
+    "built/main.js",
+    "built/main.d.ts"
+  ],
+  "main": "built/main.js"
 }
