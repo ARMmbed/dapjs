@@ -183,7 +183,6 @@ function bank(addr: number) {
 }
 
 let HID = require('node-hid');
-let devices = HID.devices()
 
 function error(msg: string): any {
     throw new Error(msg);
@@ -262,7 +261,7 @@ export class Dap {
             lst.push(0)
         this.dev.write(lst)
     }
-    
+
     private jtagToSwdAsync() {
         let arrs = [
             [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
@@ -272,10 +271,10 @@ export class Dap {
         ]
         return promiseIterAsync(arrs, a => this.swjSequenceAsync(a))
     }
-    
-    private swjSequenceAsync(data:number[]) {
+
+    private swjSequenceAsync(data: number[]) {
         data.unshift(data.length * 8)
-        return this.cmdNumsAsync(DapCmd.DAP_SWJ_SEQUENCE, data).then(() => {})
+        return this.cmdNumsAsync(DapCmd.DAP_SWJ_SEQUENCE, data).then(() => { })
     }
 
     cmdNumsAsync(op: DapCmd, data: number[]) {
@@ -496,6 +495,18 @@ export class Device {
             .then(() => this.readMemAsync(CortexM.DCRDR))
     }
 
+    readStateAsync(): Promise<CpuState> {
+        return Promise.join(
+            this.readStackAsync(),
+            this.readCpuRegisterAsync(CortexReg.PC),
+            this.readCpuRegisterAsync(CortexReg.LR),
+            (stack, pc, lr) => ({
+                stack,
+                pc,
+                lr
+            }))
+    }
+
     private regOpAsync(regId: Reg, val: number) {
         let request = regRequest(regId, val !== null)
         let sendargs = [0, 1, request]
@@ -548,6 +559,12 @@ export class Device {
     }
 }
 
+export interface CpuState {
+    pc: number;
+    lr: number;
+    stack: number[];
+}
+
 function bufToUint32Array(buf: Buffer) {
     assert((buf.length & 3) == 0)
     let r: number[] = []
@@ -579,19 +596,66 @@ function timeAsync<T>(lbl: string, f: () => Promise<T>): () => Promise<T> {
     }
 }
 
-let mbedId = devices.filter((d: any) => /MBED CMSIS-DAP/.test(d.product))[0]
-let d = new Device(mbedId.path)
-d.initAsync()
-    .then(() => d.haltAsync())
-    .then(() => d.readStackAsync())
-    .then(arr => {
-        for (let i = 0; i < arr.length; ++i)
-            console.log(i, hex(arr[i]))
-    })
-    .then(timeAsync("readmem", () => d.readBlockAsync(0x20000000, 16 / 4 * 1024)))
-    .then(v => console.log(v.length, v))
+export interface HidDevice {
+    product: string;
+    path: string;
+}
+
+export function getMbedDevices() {
+    let devices = HID.devices() as HidDevice[]
+    return devices.filter(d => /MBED CMSIS-DAP/.test(d.product))
+}
+
+export interface Map<T> {
+    [n: string]: T;
+}
+
+let devices: Map<Promise<Device>> = {}
+
+function getDeviceAsync(path: string) {
+    if (devices[path]) return devices[path]
+    let d = new Device(path)
+    devices[path] = d.initAsync().then(() => d)
+}
+
+export function handleMessageAsync(msg: any): Promise<any> {
+    switch (msg.op) {
+        case "list": return Promise.resolve({ devices: getMbedDevices() })
+        default:
+            if (!msg.path) error("path missing");
+            return getDeviceAsync(msg.path)
+                .then<any>(dev => {
+                    switch (msg.op) {
+                        case "halt": return dev.haltAsync().then(() => ({}))
+                        case "state": return dev.readStateAsync();
+                        case "mem":
+                            return dev.readBlockAsync(msg.addr, msg.words)
+                                .then(buf => {
+                                    let res: number[] = []
+                                    for (let i = 0; i < buf.length; i += 4)
+                                        res.push(buf.readUInt32LE(i))
+                                    return { data: res }
+                                })
+                    }
+                })
+    }
+}
+
+function main() {
+    let mydev = getMbedDevices()[0]
+    let d = new Device(mydev.path)
+    d.initAsync()
+        .then(() => d.haltAsync())
+        .then(() => d.readStackAsync())
+        .then(arr => {
+            for (let i = 0; i < arr.length; ++i)
+                console.log(i, hex(arr[i]))
+        })
+        .then(timeAsync("readmem", () => d.readBlockAsync(0x20000000, 16 / 4 * 1024)))
+        .then(v => console.log(v.length, v))
     /*
     .then(() => promiseIterAsync(range(16), k =>
         d.readCpuRegisterAsync(k)            
             .then(v => console.log(`r${k} = ${hex(v)}`))))
             */
+}
