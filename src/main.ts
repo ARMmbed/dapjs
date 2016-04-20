@@ -172,9 +172,19 @@ export const enum CortexReg {
     R5 = 5,
     R6 = 6,
     R7 = 7,
+    R8 = 8,
+    R9 = 9,
+    R10 = 10,
+    R11 = 11,
+    R12 = 12,
     SP = 13,
     LR = 14,
     PC = 15,
+    XPSR = 16,
+    MSP = 17, // Main Stack Pointer
+    PSP = 18, // Process Stack Pointer
+    PRIMASK = 20,  // &0xff
+    CONTROL = 20,  // &0xff000000 >> 24
 }
 
 function bank(addr: number) {
@@ -467,6 +477,42 @@ export class Device {
         return this.writeMemAsync(CortexM.DHCSR, CortexM.DBGKEY | CortexM.C_DEBUGEN | CortexM.C_HALT)
     }
 
+    isHaltedAsync() {
+        return this.readMemAsync(CortexM.DHCSR)
+            .then(dhcsr => !!(dhcsr & (CortexM.C_STEP | CortexM.C_HALT)))
+    }
+
+    resumeAsync() {
+        return this.isHaltedAsync()
+            .then(halted => {
+                if (halted)
+                    return this.writeMemAsync(CortexM.DFSR, CortexM.DFSR_DWTTRAP | CortexM.DFSR_BKPT | CortexM.DFSR_HALTED)
+                        .then(() => this.writeMemAsync(CortexM.DHCSR, CortexM.DBGKEY | CortexM.C_DEBUGEN))
+            })
+    }
+
+    safeHaltAsync() {
+        return this.isHaltedAsync()
+            .then(halted => {
+                if (!halted) {
+                    return promiseWhileAsync(() => this.haltAsync()
+                        .then(() => this.readCpuRegisterAsync(CortexReg.PRIMASK))
+                        .then(v => {
+                            if (v & 1) return this.resumeAsync().then(() => true)
+                            else
+                                return this.readCpuRegisterAsync(CortexReg.XPSR)
+                                    .then(v => {
+                                        if (v & 0x3f)
+                                            return this.resumeAsync().then(() => true)
+                                        else
+                                            return Promise.resolve(false)
+                                    })
+                        }))
+                }
+            })
+    }
+
+
     setFpbEnabledAsync(enabled = true) {
         return this.writeMemAsync(CortexM.FP_CTRL, CortexM.FP_CTRL_KEY | (enabled ? 1 : 0))
     }
@@ -496,15 +542,18 @@ export class Device {
     }
 
     readStateAsync(): Promise<CpuState> {
-        return Promise.join(
-            this.readStackAsync(),
-            this.readCpuRegisterAsync(CortexReg.PC),
-            this.readCpuRegisterAsync(CortexReg.LR),
-            (stack, pc, lr) => ({
-                stack,
-                pc,
-                lr
-            }))
+        let r: CpuState = {
+            pc: 0,
+            lr: 0,
+            stack: []
+        }
+        return this.readStackAsync()
+            .then(s => r.stack = s)
+            .then(() => this.readCpuRegisterAsync(CortexReg.PC))
+            .then(v => r.pc = v)
+            .then(() => this.readCpuRegisterAsync(CortexReg.LR))
+            .then(v => r.lr = v)
+            .then(() => r)
     }
 
     private regOpAsync(regId: Reg, val: number) {
@@ -645,6 +694,7 @@ function main() {
     let mydev = getMbedDevices()[0]
     let d = new Device(mydev.path)
     d.initAsync()
+    /*
         .then(() => d.haltAsync())
         .then(() => d.readStackAsync())
         .then(arr => {
@@ -653,9 +703,14 @@ function main() {
         })
         .then(timeAsync("readmem", () => d.readBlockAsync(0x20000000, 16 / 4 * 1024)))
         .then(v => console.log(v.length, v))
+        */
     /*
     .then(() => promiseIterAsync(range(16), k =>
         d.readCpuRegisterAsync(k)            
             .then(v => console.log(`r${k} = ${hex(v)}`))))
             */
+}
+
+if (require.main === module) {
+    main();
 }
