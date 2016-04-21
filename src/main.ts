@@ -2,6 +2,8 @@
 
 import * as Promise from "bluebird"
 
+const STACK_BASE = 0x20004000;
+
 export const enum DapCmd {
     DAP_INFO = 0x00,
     DAP_LED = 0x01,
@@ -350,11 +352,12 @@ function promiseWhileAsync(fnAsync: () => Promise<boolean>) {
     return loopAsync(true)
 }
 
-function promiseIterAsync<T>(elts: T[], f: (v: T) => Promise<void>): Promise<void> {
-    let i = 0
-    let loop = (): Promise<void> =>
-        i >= elts.length ? Promise.resolve()
-            : f(elts[i++]).then(loop)
+function promiseIterAsync<T>(elts: T[], f: (v: T, idx: number) => Promise<void>): Promise<void> {
+    let i = -1
+    let loop = (): Promise<void> => {
+        if (++i >= elts.length) return Promise.resolve()
+        return f(elts[i], i).then(loop)
+    }
     return loop()
 }
 
@@ -491,22 +494,78 @@ export class Device {
             })
     }
 
-    safeHaltAsync() {
+    snapshotMachineStateAsync() {
+        let state: MachineState = {
+            stack: null,
+            registers: []
+        }
+        return promiseIterAsync(range(16), regno => this.readCpuRegisterAsync(regno)
+            .then(v => {
+                state.registers[regno] = v
+            }))
+            .then(() => this.readStackAsync())
+            .then(stack => {
+                state.stack = stack
+                return state
+            })
+    }
+
+    restoreMachineState(state: MachineState) {
+        return promiseIterAsync(state.registers, (val, idx) => this.writeCpuRegisterAsync(idx, val))
+            .then(() => this.writeBlockAsync(STACK_BASE - state.stack.length * 4, state.stack))
+    }
+
+    waitForHaltAsync() {
+        return promiseWhileAsync(() => this.isHaltedAsync().then(v => {
+            if (v) return false
+            return Promise.delay(50).then(() => true)
+        }))
+    }
+
+    executeCodeAsync(code: number[], args: number[]) {
+        let baseAddr = STACK_BASE - code.length * 4;
+        let state: MachineState = {
+            stack: code,
+            registers: args.slice()
+        }
+        while (state.registers.length < 16) state.registers.push(0)
+        state.registers[CortexReg.LR] = 0xffff0000;
+        state.registers[CortexReg.SP] = baseAddr - 4;
+        state.registers[CortexReg.PC] = baseAddr;
+        return this.restoreMachineState(state)
+            .then(() => this.snapshotMachineStateAsync())
+            .then(s => console.log("DID", machineStateToString(s)))
+            .then(() => this.resumeAsync())
+    }
+
+    isThreadHaltedAsync() {
         return this.isHaltedAsync()
+            .then(v => {
+                if (!v) return false
+                return this.readCpuRegisterAsync(CortexReg.PRIMASK)
+                    .then(v => {
+                        if (v & 1) return false
+                        else
+                            return this.readCpuRegisterAsync(CortexReg.XPSR)
+                                .then(v => {
+                                    if (v & 0x3f) return false
+                                    else return true
+                                })
+                    })
+            })
+    }
+
+    safeHaltAsync() {
+        return this.isThreadHaltedAsync()
             .then(halted => {
                 if (!halted) {
                     return promiseWhileAsync(() => this.haltAsync()
-                        .then(() => this.readCpuRegisterAsync(CortexReg.PRIMASK))
-                        .then(v => {
-                            if (v & 1) return this.resumeAsync().then(() => true)
+                        .then(() => this.isThreadHaltedAsync())
+                        .then(safe => {
+                            if (safe)
+                                return false
                             else
-                                return this.readCpuRegisterAsync(CortexReg.XPSR)
-                                    .then(v => {
-                                        if (v & 0x3f)
-                                            return this.resumeAsync().then(() => true)
-                                        else
-                                            return Promise.resolve(false)
-                                    })
+                                return this.resumeAsync().then(() => true)
                         }))
                 }
             })
@@ -539,6 +598,15 @@ export class Device {
             .then(() => this.readMemAsync(CortexM.DHCSR))
             .then(v => assert(v & CortexM.S_REGRDY))
             .then(() => this.readMemAsync(CortexM.DCRDR))
+    }
+
+    writeCpuRegisterAsync(no: CortexReg, val: number) {
+        return this.writeMemAsync(CortexM.DCRDR, val)
+            .then(() => this.writeMemAsync(CortexM.DCRSR, no | CortexM.DCRSR_REGWnR))
+            .then(() => this.readMemAsync(CortexM.DHCSR))
+            .then(v => {
+                assert(v & CortexM.S_REGRDY)
+            })
     }
 
     readStateAsync(): Promise<CpuState> {
@@ -582,14 +650,44 @@ export class Device {
             })
     }
 
+    writeRegRepeatAsync(regId: Reg, data: number[]) {
+        console.log(data)
+        assert(data.length <= 15)
+        let request = regRequest(regId, true)
+        let sendargs = [0, data.length]
+        for (let i = 0; i < data.length; ++i) sendargs.push(request)
+        for (let i = 0; i < data.length; ++i) addInt32(sendargs, data[i])
+        console.log(sendargs)
+        return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
+            .then(buf => {
+                if (buf[1] != data.length) error("(many-wr) Bad #trans " + buf[1])
+                if (buf[2] != 1) error("(many-wr) Bad transfer status " + buf[2])
+            })
+    }
+
     readBlockAsync(addr: number, words: number) {
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => {
                 let blocks = range(Math.ceil(words / 15))
+                let lastSize = words % 15
+                if (lastSize == 0) lastSize = 15
                 let bufs: Buffer[] = []
-                return Promise.map(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ), 15))
+                return Promise.map(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ),
+                    no == blocks.length - 1 ? lastSize : 15))
                     .then(bufs => Buffer.concat(bufs))
+            })
+    }
+
+    writeBlockAsync(addr: number, words: number[]) {
+        return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
+            .then(() => this.writeApAsync(ApReg.TAR, addr))
+            .then(() => {
+                let blocks = range(Math.ceil(words.length / 15))
+                let bufs: Buffer[] = []
+                let reg = apReg(ApReg.DRW, DapVal.WRITE)
+                return Promise.map(blocks, no => this.writeRegRepeatAsync(reg, words.slice(no * 15, no * 15 + 15)))
+                    .then(() => { })
             })
     }
 
@@ -600,7 +698,7 @@ export class Device {
     readStackAsync() {
         return this.readCpuRegisterAsync(CortexReg.SP)
             .then(sp => {
-                let size = 0x20004000 - sp
+                let size = STACK_BASE - sp
                 if ((size & 3) || size < 0 || size > 8 * 1024) error("Bad SP: " + hex(sp));
                 return this.readBlockAsync(sp, size / 4)
             })
@@ -608,9 +706,26 @@ export class Device {
     }
 }
 
+function arrToString(arr: number[]) {
+    let r = ""
+    for (let i = 0; i < arr.length; ++i) {
+        r += ("0000" + i).slice(-4) + ": " + ("00000000" + (arr[i] >>> 0).toString(16)).slice(-8) + "\n"
+    }
+    return r
+}
+
+function machineStateToString(s: MachineState) {
+    return "\n\nREGS:\n" + arrToString(s.registers) + "\n\nSTACK:\n" + arrToString(s.stack) + "\n"
+}
+
 export interface CpuState {
     pc: number;
     lr: number;
+    stack: number[];
+}
+
+export interface MachineState {
+    registers: number[];
     stack: number[];
 }
 
@@ -690,10 +805,27 @@ export function handleMessageAsync(msg: any): Promise<any> {
     }
 }
 
+let code = [
+    3020076033,
+    3019970624,
+    2953035306
+]
+console.log(arrToString(code))
+
 function main() {
     let mydev = getMbedDevices()[0]
     let d = new Device(mydev.path)
     d.initAsync()
+        .then(() => d.safeHaltAsync())
+        .then(() => d.snapshotMachineStateAsync())
+        .then(s => console.log(machineStateToString(s)))
+        .then(() => d.executeCodeAsync(code, [17, 223]))
+        .then(() => process.exit(0))
+        //.then(() => Promise.delay(100))
+        //.then(() => d.haltAsync())
+        //.then(() => d.waitForHaltAsync())
+        //.then(() => d.snapshotMachineStateAsync())
+        //.then(s => console.log(s))
     /*
         .then(() => d.haltAsync())
         .then(() => d.readStackAsync())
