@@ -523,18 +523,19 @@ export class Device {
     }
 
     executeCodeAsync(code: number[], args: number[]) {
+        code.push(0xbe2a) // 'bkpt 42'; possible zero-padding will be interpreted as 'movs r0, r0'
         let baseAddr = STACK_BASE - code.length * 4;
         let state: MachineState = {
             stack: code,
             registers: args.slice()
         }
         while (state.registers.length < 16) state.registers.push(0)
-        state.registers[CortexReg.LR] = 0xffff0000;
-        state.registers[CortexReg.SP] = baseAddr - 4;
+        state.registers[CortexReg.LR] = STACK_BASE - 4 + 1; // 'bkpt' instruction we added; +1 for Thumb state
+        state.registers[CortexReg.SP] = baseAddr;
         state.registers[CortexReg.PC] = baseAddr;
         return this.restoreMachineState(state)
-            .then(() => this.snapshotMachineStateAsync())
-            .then(s => console.log("DID", machineStateToString(s)))
+            //.then(() => this.snapshotMachineStateAsync())
+            //.then(logMachineState("beforecode"))
             .then(() => this.resumeAsync())
     }
 
@@ -651,13 +652,13 @@ export class Device {
     }
 
     writeRegRepeatAsync(regId: Reg, data: number[]) {
-        console.log(data)
         assert(data.length <= 15)
         let request = regRequest(regId, true)
         let sendargs = [0, data.length]
-        for (let i = 0; i < data.length; ++i) sendargs.push(request)
-        for (let i = 0; i < data.length; ++i) addInt32(sendargs, data[i])
-        console.log(sendargs)
+        for (let i = 0; i < data.length; ++i) {
+            sendargs.push(request)
+            addInt32(sendargs, data[i])
+        }
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
                 if (buf[1] != data.length) error("(many-wr) Bad #trans " + buf[1])
@@ -806,26 +807,36 @@ export function handleMessageAsync(msg: any): Promise<any> {
 }
 
 let code = [
-    3020076033,
-    3019970624,
-    2953035306
+    3020469249,
+    3154331504
 ]
-console.log(arrToString(code))
+
+function logMachineState(lbl: string) {
+    return (s: MachineState) => {
+        //console.log(machineStateToString(s).replace(/^/gm, lbl + ": "))
+        return s
+    }
+}
 
 function main() {
     let mydev = getMbedDevices()[0]
     let d = new Device(mydev.path)
+    let st: MachineState;
     d.initAsync()
         .then(() => d.safeHaltAsync())
         .then(() => d.snapshotMachineStateAsync())
-        .then(s => console.log(machineStateToString(s)))
-        .then(() => d.executeCodeAsync(code, [17, 223]))
-        .then(() => process.exit(0))
+        //.then(logMachineState("init"))
+        .then(s => st = s)
+        .then(() => d.executeCodeAsync(code, [0xbeef, 0xf00, 0xf00d0, 0xffff00]))
         //.then(() => Promise.delay(100))
         //.then(() => d.haltAsync())
-        //.then(() => d.waitForHaltAsync())
-        //.then(() => d.snapshotMachineStateAsync())
-        //.then(s => console.log(s))
+        .then(() => d.waitForHaltAsync())
+        .then(() => d.snapshotMachineStateAsync())
+        .then(logMachineState("final"))
+        .then(st => { console.log(hex(st.stack[0])) })
+        .then(() => d.restoreMachineState(st))
+        .then(() => d.resumeAsync())
+        .then(() => process.exit(0))
     /*
         .then(() => d.haltAsync())
         .then(() => d.readStackAsync())
