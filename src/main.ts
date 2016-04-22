@@ -806,10 +806,7 @@ export function handleMessageAsync(msg: any): Promise<any> {
     }
 }
 
-let code = [
-    3020469249,
-    3154331504
-]
+let code = [0x4770b403,0xb500bc03,0x219620ff,0x47984b01,0xbd00,0x18451]
 
 function logMachineState(lbl: string) {
     return (s: MachineState) => {
