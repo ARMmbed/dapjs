@@ -3,6 +3,7 @@
 import * as Promise from "bluebird"
 
 const STACK_BASE = 0x20004000;
+const PAGE_SIZE = 0x400;
 
 export const enum DapCmd {
     DAP_INFO = 0x00,
@@ -667,6 +668,32 @@ export class Device {
     }
 
     readBlockAsync(addr: number, words: number) {
+        let funs = [() => Promise.resolve()]
+        let bufs: Buffer[] = []
+        let end = addr + words * 4
+        let ptr = addr
+        while (ptr < end) {
+            let nextptr = ptr + PAGE_SIZE
+            if (ptr == addr) {
+                nextptr &= ~(PAGE_SIZE - 1)
+            }
+            (() => {
+                let len = Math.min(nextptr - ptr, end - ptr)
+                let ptr0 = ptr
+                assert((len & 3) == 0)
+                funs.push(() =>
+                    this.readBlockCoreAsync(ptr0, len >> 2)
+                        .then(b => {
+                            bufs.push(b)
+                        }))
+            })()
+            ptr = nextptr
+        }
+        return promiseIterAsync(funs, f => f())
+            .then(() => Buffer.concat(bufs))
+    }
+
+    private readBlockCoreAsync(addr: number, words: number) {
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => {
@@ -692,6 +719,34 @@ export class Device {
             })
     }
 
+    snapshotHexAsync() {
+        return this.readBlockAsync(0, 256 * 1024 / 4)
+            .then(buf => {
+                let upper = -1
+                let addr = 0
+                let myhex: string[] = []
+                while (addr < buf.length) {
+                    if ((addr >> 16) != upper) {
+                        upper = addr >> 16
+                        myhex.push(hexBytes([0x02, 0x00, 0x00, 0x04, upper >> 8, upper & 0xff]))
+                    }
+                    let bytes = [0x10, (addr >> 8) & 0xff, addr & 0xff, 0]
+                    for (let i = 0; i < 16; ++i)
+                        bytes.push(buf[addr + i])
+                    myhex.push(hexBytes(bytes))
+                    addr += 16
+                }
+
+                myhex.push(":020000041000EA")
+                myhex.push(":0410140000C0030015")
+                myhex.push(":040000050003C0C173")
+                myhex.push(":00000001FF")
+                myhex.push("")
+
+                return myhex.join("\r\n")
+            })
+    }
+
     readIdCodeAsync() {
         return this.readDpAsync(Reg.IDCODE)
     }
@@ -705,6 +760,15 @@ export class Device {
             })
             .then(bufToUint32Array)
     }
+}
+
+function hexBytes(bytes: number[]) {
+    var chk = 0
+    var r = ":"
+    bytes.forEach(b => chk += b)
+    bytes.push((-chk) & 0xff)
+    bytes.forEach(b => r += ("0" + b.toString(16)).slice(-2))
+    return r.toUpperCase();
 }
 
 function arrToString(arr: number[]) {
@@ -806,7 +870,7 @@ export function handleMessageAsync(msg: any): Promise<any> {
     }
 }
 
-let code = [0x4770b403,0xb500bc03,0x219620ff,0x47984b01,0xbd00,0x18451]
+let code = [0x4770b403, 0xb500bc03, 0x219620ff, 0x47984b01, 0xbd00, 0x18451]
 
 function logMachineState(lbl: string) {
     return (s: MachineState) => {
@@ -821,6 +885,11 @@ function main() {
     let st: MachineState;
     d.initAsync()
         .then(() => d.safeHaltAsync())
+        .then(() => d.snapshotHexAsync())
+        .then(h => {
+            require("fs").writeFileSync("microbit.hex", h)
+            process.exit(0)
+        })
         .then(() => d.snapshotMachineStateAsync())
         //.then(logMachineState("init"))
         .then(s => st = s)
