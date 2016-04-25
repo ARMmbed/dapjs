@@ -5,6 +5,27 @@ import * as Promise from "bluebird"
 const STACK_BASE = 0x20004000;
 const PAGE_SIZE = 0x400;
 
+function readUInt32LE(b:Uint8Array, idx:number) {
+    return (b[idx] | 
+            (b[idx + 1] << 8) | 
+            (b[idx + 2] << 16) | 
+            (b[idx + 3] << 24)) >>> 0; 
+}
+
+function bufferConcat(bufs:Uint8Array[]) {
+    let len = 0
+    for (let b of bufs) {
+        len += b.length
+    }
+    let r = new Uint8Array(len)
+    len = 0
+    for (let b of bufs) {
+        r.set(b, len)
+        len += b.length
+    }
+    return r
+}
+
 export const enum DapCmd {
     DAP_INFO = 0x00,
     DAP_LED = 0x01,
@@ -231,7 +252,7 @@ function rid(v: number) {
 }
 
 interface CmdEntry {
-    resolve: (v: Buffer) => void;
+    resolve: (v: Uint8Array) => void;
     data: number[];
 }
 
@@ -292,7 +313,7 @@ export class Dap {
 
     cmdNumsAsync(op: DapCmd, data: number[]) {
         data.unshift(op)
-        return new Promise<Buffer>((resolve, reject) => {
+        return new Promise<Uint8Array>((resolve, reject) => {
             this.waiting.push({ resolve, data })
             this.pokeWaiting()
         }).then(buf => {
@@ -321,7 +342,7 @@ export class Dap {
                         if (buf[1] == 1) return buf[2]
                         if (buf[1] == 2) return buf[3] << 8 | buf[2]
                 }
-                return buf.slice(2, buf[1] + 2 - 1).toString("utf8")
+                return buf.slice(2, buf[1] + 2 - 1); // .toString("utf8")
             })
     }
 
@@ -431,7 +452,7 @@ export class Device {
     readRegAsync(regId: Reg) {
         return this.regOpAsync(regId, null)
             .then(buf => {
-                let v = buf.readUInt32LE(3)
+                let v = readUInt32LE(buf, 3)
                 info(`readReg(${rid(regId)}) = ${hex(v)}`)
                 return v
             })
@@ -669,7 +690,7 @@ export class Device {
 
     readBlockAsync(addr: number, words: number) {
         let funs = [() => Promise.resolve()]
-        let bufs: Buffer[] = []
+        let bufs: Uint8Array[] = []
         let end = addr + words * 4
         let ptr = addr
         while (ptr < end) {
@@ -690,7 +711,7 @@ export class Device {
             ptr = nextptr
         }
         return promiseIterAsync(funs, f => f())
-            .then(() => Buffer.concat(bufs))
+            .then(() => bufferConcat(bufs))
     }
 
     private readBlockCoreAsync(addr: number, words: number) {
@@ -700,10 +721,10 @@ export class Device {
                 let blocks = range(Math.ceil(words / 15))
                 let lastSize = words % 15
                 if (lastSize == 0) lastSize = 15
-                let bufs: Buffer[] = []
+                let bufs: Uint8Array[] = []
                 return Promise.map(blocks, no => this.readRegRepeatAsync(apReg(ApReg.DRW, DapVal.READ),
                     no == blocks.length - 1 ? lastSize : 15))
-                    .then(bufs => Buffer.concat(bufs))
+                    .then(bufs => bufferConcat(bufs))
             })
     }
 
@@ -712,7 +733,6 @@ export class Device {
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => {
                 let blocks = range(Math.ceil(words.length / 15))
-                let bufs: Buffer[] = []
                 let reg = apReg(ApReg.DRW, DapVal.WRITE)
                 return Promise.map(blocks, no => this.writeRegRepeatAsync(reg, words.slice(no * 15, no * 15 + 15)))
                     .then(() => { })
@@ -794,13 +814,13 @@ export interface MachineState {
     stack: number[];
 }
 
-function bufToUint32Array(buf: Buffer) {
+function bufToUint32Array(buf: Uint8Array) {
     assert((buf.length & 3) == 0)
     let r: number[] = []
     if (!buf.length) return r
     r[buf.length / 4 - 1] = 0
     for (let i = 0; i < r.length; ++i)
-        r[i] = buf.readUInt32LE(i << 2)
+        r[i] = readUInt32LE(buf, i << 2)
     return r
 }
 
@@ -862,7 +882,7 @@ export function handleMessageAsync(msg: any): Promise<any> {
                                 .then(buf => {
                                     let res: number[] = []
                                     for (let i = 0; i < buf.length; i += 4)
-                                        res.push(buf.readUInt32LE(i))
+                                        res.push(readUInt32LE(buf, i))
                                     return { data: res }
                                 })
                     }
