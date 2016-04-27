@@ -875,8 +875,14 @@ export function handleMessageAsync(msg: any): Promise<any> {
             return getDeviceAsync(msg.path)
                 .then<any>(dev => {
                     switch (msg.op) {
-                        case "halt": return dev.haltAsync().then(() => ({}))
-                        case "state": return dev.readStateAsync();
+                        case "halt": return dev.safeHaltAsync().then(() => ({}))
+                        case "snapshot": return dev.snapshotMachineStateAsync()
+                            .then(v => ({ state: v }));
+                        case "restore": return dev.restoreMachineState(msg.state);
+                        case "resume": return dev.resumeAsync();
+                        case "exec": 
+                            return dev.executeCodeAsync(msg.code, msg.args || [])
+                                .then(() => dev.waitForHaltAsync())
                         case "mem":
                             return dev.readBlockAsync(msg.addr, msg.words)
                                 .then(buf => {
