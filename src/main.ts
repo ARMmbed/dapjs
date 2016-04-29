@@ -424,10 +424,13 @@ export class Device {
     }
     
     reconnectAsync() {
-        this.dap.dev.close()
+        let dev = this.dap.dev
+        // see https://github.com/node-hid/node-hid/issues/61
+        dev.removeAllListeners() // unregister on(data) event
+        dev.write([0, 0, 7]) // write something so that it responds
+        dev.close() // now can close the device
         this.dap = null
-        // TODO this doesn't seem to work anyway
-        return Promise.delay(1000)
+        return Promise.delay(100)
             .then(() => {
                 this.dap = new Dap(this.path)
                 return this.initAsync()
