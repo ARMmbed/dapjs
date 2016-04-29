@@ -5,14 +5,14 @@ import * as Promise from "bluebird"
 const STACK_BASE = 0x20004000;
 const PAGE_SIZE = 0x400;
 
-function readUInt32LE(b:Uint8Array, idx:number) {
-    return (b[idx] | 
-            (b[idx + 1] << 8) | 
-            (b[idx + 2] << 16) | 
-            (b[idx + 3] << 24)) >>> 0; 
+function readUInt32LE(b: Uint8Array, idx: number) {
+    return (b[idx] |
+        (b[idx + 1] << 8) |
+        (b[idx + 2] << 16) |
+        (b[idx + 3] << 24)) >>> 0;
 }
 
-function bufferConcat(bufs:Uint8Array[]) {
+function bufferConcat(bufs: Uint8Array[]) {
     let len = 0
     for (let b of bufs) {
         len += b.length
@@ -218,8 +218,10 @@ function bank(addr: number) {
 
 let HID = require('node-hid');
 
-function error(msg: string): any {
-    throw new Error(msg);
+function error(msg: string, reconnect = false): any {
+    let err = new Error(msg);
+    if (reconnect) (err as any).dapReconnect = true;
+    throw err;
 }
 
 function info(msg: string) {
@@ -417,8 +419,19 @@ export class Device {
     dap: Dap;
     breakpoints: Breakpoint[];
 
-    constructor(path: string) {
+    constructor(private path: string) {
         this.dap = new Dap(path)
+    }
+    
+    reconnectAsync() {
+        this.dap.dev.close()
+        this.dap = null
+        // TODO this doesn't seem to work anyway
+        return Promise.delay(1000)
+            .then(() => {
+                this.dap = new Dap(this.path)
+                return this.initAsync()
+            })
     }
 
     initAsync() {
@@ -654,8 +667,8 @@ export class Device {
             addInt32(sendargs, val)
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
-                if (buf[1] != 1) error("Bad #trans " + buf[1])
-                if (buf[2] != 1) error("Bad transfer status " + buf[2])
+                if (buf[1] != 1) error("Bad #trans " + buf[1], true)
+                if (buf[2] != 1) error("Bad transfer status " + buf[2], true)
                 return buf
             })
     }
@@ -864,34 +877,46 @@ let devices: Map<Promise<Device>> = {}
 function getDeviceAsync(path: string) {
     if (devices[path]) return devices[path]
     let d = new Device(path)
-    devices[path] = d.initAsync().then(() => d)
+    return (devices[path] = d.initAsync().then(() => d))
+}
+
+function handleDevMsgAsync(msg: any): Promise<any> {
+    if (!msg.path) error("path missing");
+    // TODO enforce queue per path?
+    return getDeviceAsync(msg.path)
+        .then<any>(dev => {
+            switch (msg.op) {
+                case "halt": return dev.safeHaltAsync().then(() => ({}))
+                case "snapshot": return dev.snapshotMachineStateAsync()
+                    .then(v => ({ state: v }));
+                case "restore": return dev.restoreMachineState(msg.state);
+                case "resume": return dev.resumeAsync();
+                case "exec":
+                    return dev.executeCodeAsync(msg.code, msg.args || [])
+                        .then(() => dev.waitForHaltAsync())
+                case "mem":
+                    return dev.readBlockAsync(msg.addr, msg.words)
+                        .then(buf => {
+                            let res: number[] = []
+                            for (let i = 0; i < buf.length; i += 4)
+                                res.push(readUInt32LE(buf, i))
+                            return { data: res }
+                        })
+            }
+        })
 }
 
 export function handleMessageAsync(msg: any): Promise<any> {
     switch (msg.op) {
         case "list": return Promise.resolve({ devices: getMbedDevices() })
         default:
-            if (!msg.path) error("path missing");
-            return getDeviceAsync(msg.path)
-                .then<any>(dev => {
-                    switch (msg.op) {
-                        case "halt": return dev.safeHaltAsync().then(() => ({}))
-                        case "snapshot": return dev.snapshotMachineStateAsync()
-                            .then(v => ({ state: v }));
-                        case "restore": return dev.restoreMachineState(msg.state);
-                        case "resume": return dev.resumeAsync();
-                        case "exec": 
-                            return dev.executeCodeAsync(msg.code, msg.args || [])
-                                .then(() => dev.waitForHaltAsync())
-                        case "mem":
-                            return dev.readBlockAsync(msg.addr, msg.words)
-                                .then(buf => {
-                                    let res: number[] = []
-                                    for (let i = 0; i < buf.length; i += 4)
-                                        res.push(readUInt32LE(buf, i))
-                                    return { data: res }
-                                })
-                    }
+            return handleDevMsgAsync(msg)
+                .then(v => v, err => {
+                    if (!err.dapReconnect) return Promise.reject(err)
+                    console.log("re-connecting")
+                    return getDeviceAsync(msg.path)
+                        .then(dev => dev.reconnectAsync())
+                        .then(() => handleDevMsgAsync(msg))
                 })
     }
 }
