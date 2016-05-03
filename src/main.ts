@@ -352,6 +352,10 @@ export class Dap {
         return this.cmdNumsAsync(DapCmd.DAP_RESET_TARGET, [])
     }
 
+    disconnectAsync() {
+        return this.cmdNumsAsync(DapCmd.DAP_DISCONNECT, [])
+    }
+
     connectAsync() {
         info("Connecting...")
         return this.infoAsync(Info.PACKET_COUNT)
@@ -422,19 +426,28 @@ export class Device {
     constructor(private path: string) {
         this.dap = new Dap(path)
     }
-    
+
     reconnectAsync() {
+        delete this.dpSelect
+        delete this.csw
+        return this.dap.disconnectAsync()
+            .then(() => Promise.delay(100))
+            .then(() => this.initAsync())
+        
+        // it seems we do not have to actually close the USB connection
+            /*
         let dev = this.dap.dev
         // see https://github.com/node-hid/node-hid/issues/61
         dev.removeAllListeners() // unregister on(data) event
         dev.write([0, 0, 7]) // write something so that it responds
         dev.close() // now can close the device
         this.dap = null
-        return Promise.delay(100)
+        return Promise.delay(2000)
             .then(() => {
                 this.dap = new Dap(this.path)
                 return this.initAsync()
             })
+            */
     }
 
     initAsync() {
@@ -625,6 +638,7 @@ export class Device {
             .then(fpcr => {
                 let nb_code = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xF)
                 let nb_lit = (fpcr >> 7) & 0xf
+                if (nb_code == 0) error("invalid initialization")
                 info(`${nb_code} hardware breakpoints, ${nb_lit} literal comparators`)
                 this.breakpoints = range(nb_code).map(i => new Breakpoint(this, i))
                 return this.setFpbEnabledAsync(false)
