@@ -402,10 +402,13 @@ function range(n: number) {
 }
 
 export class Breakpoint {
+    public lastWritten: number;
     constructor(public parent: Device, public index: number) {
     }
 
     writeAsync(num: number) {
+        if (num == this.lastWritten) return
+        this.lastWritten = num
         return this.parent.writeMemAsync(CortexM.FP_COMP0 + this.index * 4, num)
     }
 }
@@ -427,27 +430,34 @@ export class Device {
         this.dap = new Dap(path)
     }
 
-    reconnectAsync() {
+    private clearCaches() {
         delete this.dpSelect
         delete this.csw
+        for (let b of this.breakpoints)
+            delete b.lastWritten
+    }
+
+    reconnectAsync() {
+        this.clearCaches()
+
         return this.dap.disconnectAsync()
             .then(() => Promise.delay(100))
             .then(() => this.initAsync())
-        
+
         // it seems we do not have to actually close the USB connection
-            /*
-        let dev = this.dap.dev
-        // see https://github.com/node-hid/node-hid/issues/61
-        dev.removeAllListeners() // unregister on(data) event
-        dev.write([0, 0, 7]) // write something so that it responds
-        dev.close() // now can close the device
-        this.dap = null
-        return Promise.delay(2000)
-            .then(() => {
-                this.dap = new Dap(this.path)
-                return this.initAsync()
-            })
-            */
+        /*
+    let dev = this.dap.dev
+    // see https://github.com/node-hid/node-hid/issues/61
+    dev.removeAllListeners() // unregister on(data) event
+    dev.write([0, 0, 7]) // write something so that it responds
+    dev.close() // now can close the device
+    this.dap = null
+    return Promise.delay(2000)
+        .then(() => {
+            this.dap = new Dap(this.path)
+            return this.initAsync()
+        })
+        */
     }
 
     initAsync() {
@@ -536,12 +546,16 @@ export class Device {
             .then(dhcsr => !!(dhcsr & (CortexM.C_STEP | CortexM.C_HALT)))
     }
 
+    debugEnableAsync() {
+        return this.writeMemAsync(CortexM.DHCSR, CortexM.DBGKEY | CortexM.C_DEBUGEN)
+    }
+
     resumeAsync() {
         return this.isHaltedAsync()
             .then(halted => {
                 if (halted)
                     return this.writeMemAsync(CortexM.DFSR, CortexM.DFSR_DWTTRAP | CortexM.DFSR_BKPT | CortexM.DFSR_HALTED)
-                        .then(() => this.writeMemAsync(CortexM.DHCSR, CortexM.DBGKEY | CortexM.C_DEBUGEN))
+                        .then(() => this.debugEnableAsync())
             })
     }
 
@@ -623,6 +637,26 @@ export class Device {
             })
     }
 
+    setBreakpointsAsync(addrs: number[]) {
+        function mapAddr(addr: number) {
+            if (addr === null) return 0
+            if ((addr & 3) == 2)
+                return 0x80000001 | (addr & ~3)
+            else if ((addr & 3) == 0)
+                return 0x40000001 | (addr & ~3)
+            else error("uneven address");
+        }
+        if (addrs.length > this.breakpoints.length)
+            error("not enough hw breakpoints");
+        return this.debugEnableAsync()
+            .then(() => this.setFpbEnabledAsync(true))
+            .then(() => {
+                while (addrs.length < this.breakpoints.length)
+                    addrs.push(null)
+                return Promise.map(addrs, (addr, i) =>
+                    this.breakpoints[i].writeAsync(mapAddr(addr)))
+            })
+    }
 
     setFpbEnabledAsync(enabled = true) {
         return this.writeMemAsync(CortexM.FP_CTRL, CortexM.FP_CTRL_KEY | (enabled ? 1 : 0))
@@ -644,6 +678,10 @@ export class Device {
                 return this.setFpbEnabledAsync(false)
             })
             .then(() => Promise.map(this.breakpoints, b => b.writeAsync(0)))
+    }
+
+    resetCoreAsync() {
+        return this.writeMemAsync(CortexM.NVIC_AIRCR, CortexM.NVIC_AIRCR_VECTKEY | CortexM.NVIC_AIRCR_SYSRESETREQ)
     }
 
     readCpuRegisterAsync(no: CortexReg) {
@@ -908,6 +946,8 @@ function handleDevMsgAsync(msg: any): Promise<any> {
                     .then(v => ({ state: v }));
                 case "restore": return dev.restoreMachineState(msg.state);
                 case "resume": return dev.resumeAsync();
+                case "reset": return dev.resetCoreAsync();
+                case "breakpoints": return dev.setBreakpointsAsync(msg.addrs);
                 case "exec":
                     return dev.executeCodeAsync(msg.code, msg.args || [])
                         .then(() => dev.waitForHaltAsync())
