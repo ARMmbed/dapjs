@@ -406,10 +406,19 @@ export class Breakpoint {
     constructor(public parent: Device, public index: number) {
     }
 
+    readAsync() {
+        return this.parent.readMemAsync(CortexM.FP_COMP0 + this.index * 4)
+            .then(n => {
+                console.log(`idx=${this.index}, CURR=${n}, LAST=${this.lastWritten}`)
+            })
+    }
+
     writeAsync(num: number) {
-        if (num == this.lastWritten) return
+        // Doesn't seem to work
+        //if (num == this.lastWritten) return Promise.resolve()
         this.lastWritten = num
         return this.parent.writeMemAsync(CortexM.FP_COMP0 + this.index * 4, num)
+            //.then(() => this.readAsync())
     }
 }
 
@@ -542,8 +551,17 @@ export class Device {
     }
 
     isHaltedAsync() {
+        return this.statusAsync().then(s => s.isHalted)
+    }
+
+    statusAsync() {
         return this.readMemAsync(CortexM.DHCSR)
-            .then(dhcsr => !!(dhcsr & (CortexM.C_STEP | CortexM.C_HALT)))
+            .then(dhcsr => this.readMemAsync(CortexM.DFSR)
+                .then(dfsr => ({
+                    dhcsr: dhcsr,
+                    dfsr: dfsr,
+                    isHalted: !!(dhcsr & CortexM.S_HALT)
+                })))
     }
 
     debugEnableAsync() {
@@ -653,7 +671,7 @@ export class Device {
             .then(() => {
                 while (addrs.length < this.breakpoints.length)
                     addrs.push(null)
-                return Promise.map(addrs, (addr, i) =>
+                return promiseIterAsync(addrs, (addr, i) =>
                     this.breakpoints[i].writeAsync(mapAddr(addr)))
             })
     }
@@ -682,6 +700,7 @@ export class Device {
 
     resetCoreAsync() {
         return this.writeMemAsync(CortexM.NVIC_AIRCR, CortexM.NVIC_AIRCR_VECTKEY | CortexM.NVIC_AIRCR_SYSRESETREQ)
+            .then(() => { })
     }
 
     readCpuRegisterAsync(no: CortexReg) {
@@ -948,9 +967,12 @@ function handleDevMsgAsync(msg: any): Promise<any> {
                 case "resume": return dev.resumeAsync();
                 case "reset": return dev.resetCoreAsync();
                 case "breakpoints": return dev.setBreakpointsAsync(msg.addrs);
+                case "status": return dev.statusAsync();
                 case "exec":
                     return dev.executeCodeAsync(msg.code, msg.args || [])
                         .then(() => dev.waitForHaltAsync())
+                case "wrmem":
+                    return dev.writeBlockAsync(msg.addr, msg.words)
                 case "mem":
                     return dev.readBlockAsync(msg.addr, msg.words)
                         .then(buf => {
