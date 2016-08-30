@@ -1,6 +1,6 @@
 {
   "name": "dapjs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "dependencies": {
     "bluebird": "^3.3.5",
