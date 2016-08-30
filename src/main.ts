@@ -273,6 +273,7 @@ export class Dap {
             if (!c) {
                 console.log("DROP", buf)
             } else {
+                //console.log("GOT", buf)
                 c.resolve(buf)
                 this.pokeWaiting()
             }
@@ -287,6 +288,7 @@ export class Dap {
         if (this.sent.length < this.maxSent && this.waiting.length > 0) {
             let w = this.waiting.shift()
             this.sent.push(w)
+            //console.log(`SEND ${this.waiting.length} -> ${this.sent.length} ${w.data.join(",")}`)
             this.sendNums(w.data)
         }
     }
@@ -359,7 +361,9 @@ export class Dap {
     connectAsync() {
         info("Connecting...")
         return this.infoAsync(Info.PACKET_COUNT)
-            .then((v: number) => { this.maxSent = v })
+            .then((v: number) => {
+                this.maxSent = v
+            })
             .then(() => this.cmdNumsAsync(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000)))
             .then(() => this.cmdNumsAsync(DapCmd.DAP_CONNECT, [1]))
             .then(buf => {
@@ -418,7 +422,7 @@ export class Breakpoint {
         //if (num == this.lastWritten) return Promise.resolve()
         this.lastWritten = num
         return this.parent.writeMemAsync(CortexM.FP_COMP0 + this.index * 4, num)
-            //.then(() => this.readAsync())
+        //.then(() => this.readAsync())
     }
 }
 
@@ -535,6 +539,7 @@ export class Device {
     }
 
     writeMemAsync(addr: number, data: number) {
+        //console.log(`wr: ${addr.toString(16)} := ${data}`)
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => this.writeApAsync(ApReg.DRW, data))
@@ -620,6 +625,55 @@ export class Device {
             //.then(() => this.snapshotMachineStateAsync())
             //.then(logMachineState("beforecode"))
             .then(() => this.resumeAsync())
+    }
+
+    writePagesAsync(words: number[], bufAddr: number, numBuffers: number) {
+        let currBuf = 0
+        let controlAddr = bufAddr - numBuffers * 4
+        let bufPtr = 0
+        let waitCnt = 0
+        let waitForTwoAsync = () => promiseWhileAsync(() =>
+            this.readMemAsync(controlAddr + currBuf * 4).then(v => {
+                waitCnt++
+                //console.log(`w2: [${currBuf}] -> ${v}`)
+                if (v == 2) return Promise.resolve(false)
+                return this.isHaltedAsync()
+                    .then(h => {
+                        if (h)
+                            error("halted")
+                        if (waitCnt > 100) {
+                            return this.haltAsync()
+                                .then(() => this.snapshotMachineStateAsync())
+                                .then(v => console.log(machineStateToString(v)))
+                                .then(() => this.readBlockAsync(controlAddr, 2))
+                                .then(v => console.log(v))
+                                .then(() => false)
+                        }
+                        return true
+                    })
+            }))
+            .then(() => {
+                waitCnt = 0
+            })
+        let loopAsync = (): Promise<void> => {
+            return waitForTwoAsync()
+                .then(() => {
+                    let nextPtr = bufPtr + PAGE_SIZE / 4
+                    let sl = words.slice(bufPtr, nextPtr)
+                    bufPtr = nextPtr
+                    return this.writeBlockAsync(bufAddr + currBuf * PAGE_SIZE, sl)
+                })
+                .then(() => this.writeMemAsync(controlAddr + currBuf * 4, 1))
+                .then(() => {
+                    currBuf++
+                    if (currBuf >= numBuffers) currBuf = 0
+                    if (bufPtr < words.length) return loopAsync();
+                    else return waitForTwoAsync()
+                        .then(() => this.writeMemAsync(controlAddr + currBuf * 4, 3))
+                        .then(waitForTwoAsync)
+                })
+        }
+        return loopAsync()
     }
 
     isThreadHaltedAsync() {
@@ -770,7 +824,6 @@ export class Device {
         }
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
-                if (buf[1] != data.length) error("(many-wr) Bad #trans " + buf[1])
                 if (buf[2] != 1) error("(many-wr) Bad transfer status " + buf[2])
             })
     }
@@ -816,12 +869,25 @@ export class Device {
     }
 
     writeBlockAsync(addr: number, words: number[]) {
+        console.log(`write block: 0x${addr.toString(16)} ${words.length} len`)
+        if (1 > 0)
+            return this.writeBlockCoreAsync(addr, words)
+                .then(() => console.log("written"))
+        let blSz = 10
+        let blocks = range(Math.ceil(words.length / blSz))
+        return promiseIterAsync(blocks, no =>
+            this.writeBlockCoreAsync(addr + no * blSz * 4, words.slice(no * blSz, no * blSz + blSz)))
+            .then(() => console.log("written"))
+    }
+
+    writeBlockCoreAsync(addr: number, words: number[]) {
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => {
-                let blocks = range(Math.ceil(words.length / 15))
+                let blSz = 12
+                let blocks = range(Math.ceil(words.length / blSz))
                 let reg = apReg(ApReg.DRW, DapVal.WRITE)
-                return Promise.map(blocks, no => this.writeRegRepeatAsync(reg, words.slice(no * 15, no * 15 + 15)))
+                return Promise.map(blocks, no => this.writeRegRepeatAsync(reg, words.slice(no * blSz, no * blSz + blSz)))
                     .then(() => { })
             })
     }
@@ -968,9 +1034,13 @@ function handleDevMsgAsync(msg: any): Promise<any> {
                 case "reset": return dev.resetCoreAsync();
                 case "breakpoints": return dev.setBreakpointsAsync(msg.addrs);
                 case "status": return dev.statusAsync();
+                case "bgexec":
+                    return dev.executeCodeAsync(msg.code, msg.args || [])
                 case "exec":
                     return dev.executeCodeAsync(msg.code, msg.args || [])
                         .then(() => dev.waitForHaltAsync())
+                case "wrpages":
+                    return dev.writePagesAsync(msg.words, msg.bufAddr, msg.numBuffers)
                 case "wrmem":
                     return dev.writeBlockAsync(msg.addr, msg.words)
                 case "mem":
