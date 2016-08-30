@@ -218,9 +218,10 @@ function bank(addr: number) {
 
 let HID = require('node-hid');
 
-function error(msg: string, reconnect = false): any {
+function error(msg: string, reconnect = false, wait = false): any {
     let err = new Error(msg);
     if (reconnect) (err as any).dapReconnect = true;
+    if (wait) (err as any).dapWait = true;
     throw err;
 }
 
@@ -545,10 +546,17 @@ export class Device {
             .then(() => this.writeApAsync(ApReg.DRW, data))
     }
 
-    readMemAsync(addr: number) {
+    readMemAsync(addr: number): Promise<number> {
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => this.readApAsync(ApReg.DRW))
+            .catch(e => {
+                if (e.dapWait) {
+                    console.log(`transfer wait, read at 0x${addr.toString(16)}`)
+                    return Promise.delay(100).then(() => this.readMemAsync(addr))
+                }
+                else return Promise.reject(e)
+            })
     }
 
     haltAsync() {
@@ -599,7 +607,10 @@ export class Device {
     }
 
     restoreMachineState(state: MachineState) {
-        return promiseIterAsync(state.registers, (val, idx) => this.writeCpuRegisterAsync(idx, val))
+        return promiseIterAsync(state.registers,
+            (val, idx) => val === null
+                ? Promise.resolve()
+                : this.writeCpuRegisterAsync(idx, val))
             .then(() => this.writeBlockAsync(STACK_BASE - state.stack.length * 4, state.stack))
     }
 
@@ -610,70 +621,57 @@ export class Device {
         }))
     }
 
-    executeCodeAsync(code: number[], args: number[]) {
-        code.push(0xbe2a) // 'bkpt 42'; possible zero-padding will be interpreted as 'movs r0, r0'
+    executeCodeAsync(code: number[], args: number[], quick = false) {
+        code = code.concat([0xbe2a]) // 'bkpt 42'; possible zero-padding will be interpreted as 'movs r0, r0'
         let baseAddr = STACK_BASE - code.length * 4;
         let state: MachineState = {
             stack: code,
             registers: args.slice()
         }
-        while (state.registers.length < 16) state.registers.push(0)
+        while (state.registers.length < 16) {
+            state.registers.push(quick ? null : 0)
+        }
         state.registers[CortexReg.LR] = STACK_BASE - 4 + 1; // 'bkpt' instruction we added; +1 for Thumb state
         state.registers[CortexReg.SP] = baseAddr;
         state.registers[CortexReg.PC] = baseAddr;
+        if (quick) state.stack = []
         return this.restoreMachineState(state)
             //.then(() => this.snapshotMachineStateAsync())
             //.then(logMachineState("beforecode"))
             .then(() => this.resumeAsync())
     }
 
-    writePagesAsync(words: number[], bufAddr: number, numBuffers: number) {
+    writePagesAsync(info: FlashData) {
         let currBuf = 0
-        let controlAddr = bufAddr - numBuffers * 4
         let bufPtr = 0
-        let waitCnt = 0
-        let waitForTwoAsync = () => promiseWhileAsync(() =>
-            this.readMemAsync(controlAddr + currBuf * 4).then(v => {
-                waitCnt++
-                //console.log(`w2: [${currBuf}] -> ${v}`)
-                if (v == 2) return Promise.resolve(false)
-                return this.isHaltedAsync()
-                    .then(h => {
-                        if (h)
-                            error("halted")
-                        if (waitCnt > 100) {
-                            return this.haltAsync()
-                                .then(() => this.snapshotMachineStateAsync())
-                                .then(v => console.log(machineStateToString(v)))
-                                .then(() => this.readBlockAsync(controlAddr, 2))
-                                .then(v => console.log(v))
-                                .then(() => false)
-                        }
-                        return true
-                    })
-            }))
-            .then(() => {
-                waitCnt = 0
-            })
+        let dstAddr = info.flashAddr
+        let waitForStopAsync = () => promiseWhileAsync(() =>
+            this.isHaltedAsync()
+                .then(h => !h))
+        let quickRun = false
         let loopAsync = (): Promise<void> => {
-            return waitForTwoAsync()
+            return Promise.resolve()
                 .then(() => {
                     let nextPtr = bufPtr + PAGE_SIZE / 4
-                    let sl = words.slice(bufPtr, nextPtr)
+                    let sl = info.flashWords.slice(bufPtr, nextPtr)
                     bufPtr = nextPtr
-                    return this.writeBlockAsync(bufAddr + currBuf * PAGE_SIZE, sl)
+                    return this.writeBlockAsync(info.bufferAddr + currBuf * PAGE_SIZE, sl)
                 })
-                .then(() => this.writeMemAsync(controlAddr + currBuf * 4, 1))
+                .then(waitForStopAsync)
+                .then(() => this.executeCodeAsync(info.flashCode, [dstAddr, info.bufferAddr + currBuf * PAGE_SIZE], quickRun))
                 .then(() => {
+                    quickRun = true
                     currBuf++
-                    if (currBuf >= numBuffers) currBuf = 0
-                    if (bufPtr < words.length) return loopAsync();
-                    else return waitForTwoAsync()
-                        .then(() => this.writeMemAsync(controlAddr + currBuf * 4, 3))
-                        .then(waitForTwoAsync)
+                    dstAddr += PAGE_SIZE
+                    if (currBuf >= info.numBuffers) currBuf = 0
+                    if (bufPtr < info.flashWords.length) return loopAsync();
+                    else return waitForStopAsync()
                 })
         }
-        return loopAsync()
+        return this.haltAsync()
+            .then(loopAsync)
+            .then(() => Promise.delay(200))
+            .then(() => this.resetCoreAsync())
     }
 
     isThreadHaltedAsync() {
@@ -796,7 +794,11 @@ export class Device {
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
                 if (buf[1] != 1) error("Bad #trans " + buf[1], true)
-                if (buf[2] != 1) error("Bad transfer status " + buf[2], true)
+                if (buf[2] != 1) {
+                    if (buf[2] == 2)
+                        error("Transfer wait", true, true)
+                    error("Bad transfer status " + buf[2], true)
+                }
                 return buf
             })
     }
@@ -824,7 +826,7 @@ export class Device {
         }
         return this.dap.cmdNumsAsync(DapCmd.DAP_TRANSFER, sendargs)
             .then(buf => {
-                if (buf[2] != 1) error("(many-wr) Bad transfer status " + buf[2])
+                if (buf[2] != 1) error("(many-wr) Bad transfer status " + buf[2], true, true)
             })
     }
 
@@ -869,6 +871,8 @@ export class Device {
     }
 
     writeBlockAsync(addr: number, words: number[]) {
+        if (words.length == 0)
+            return Promise.resolve()
         console.log(`write block: 0x${addr.toString(16)} ${words.length} len`)
         if (1 > 0)
             return this.writeBlockCoreAsync(addr, words)
@@ -880,15 +884,22 @@ export class Device {
             .then(() => console.log("written"))
     }
 
-    writeBlockCoreAsync(addr: number, words: number[]) {
+    writeBlockCoreAsync(addr: number, words: number[]): Promise<void> {
         return this.writeApAsync(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32)
             .then(() => this.writeApAsync(ApReg.TAR, addr))
             .then(() => {
-                let blSz = 12
+                let blSz = 12 // with 15 we get strange errors
                 let blocks = range(Math.ceil(words.length / blSz))
                 let reg = apReg(ApReg.DRW, DapVal.WRITE)
                 return Promise.map(blocks, no => this.writeRegRepeatAsync(reg, words.slice(no * blSz, no * blSz + blSz)))
                     .then(() => { })
+            })
+            .catch(e => {
+                if (e.dapWait) {
+                    console.log(`transfer wait, write block`)
+                    return Promise.delay(100).then(() => this.writeBlockCoreAsync(addr, words))
+                }
+                else return Promise.reject(e)
             })
     }
 
@@ -954,6 +965,14 @@ function arrToString(arr: number[]) {
 
 function machineStateToString(s: MachineState) {
     return "\n\nREGS:\n" + arrToString(s.registers) + "\n\nSTACK:\n" + arrToString(s.stack) + "\n"
+}
+
+export interface FlashData {
+    flashCode: number[];
+    flashWords: number[];
+    numBuffers: number;
+    bufferAddr: number;
+    flashAddr: number;
 }
 
 export interface CpuState {
@@ -1040,7 +1059,7 @@ function handleDevMsgAsync(msg: any): Promise<any> {
                     return dev.executeCodeAsync(msg.code, msg.args || [])
                         .then(() => dev.waitForHaltAsync())
                 case "wrpages":
-                    return dev.writePagesAsync(msg.words, msg.bufAddr, msg.numBuffers)
+                    return dev.writePagesAsync(msg)
                 case "wrmem":
                     return dev.writeBlockAsync(msg.addr, msg.words)
                 case "mem":
@@ -1062,7 +1081,7 @@ export function handleMessageAsync(msg: any): Promise<any> {
             return handleDevMsgAsync(msg)
                 .then(v => v, err => {
                     if (!err.dapReconnect) return Promise.reject(err)
-                    console.log("re-connecting")
+                    console.log("re-connecting, ", err.message)
                     return getDeviceAsync(msg.path)
                         .then(dev => dev.reconnectAsync())
                         .then(() => handleDevMsgAsync(msg))
@@ -1084,7 +1103,7 @@ function main() {
     let d = new Device(mydev.path)
     let st: MachineState;
     d.initAsync()
-        .then(() => d.safeHaltAsync())
+        .then(() => d.haltAsync())
         .then(() => d.snapshotHexAsync())
         .then(h => {
             require("fs").writeFileSync("microbit.hex", h)
