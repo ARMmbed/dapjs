@@ -6,7 +6,10 @@
         "rootDir": "src",
         "noImplicitAny": true,
         "declaration": true,
-        "sourceMap": false
+        "sourceMap": true,
+        "lib": ["ES2015", "dom"],
+        "types": ["node", "jquery"],
+        "typeRoots": ["node_modules/@types"]
     },
     "exclude": [
         "node_modules",

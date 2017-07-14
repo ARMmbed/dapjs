@@ -1,6 +1,6 @@
 node_modules/
 typings
-built
 *.sw?
 *.ts.new
 *.tgz
+built/
