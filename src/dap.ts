@@ -119,53 +119,52 @@ export class Dap {
     }
 
     public async cmdNums(op: DapCmd, data: number[]) {
-        // console.log(op);
-
         data.unshift(op);
-        return this.send(data)
-            .then((buf) => {
-                // console.log(buf);
 
-                if (buf[0] !== op) {
-                    throw new Error(`Bad response for ${op} -> ${buf[0]}`);
-                }
+        const buf = await this.send(data);
 
-                switch (op) {
-                    case DapCmd.DAP_CONNECT:
-                    case DapCmd.DAP_INFO:
-                    case DapCmd.DAP_TRANSFER:
-                        break;
-                    default:
-                        if (buf[1] !== 0) {
-                            throw new Error(`Bad status for ${op} -> ${buf[1]}`);
-                        }
+        if (buf[0] !== op) {
+            throw new Error(`Bad response for ${op} -> ${buf[0]}`);
+        }
+
+        switch (op) {
+            case DapCmd.DAP_CONNECT:
+            case DapCmd.DAP_INFO:
+            case DapCmd.DAP_TRANSFER:
+                break;
+            default:
+                if (buf[1] !== 0) {
+                    throw new Error(`Bad status for ${op} -> ${buf[1]}`);
                 }
-                return buf;
-            });
+        }
+
+        return buf;
     }
 
     public async connect() {
         console.log("Connecting...");
-        return this.info(Info.PACKET_COUNT)
-            .then((v: number) => {
-                this.maxSent = v;
-            })
-            .then(async () => this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000)))
-            .then(async () => this.cmdNums(DapCmd.DAP_CONNECT, [0]))
-            .then(async (buf) => {
-                if (buf[1] !== 1) {
-                    // not SWD :'(
 
-                    console.log(buf);
-                    console.error("SWD mode not enabled.");
-                }
+        const v = await this.info(Info.PACKET_COUNT);
 
-                return this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000));
-            })
-            .then(async () => this.cmdNums(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]))
-            .then(async () => this.cmdNums(DapCmd.DAP_SWD_CONFIGURE, [0]))
-            .then(async () => this.jtagToSwd())
-            .then(() => console.log("Connected."));
+        if (v as number) {
+            this.maxSent = v as number;
+        } else {
+            throw new Error("DAP_INFO returned invalid packet count.");
+        }
+
+        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000));
+
+        const buf = await this.cmdNums(DapCmd.DAP_CONNECT, [0]);
+        if (buf[1] !== 1) {
+            throw new Error("SWD mode not enabled.");
+        }
+
+        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000));
+        await this.cmdNums(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]);
+        await this.cmdNums(DapCmd.DAP_SWD_CONFIGURE, [0]);
+        await this.jtagToSwd();
+
+        console.log("Connected");
     }
 
     private sendNums(lst: number[]) {
@@ -195,33 +194,30 @@ export class Dap {
     }
 
     private async info(id: Info) {
-        return this.cmdNums(DapCmd.DAP_INFO, [id])
-            .then((buf) => {
-                if (buf[1] === 0) {
-                    return null;
-                }
+        const buf = await this.cmdNums(DapCmd.DAP_INFO, [id]);
 
-                switch (id) {
-                    case Info.CAPABILITIES:
-                    case Info.PACKET_COUNT:
-                    case Info.PACKET_SIZE:
-                        if (buf[1] === 1) {
-                            return buf[2];
-                        } else if (buf[1] === 2) {
-                            return buf[3] << 8 | buf[2];
-                        }
+        if (buf[1] === 0) {
+            return null;
+        }
+
+        switch (id) {
+            case Info.CAPABILITIES:
+            case Info.PACKET_COUNT:
+            case Info.PACKET_SIZE:
+                if (buf[1] === 1) {
+                    return buf[2];
+                } else if (buf[1] === 2) {
+                    return buf[3] << 8 | buf[2];
                 }
-                return buf.slice(2, buf[1] + 2 - 1); // .toString("utf8")
-            });
+        }
+        return buf.slice(2, buf[1] + 2 - 1); // .toString("utf8")
     }
 
-    private async send(command: number[]): Promise<Uint8Array> {
+    private async send(command: number[]) {
         const array = Uint8Array.from(command);
+        await this.hid.write(array.buffer);
 
-        return this.hid.write(array.buffer)
-            .then(async (response) => this.hid.read())
-            .then((response) => {
-                return new Uint8Array(response.buffer);
-            });
+        const response = await this.hid.read();
+        return new Uint8Array(response.buffer);
     }
 }

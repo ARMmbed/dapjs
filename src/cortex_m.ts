@@ -92,10 +92,14 @@ export const enum CPUIDImplementer {
     CPUID_IMPLEMENTER_ARM = 0x41,
 }
 
-export const enum CPUIDISA {
+export const enum ISA {
     ARMv6M = 0xC,
     ARMv7M = 0xF,
 }
+
+export const ISANames: Map<ISA, string> = new Map<ISA, string>();
+ISANames.set(ISA.ARMv6M, "ARMv6M");
+ISANames.set(ISA.ARMv7M, "ARMv7M");
 
 export const enum CoreType {
     CortexM0 = 0xc20,
@@ -105,17 +109,18 @@ export const enum CoreType {
     CortexM0p = 0xc60,
 }
 
-export interface IMachineState {
-    registers: number[];
-    stack: number[];
-}
-
 export const CoreNames: Map<CoreType, string> = new Map<CoreType, string>();
 CoreNames.set(CoreType.CortexM0, "Cortex-M0");
 CoreNames.set(CoreType.CortexM1, "Cortex-M1");
 CoreNames.set(CoreType.CortexM3, "Cortex-M3");
 CoreNames.set(CoreType.CortexM4, "Cortex-M4");
 CoreNames.set(CoreType.CortexM0p, "Cortex-M0+");
+
+
+export interface IMachineState {
+    registers: number[];
+    stack: number[];
+}
 
 export const enum CortexReg {
     R0 = 0,
@@ -149,6 +154,11 @@ export const enum CoreState {
     TARGET_RUNNING,
 }
 
+/**
+ * Abstraction of an ARM Cortex M CPU from a programmer's perspective. Provides functionality
+ * for setting breakpoints, reading general-purpose registers, reading from memory and stopping
+ * and starting the CPU.
+ */
 export class CortexM {
     protected dev: Device;
     private breakpoints: Breakpoint[];
@@ -157,14 +167,22 @@ export class CortexM {
         this.dev = device;
     }
 
+    /**
+     * Initialise the debug access port on the device, and read the device type.
+     */
     public async init() {
         await this.dev.init();
 
         await this.setupFpb();
         await this.readCoreType();
-        console.log("Initialized.");
+        console.debug("Initialized.");
     }
 
+    /**
+     * Read the current state of the CPU.
+     *
+     * @returns A member of the `CoreState` enum corresponding to the current status of the CPU.
+     */
     public async getState() {
         const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
 
@@ -187,27 +205,35 @@ export class CortexM {
         }
     }
 
-    public async readCoreType() {
+    /**
+     * Read the CPUID register from the CPU, and interpret its meaning in terms of implementer,
+     * architecture and core type.
+     */
+    public async readCoreType(): Promise<[CPUIDImplementer, ISA, CoreType]> {
         const cpuid = await this.readMem(CortexSpecialReg.CPUID);
 
         const implementer = ((cpuid & CPUID_IMPLEMENTER_MASK) >> CPUID_IMPLEMENTER_POS) as CPUIDImplementer;
-        const arch = ((cpuid & CPUID_ARCHITECTURE_MASK) >> CPUID_ARCHITECTURE_POS) as CPUIDISA;
+        const arch = ((cpuid & CPUID_ARCHITECTURE_MASK) >> CPUID_ARCHITECTURE_POS) as ISA;
         const coreType = ((cpuid & CPUID_PARTNO_MASK) >> CPUID_PARTNO_POS) as CoreType;
 
-        console.log(`Found an ARM ${CoreNames.get(coreType)}`);
+        console.debug(`Found an ARM ${CoreNames.get(coreType)}`);
+
+        return [implementer, arch, coreType];
     }
 
+    /**
+     * Set up (and disable) the Flash Patch & Breakpoint unit. It will be enabled when
+     * the first breakpoint is set.
+     *
+     * Also reads the number of available hardware breakpoints.
+     */
     public async setupFpb() {
-        // Reads the number of hardware breakpoints available on the core
-        // and disable the FPB (Flash Patch and Breakpoint Unit)
-        // which will be enabled when a first breakpoint will be set
-
         // setup FPB (breakpoint)
         const fpcr = await this.readMem(CortexSpecialReg.FP_CTRL);
         const nbCode = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xf);
         const nbLit = (fpcr >> 7) & 0xf;
 
-        console.log(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
+        console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
 
         this.breakpoints = [];
 
@@ -221,6 +247,11 @@ export class CortexM {
         await this.setFpbEnabled(false);
     }
 
+    /**
+     * Set breakpoints at specified memory addresses.
+     *
+     * @param addrs An array of memory addresses at which to set breakpoints.
+     */
     public async setBreakpoints(addrs: number[]) {
         const mapAddr = (addr: number) => {
             if (addr === null) {
@@ -250,16 +281,32 @@ export class CortexM {
         }
     }
 
+    /**
+     * Enable or disable the Flash Patch and Breakpoint unit (FPB).
+     *
+     * @param enabled
+     */
     public async setFpbEnabled(enabled = true) {
         return this.writeMem(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
     }
 
+    /**
+     * Write a 32-bit word to the specified (word-aligned) memory address.
+     *
+     * @param addr Memory address to write to
+     * @param data Data to write (values above 2**32 will be truncated)
+     */
     public async writeMem(addr: number, data: number) {
         await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
         await this.dev.writeAp(ApReg.TAR, addr);
         await this.dev.writeAp(ApReg.DRW, data);
     }
 
+    /**
+     * Read a 32-bit word from the specified (word-aligned) memory address.
+     *
+     * @param addr Memory address to read from.
+     */
     public async readMem(addr: number): Promise<number> {
         await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
         await this.dev.writeAp(ApReg.TAR, addr);
@@ -273,6 +320,13 @@ export class CortexM {
         }
     }
 
+    /**
+     * Reads a block of memory from the specified memory address.
+     *
+     * @param addr Address to read from
+     * @param words Number of words to read
+     * @param pageSize Memory page size
+     */
     public async readBlock(addr: number, words: number, pageSize: number) {
         const funs = [async () => Promise.resolve()];
         const bufs: Uint8Array[] = [];
@@ -302,17 +356,23 @@ export class CortexM {
         return await bufferConcat(bufs);
     }
 
+    /**
+     * Write a block of memory to the specified memory address.
+     *
+     * @param addr Memory address to write to.
+     * @param words Array of 32-bit words to write to memory.
+     */
     public async writeBlock(addr: number, words: number[]) {
         if (words.length === 0) {
             return;
         }
 
-        console.log(`write block: 0x${addr.toString(16)} ${words.length} len`);
+        console.debug(`write block: 0x${addr.toString(16)} ${words.length} len`);
 
         // TODO: do we need this, or the second part?
         if (1 > 0) {
             await this.writeBlockCore(addr, words);
-            console.log("written");
+            console.debug("written");
             return;
         }
 
@@ -322,9 +382,14 @@ export class CortexM {
             await this.writeBlockCore(addr + i * blSz * 4, words.slice(i * blSz, i * blSz + blSz));
         }
 
-        console.log("written");
+        console.debug("written");
     }
 
+    /**
+     * Read a core register from the CPU (e.g. r0...r15, pc, sp, lr, s0...)
+     *
+     * @param no Member of the `CortexReg` enum - an ARM Cortex CPU general-purpose register.
+     */
     public async readCoreRegister(no: CortexReg) {
         await this.writeMem(CortexSpecialReg.DCRSR, no);
         const v = await this.readMem(CortexSpecialReg.DHCSR);
@@ -332,6 +397,12 @@ export class CortexM {
         return await this.readMem(CortexSpecialReg.DCRDR);
     }
 
+    /**
+     * Write a 32-bit word to the specified CPU general-purpose register.
+     *
+     * @param no Member of the `CortexReg` enum - an ARM Cortex CPU general-purpose register.
+     * @param val Value to be written.
+     */
     public async writeCoreRegister(no: CortexReg, val: number) {
         await this.writeMem(CortexSpecialReg.DCRDR, val);
         await this.writeMem(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
@@ -340,6 +411,9 @@ export class CortexM {
         assert(v & CortexSpecialReg.S_REGRDY);
     }
 
+    /**
+     * Halt the CPU core.
+     */
     public async halt() {
         return this.writeMem(
             CortexSpecialReg.DHCSR,
@@ -347,21 +421,33 @@ export class CortexM {
         );
     }
 
+    /**
+     * Resume the CPU core.
+     */
     public async resume() {
         if (await this.isHalted()) {
             await this.writeMem(
                 CortexSpecialReg.DFSR,
                 CortexSpecialReg.DFSR_DWTTRAP | CortexSpecialReg.DFSR_BKPT | CortexSpecialReg.DFSR_HALTED,
             );
-            this.debugEnable();
+            await this.debugEnable();
         }
     }
 
+    /**
+     * Find out whether the CPU is halted.
+     */
     public async isHalted() {
         const s = await this.status();
         return s.isHalted;
     }
 
+    /**
+     * Read the current status of the CPU.
+     *
+     * @returns Object containing the contents of the `DHCSR` register, the `DFSR` register, and a boolean value
+     * stating the current halted state of the CPU.
+     */
     public async status() {
         const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
         const dfsr = await this.readMem(CortexSpecialReg.DFSR);
@@ -373,10 +459,17 @@ export class CortexM {
         };
     }
 
+    /**
+     * Enable debugging on the target CPU.
+     */
     public async debugEnable() {
-        return this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN);
+        await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN);
     }
 
+    /**
+     * Reset the CPU core. This currently does a software reset - it is also technically possible to perform a 'hard'
+     * reset using the reset pin from the debugger.
+     */
     public async reset() {
         await this.writeMem(
             CortexSpecialReg.NVIC_AIRCR,
@@ -391,6 +484,13 @@ export class CortexM {
         }
     }
 
+    /**
+     * Snapshot the current state of the CPU. Reads all general-purpose registers, and returns them in an array. This
+     * should also snapshot the current stack state, but given that the stack location varies between individual CPUs,
+     * this functionality should be moved somewhere else.
+     *
+     * **TODO**: remove the code about the stack.
+     */
     public async snapshotMachineState() {
         const state: IMachineState = {
             registers: [],
@@ -402,6 +502,75 @@ export class CortexM {
         }
 
         return state;
+    }
+
+    /**
+     * Run specified machine code natively on the device. Assumes usual C calling conventions
+     * - returns the value of r0 once the program has terminated. The program _must_ terminate
+     * in order for this function to return. This can be achieved by placing a `bkpt`
+     * instruction at the end of the function.
+     *
+     * **FIXME**: currently causes a hard fault when the core is resumed after successfully uploading
+     * the blob to memory and setting core registers.
+     *
+     * @param code array containing the machine code (32-bit words).
+     * @param address memory address at which to place the code.
+     * @param pc initial value of the program counter.
+     * @param lr initial value of the link register.
+     * @param sp initial value of the stack pointer.
+     * @param upload should we upload the code before running it.
+     * @param args set registers r0...rn before running code
+     *
+     * @returns A promise for the value of r0 on completion of the function call.
+     */
+    public async runCode(code: number[], address: number,  pc: number, lr: number, sp: number, upload: boolean, ...args: number[]) {
+        // Halt the core
+        await this.halt();
+
+        // Point the program counter to the start of the program
+        await this.writeCoreRegister(CortexReg.PC, pc);
+        await this.writeCoreRegister(CortexReg.LR, lr);
+        await this.writeCoreRegister(CortexReg.SP, sp);
+
+        for (let i = 0; i < args.length; i++) {
+            await this.writeCoreRegister(i, args[i]);
+        }
+
+        // Write the program to memory at the specified address
+        if (upload) {
+            await this.writeBlock(address, code);
+        }
+
+        // Run the program
+        // await this.resume();
+
+        while (!(await this.isHalted())) { /* empty */ }
+
+        return await this.readCoreRegister(CortexReg.R0);
+    }
+
+    /**
+     * Step the processor forward by one instruction.
+     */
+    public async step() {
+        const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
+
+        if (!(dhcsr & (CortexSpecialReg.C_STEP | CortexSpecialReg.C_HALT))) {
+            console.error("Target is not halted.");
+            return;
+        }
+
+        const interrupts_masked = (CortexSpecialReg.C_MASKINTS & dhcsr) !== 0;
+
+        if (!interrupts_masked) {
+            await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT | CortexSpecialReg.C_MASKINTS);
+        }
+
+        await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY|CortexSpecialReg.C_DEBUGEN|CortexSpecialReg.C_MASKINTS|CortexSpecialReg.C_STEP);
+
+        while (!(await this.readMem(CortexSpecialReg.DHCSR) & CortexSpecialReg.C_HALT)) { /* wait */ }
+
+        this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT)
     }
 
     private async readBlockCore(addr: number, words: number) {
@@ -440,7 +609,7 @@ export class CortexM {
             }
         } catch (e) {
             if (e.dapWait) {
-                console.log(`transfer wait, write block`);
+                console.debug(`transfer wait, write block`);
                 await delay(100);
                 return await this.writeBlockCore(addr, words);
             } else {

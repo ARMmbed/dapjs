@@ -46,9 +46,9 @@ export class Device {
     public async reconnect() {
         this.clearCaches();
 
-        return this.dap.disconnect()
-            .then(async () => delay(100))
-            .then(async () => this.init());
+        await this.dap.disconnect();
+        await delay(100);
+        await this.init();
     }
 
     public async init() {
@@ -139,16 +139,15 @@ export class Device {
             sendargs.push(request);
         }
 
-        return this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs)
-            .then((buf) => {
-                if (buf[1] !== cnt) {
-                    throw new Error(("(many) Bad #trans " + buf[1]));
-                } else if (buf[2] !== 1) {
-                    throw new Error(("(many) Bad transfer status " + buf[2]));
-                }
+        const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
 
-                return buf.slice(3, 3 + cnt * 4);
-            });
+        if (buf[1] !== cnt) {
+            throw new Error(("(many) Bad #trans " + buf[1]));
+        } else if (buf[2] !== 1) {
+            throw new Error(("(many) Bad transfer status " + buf[2]));
+        }
+
+        return buf.slice(3, 3 + cnt * 4);
     }
 
     public async writeRegRepeat(regId: Reg, data: number[]) {
@@ -162,12 +161,11 @@ export class Device {
             addInt32(sendargs, d);
         }
 
-        return this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs)
-            .then((buf) => {
-                if (buf[2] !== 1) {
-                    throw new Error(("(many-wr) Bad transfer status " + buf[2]));
-                }
-            });
+        const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
+
+        if (buf[2] !== 1) {
+            throw new Error(("(many-wr) Bad transfer status " + buf[2]));
+        }
     }
 
     private clearCaches() {
@@ -186,19 +184,18 @@ export class Device {
             addInt32(sendargs, val);
         }
 
-        return this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs)
-            .then((buf) => {
-                if (buf[1] !== 1) {
-                    console.error("Make sure you have initialised the DAP connection.");
-                    throw new Error(("Bad #trans " + buf[1]));
-                } else if (buf[2] !== 1) {
-                    if (buf[2] === 2) {
-                        throw new Error(("Transfer wait"));
-                    }
-                    throw new Error(("Bad transfer status " + buf[2]));
-                }
+        const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
 
-                return buf;
-            });
+        if (buf[1] !== 1) {
+            console.error("Make sure you have initialised the DAP connection.");
+            throw new Error(("Bad #trans " + buf[1]));
+        } else if (buf[2] !== 1) {
+            if (buf[2] === 2) {
+                throw new Error(("Transfer wait"));
+            }
+            throw new Error(("Bad transfer status " + buf[2]));
+        }
+
+        return buf;
     }
 }

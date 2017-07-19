@@ -7,10 +7,8 @@ export class Breakpoint {
     constructor(public parent: CortexM, public index: number) { }
 
     public async read() {
-        return this.parent.readMem(CortexSpecialReg.FP_COMP0 + this.index * 4)
-            .then((n) => {
-                console.log(`idx=${this.index}, CURR=${n}, LAST=${this.lastWritten}`);
-            });
+        const n = await this.parent.readMem(CortexSpecialReg.FP_COMP0 + this.index * 4);
+        console.log(`idx=${this.index}, CURR=${n}, LAST=${this.lastWritten}`);
     }
 
     public async write(num: number) {

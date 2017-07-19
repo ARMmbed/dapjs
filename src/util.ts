@@ -119,11 +119,15 @@ export const hexBytes = (bytes: number[]) => {
 const arrToString = (arr: number[]) => {
     let r = "";
     for (let i = 0; i < arr.length; ++i) {
-        r += ("0000" + i).slice(-4) + ": " + ("00000000" + (arr[i] >>> 0).toString(16)).slice(-8) + "\n";
+        r += ("0000" + i).slice(-4) + ": " + ("00000000" + (arr[i] >>> 0).toString(16)).slice(-8);
+
+        if (i != arr.length - 1) {
+            r += "\n";
+        }
     }
     return r;
 };
 
 export const machineStateToString = (s: IMachineState) => {
-    return "REGS:\n" + arrToString(s.registers) + "\n\nSTACK:\n" + arrToString(s.stack);
+    return "REGS:\n" + arrToString(s.registers);
 };

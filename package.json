@@ -2,16 +2,26 @@
   "name": "dapjs",
   "version": "0.3.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
-  "dependencies": {},
+  "dependencies": {
+    "glob": "^7.1.2",
+    "minimatch": "^3.0.4"
+  },
   "devDependencies": {
+    "@types/chai": "^4.0.1",
     "@types/jquery": "^3.2.8",
+    "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.12",
+    "chai": "^4.1.0",
+    "mocha": "^3.4.2",
+    "ts-node": "^3.2.1",
     "tslint": "^5.5.0",
+    "typedoc": "^0.7.1",
     "typescript": "^2.4.1"
   },
   "scripts": {
     "build": "tsc",
-    "lint": "tslint -c tslint.json -p tsconfig.json"
+    "lint": "tslint -c tslint.json -p tsconfig.json",
+    "docs": "node .\node_modules\typedoc\bin\typedoc -p .\tsconfig.json --out docs"
   },
   "repository": {
     "type": "git",

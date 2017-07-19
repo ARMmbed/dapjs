@@ -7,7 +7,7 @@
         "noImplicitAny": true,
         "declaration": true,
         "sourceMap": true,
-        "lib": ["ES2015", "dom"],
+        "lib": ["es2015", "dom"],
         "types": ["node", "jquery"],
         "typeRoots": ["node_modules/@types"]
     },

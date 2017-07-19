@@ -8,7 +8,8 @@
         "only-arrow-functions": [true],
         "promise-function-async": true,
         "no-console": [false],
-        "no-bitwise": false
+        "no-bitwise": false,
+        "prefer-const": true
     },
     "rulesDirectory": []
 }
