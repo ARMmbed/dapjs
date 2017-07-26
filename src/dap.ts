@@ -94,16 +94,8 @@ export const enum ApReg {
     IDR = 0xFC,
 }
 
-interface ICmdEntry {
-    resolve: (v: Uint8Array) => void;
-    data: number[];
-}
-
 export class Dap {
     private hid: IHID;
-
-    private sent: ICmdEntry[] = [];
-    private waiting: ICmdEntry[] = [];
     private maxSent = 1;
 
     constructor(hid: IHID) {
@@ -165,15 +157,6 @@ export class Dap {
         await this.jtagToSwd();
 
         console.log("Connected");
-    }
-
-    private sendNums(lst: number[]) {
-        lst.unshift(0);
-        while (lst.length < 64) {
-            lst.push(0);
-        }
-
-        this.send(lst);
     }
 
     private async jtagToSwd() {

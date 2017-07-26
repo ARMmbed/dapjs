@@ -1,7 +1,7 @@
-import {ApReg, Csw, Dap, DapCmd, DapVal, Reg} from "./dap";
-import {Breakpoint} from "./debug";
+import {Debug} from "./debug";
 import {Device} from "./device";
-import {apReg, assert, bufferConcat, delay} from "./util";
+import {Memory} from "./memory";
+import {assert} from "./util";
 
 export const enum CortexSpecialReg {
     // Debug Fault Status Register
@@ -116,12 +116,6 @@ CoreNames.set(CoreType.CortexM3, "Cortex-M3");
 CoreNames.set(CoreType.CortexM4, "Cortex-M4");
 CoreNames.set(CoreType.CortexM0p, "Cortex-M0+");
 
-
-export interface IMachineState {
-    registers: number[];
-    stack: number[];
-}
-
 export const enum CortexReg {
     R0 = 0,
     R1 = 1,
@@ -160,11 +154,15 @@ export const enum CoreState {
  * and starting the CPU.
  */
 export class CortexM {
+    public readonly memory: Memory;
+    public readonly debug: Debug;
+
     protected dev: Device;
-    private breakpoints: Breakpoint[];
 
     constructor(device: Device) {
         this.dev = device;
+        this.memory = new Memory(device);
+        this.debug = new Debug(this);
     }
 
     /**
@@ -173,7 +171,7 @@ export class CortexM {
     public async init() {
         await this.dev.init();
 
-        await this.setupFpb();
+        await this.debug.setupFpb();
         await this.readCoreType();
         console.debug("Initialized.");
     }
@@ -184,10 +182,10 @@ export class CortexM {
      * @returns A member of the `CoreState` enum corresponding to the current status of the CPU.
      */
     public async getState() {
-        const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
+        const dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
 
         if (dhcsr & CortexSpecialReg.S_RESET_ST) {
-            const newDHCSR = await this.readMem(CortexSpecialReg.DHCSR);
+            const newDHCSR = await this.memory.read32(CortexSpecialReg.DHCSR);
 
             if (newDHCSR & CortexSpecialReg.S_RESET_ST && !(newDHCSR & CortexSpecialReg.S_RETIRE_ST)) {
                 return CoreState.TARGET_RESET;
@@ -210,7 +208,7 @@ export class CortexM {
      * architecture and core type.
      */
     public async readCoreType(): Promise<[CPUIDImplementer, ISA, CoreType]> {
-        const cpuid = await this.readMem(CortexSpecialReg.CPUID);
+        const cpuid = await this.memory.read32(CortexSpecialReg.CPUID);
 
         const implementer = ((cpuid & CPUID_IMPLEMENTER_MASK) >> CPUID_IMPLEMENTER_POS) as CPUIDImplementer;
         const arch = ((cpuid & CPUID_ARCHITECTURE_MASK) >> CPUID_ARCHITECTURE_POS) as ISA;
@@ -222,179 +220,15 @@ export class CortexM {
     }
 
     /**
-     * Set up (and disable) the Flash Patch & Breakpoint unit. It will be enabled when
-     * the first breakpoint is set.
-     *
-     * Also reads the number of available hardware breakpoints.
-     */
-    public async setupFpb() {
-        // setup FPB (breakpoint)
-        const fpcr = await this.readMem(CortexSpecialReg.FP_CTRL);
-        const nbCode = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xf);
-        const nbLit = (fpcr >> 7) & 0xf;
-
-        console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
-
-        this.breakpoints = [];
-
-        for (let i = 0; i < nbCode; i++) {
-            const b = new Breakpoint(this, i);
-            b.write(0);
-
-            await this.breakpoints.push(b);
-        }
-
-        await this.setFpbEnabled(false);
-    }
-
-    /**
-     * Set breakpoints at specified memory addresses.
-     *
-     * @param addrs An array of memory addresses at which to set breakpoints.
-     */
-    public async setBreakpoints(addrs: number[]) {
-        const mapAddr = (addr: number) => {
-            if (addr === null) {
-                return 0;
-            } else if ((addr & 3) === 2) {
-                return 0x80000001 | (addr & ~3);
-            } else if ((addr & 3) === 0) {
-                return 0x40000001 | (addr & ~3);
-            } else {
-                console.error("uneven address");
-            }
-        };
-
-        if (addrs.length > this.breakpoints.length) {
-            console.error("not enough hw breakpoints");
-        }
-
-        await this.debugEnable();
-        await this.setFpbEnabled(true);
-
-        while (addrs.length < this.breakpoints.length) {
-            addrs.push(null);
-        }
-
-        for (let i = 0; i < addrs.length; i++) {
-            await this.breakpoints[i].write(mapAddr(addrs[i]));
-        }
-    }
-
-    /**
-     * Enable or disable the Flash Patch and Breakpoint unit (FPB).
-     *
-     * @param enabled
-     */
-    public async setFpbEnabled(enabled = true) {
-        return this.writeMem(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
-    }
-
-    /**
-     * Write a 32-bit word to the specified (word-aligned) memory address.
-     *
-     * @param addr Memory address to write to
-     * @param data Data to write (values above 2**32 will be truncated)
-     */
-    public async writeMem(addr: number, data: number) {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
-        await this.dev.writeAp(ApReg.DRW, data);
-    }
-
-    /**
-     * Read a 32-bit word from the specified (word-aligned) memory address.
-     *
-     * @param addr Memory address to read from.
-     */
-    public async readMem(addr: number): Promise<number> {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
-
-        try {
-            return await this.dev.readAp(ApReg.DRW);
-        } catch (e) {
-            // transfer wait, try again.
-            await delay(100);
-            return await this.readMem(addr);
-        }
-    }
-
-    /**
-     * Reads a block of memory from the specified memory address.
-     *
-     * @param addr Address to read from
-     * @param words Number of words to read
-     * @param pageSize Memory page size
-     */
-    public async readBlock(addr: number, words: number, pageSize: number) {
-        const funs = [async () => Promise.resolve()];
-        const bufs: Uint8Array[] = [];
-        const end = addr + words * 4;
-        let ptr = addr;
-
-        while (ptr < end) {
-            let nextptr = ptr + pageSize;
-            if (ptr === addr) {
-                nextptr &= ~(pageSize - 1);
-            }
-
-            const len = Math.min(nextptr - ptr, end - ptr);
-            const ptr0 = ptr;
-            assert((len & 3) === 0);
-            funs.push(async () => {
-                bufs.push(await this.readBlockCore(ptr0, len >> 2));
-            });
-
-            ptr = nextptr;
-        }
-
-        for (const f of funs) {
-            await f();
-        }
-
-        return await bufferConcat(bufs);
-    }
-
-    /**
-     * Write a block of memory to the specified memory address.
-     *
-     * @param addr Memory address to write to.
-     * @param words Array of 32-bit words to write to memory.
-     */
-    public async writeBlock(addr: number, words: number[]) {
-        if (words.length === 0) {
-            return;
-        }
-
-        console.debug(`write block: 0x${addr.toString(16)} ${words.length} len`);
-
-        // TODO: do we need this, or the second part?
-        if (1 > 0) {
-            await this.writeBlockCore(addr, words);
-            console.debug("written");
-            return;
-        }
-
-        const blSz = 10;
-
-        for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
-            await this.writeBlockCore(addr + i * blSz * 4, words.slice(i * blSz, i * blSz + blSz));
-        }
-
-        console.debug("written");
-    }
-
-    /**
      * Read a core register from the CPU (e.g. r0...r15, pc, sp, lr, s0...)
      *
      * @param no Member of the `CortexReg` enum - an ARM Cortex CPU general-purpose register.
      */
     public async readCoreRegister(no: CortexReg) {
-        await this.writeMem(CortexSpecialReg.DCRSR, no);
-        const v = await this.readMem(CortexSpecialReg.DHCSR);
+        await this.memory.write32(CortexSpecialReg.DCRSR, no);
+        const v = await this.memory.read32(CortexSpecialReg.DHCSR);
         assert(v & CortexSpecialReg.S_REGRDY);
-        return await this.readMem(CortexSpecialReg.DCRDR);
+        return await this.memory.read32(CortexSpecialReg.DCRDR);
     }
 
     /**
@@ -404,9 +238,9 @@ export class CortexM {
      * @param val Value to be written.
      */
     public async writeCoreRegister(no: CortexReg, val: number) {
-        await this.writeMem(CortexSpecialReg.DCRDR, val);
-        await this.writeMem(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
-        const v = await this.readMem(CortexSpecialReg.DHCSR);
+        await this.memory.write32(CortexSpecialReg.DCRDR, val);
+        await this.memory.write32(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
+        const v = await this.memory.read32(CortexSpecialReg.DHCSR);
 
         assert(v & CortexSpecialReg.S_REGRDY);
     }
@@ -415,7 +249,7 @@ export class CortexM {
      * Halt the CPU core.
      */
     public async halt() {
-        return this.writeMem(
+        return this.memory.write32(
             CortexSpecialReg.DHCSR,
             CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT,
         );
@@ -426,11 +260,11 @@ export class CortexM {
      */
     public async resume() {
         if (await this.isHalted()) {
-            await this.writeMem(
+            await this.memory.write32(
                 CortexSpecialReg.DFSR,
                 CortexSpecialReg.DFSR_DWTTRAP | CortexSpecialReg.DFSR_BKPT | CortexSpecialReg.DFSR_HALTED,
             );
-            await this.debugEnable();
+            await this.debug.setFpbEnabled(true); // really??
         }
     }
 
@@ -449,8 +283,8 @@ export class CortexM {
      * stating the current halted state of the CPU.
      */
     public async status() {
-        const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
-        const dfsr = await this.readMem(CortexSpecialReg.DFSR);
+        const dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
+        const dfsr = await this.memory.read32(CortexSpecialReg.DFSR);
 
         return {
             dfsr,
@@ -460,48 +294,21 @@ export class CortexM {
     }
 
     /**
-     * Enable debugging on the target CPU.
-     */
-    public async debugEnable() {
-        await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN);
-    }
-
-    /**
      * Reset the CPU core. This currently does a software reset - it is also technically possible to perform a 'hard'
      * reset using the reset pin from the debugger.
      */
     public async reset() {
-        await this.writeMem(
+        await this.memory.write32(
             CortexSpecialReg.NVIC_AIRCR,
             CortexSpecialReg.NVIC_AIRCR_VECTKEY | CortexSpecialReg.NVIC_AIRCR_SYSRESETREQ,
         );
 
         // wait for the system to come out of reset
-        let dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
+        let dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
 
         while ((dhcsr & CortexSpecialReg.S_RESET_ST) !== 0) {
-            dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
+            dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
         }
-    }
-
-    /**
-     * Snapshot the current state of the CPU. Reads all general-purpose registers, and returns them in an array. This
-     * should also snapshot the current stack state, but given that the stack location varies between individual CPUs,
-     * this functionality should be moved somewhere else.
-     *
-     * **TODO**: remove the code about the stack.
-     */
-    public async snapshotMachineState() {
-        const state: IMachineState = {
-            registers: [],
-            stack: [],
-        };
-
-        for (let i = 0; i < 16; i++) {
-            state.registers[i] = await this.readCoreRegister(i);
-        }
-
-        return state;
     }
 
     /**
@@ -523,7 +330,14 @@ export class CortexM {
      *
      * @returns A promise for the value of r0 on completion of the function call.
      */
-    public async runCode(code: number[], address: number,  pc: number, lr: number, sp: number, upload: boolean, ...args: number[]) {
+    public async runCode(
+        code: number[],
+        address: number,
+        pc: number,
+        lr: number,
+        sp: number,
+        upload: boolean,
+        ...args: number[]) {
         // Halt the core
         await this.halt();
 
@@ -538,83 +352,20 @@ export class CortexM {
 
         // Write the program to memory at the specified address
         if (upload) {
-            await this.writeBlock(address, code);
+            await this.memory.writeBlock(address, code);
         }
 
         // Run the program
-        // await this.resume();
-
-        while (!(await this.isHalted())) { /* empty */ }
+        await this.resume();
+        await this.waitForHalt();
 
         return await this.readCoreRegister(CortexReg.R0);
     }
 
     /**
-     * Step the processor forward by one instruction.
+     * Spin until the chip has halted.
      */
-    public async step() {
-        const dhcsr = await this.readMem(CortexSpecialReg.DHCSR);
-
-        if (!(dhcsr & (CortexSpecialReg.C_STEP | CortexSpecialReg.C_HALT))) {
-            console.error("Target is not halted.");
-            return;
-        }
-
-        const interrupts_masked = (CortexSpecialReg.C_MASKINTS & dhcsr) !== 0;
-
-        if (!interrupts_masked) {
-            await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT | CortexSpecialReg.C_MASKINTS);
-        }
-
-        await this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY|CortexSpecialReg.C_DEBUGEN|CortexSpecialReg.C_MASKINTS|CortexSpecialReg.C_STEP);
-
-        while (!(await this.readMem(CortexSpecialReg.DHCSR) & CortexSpecialReg.C_HALT)) { /* wait */ }
-
-        this.writeMem(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT)
-    }
-
-    private async readBlockCore(addr: number, words: number) {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
-
-        let lastSize = words % 15;
-        if (lastSize === 0) {
-            lastSize = 15;
-        }
-
-        const bufs: Uint8Array[] = [];
-        const blocks: Uint8Array[] = [];
-
-        for (let i = 0; i < Math.ceil(words / 15); i++) {
-            const b = await this.dev.readRegRepeat(
-                apReg(ApReg.DRW, DapVal.READ),
-                i === blocks.length - 1 ? lastSize : 15,
-            );
-            blocks.push(b);
-        }
-
-        return bufferConcat(blocks);
-    }
-
-    private async writeBlockCore(addr: number, words: number[]): Promise<void> {
-        try {
-            await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-            await this.dev.writeAp(ApReg.TAR, addr);
-            const blSz = 12; // with 15 we get strange errors
-
-            const reg = apReg(ApReg.DRW, DapVal.WRITE);
-
-            for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
-                await this.dev.writeRegRepeat(reg, words.slice(i * blSz, i * blSz + blSz));
-            }
-        } catch (e) {
-            if (e.dapWait) {
-                console.debug(`transfer wait, write block`);
-                await delay(100);
-                return await this.writeBlockCore(addr, words);
-            } else {
-                throw e;
-            }
-        }
+    public async waitForHalt() {
+        while (!(await this.isHalted())) { /* empty */ }
     }
 }

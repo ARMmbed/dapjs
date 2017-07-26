@@ -1,6 +1,4 @@
-import {IMachineState} from "./cortex_m";
 import {ApReg, DapVal, Reg} from "./dap";
-import {Device} from "./device";
 
 export const readUInt32LE = (b: Uint8Array, idx: number) => {
     return (b[idx] |
@@ -114,20 +112,4 @@ export const hexBytes = (bytes: number[]) => {
     bytes.forEach((b) => r += ("0" + b.toString(16)).slice(-2));
 
     return r.toUpperCase();
-};
-
-const arrToString = (arr: number[]) => {
-    let r = "";
-    for (let i = 0; i < arr.length; ++i) {
-        r += ("0000" + i).slice(-4) + ": " + ("00000000" + (arr[i] >>> 0).toString(16)).slice(-8);
-
-        if (i != arr.length - 1) {
-            r += "\n";
-        }
-    }
-    return r;
-};
-
-export const machineStateToString = (s: IMachineState) => {
-    return "REGS:\n" + arrToString(s.registers);
 };

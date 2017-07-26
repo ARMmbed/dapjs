@@ -1,20 +1,7 @@
-import {CortexReg, CortexSpecialReg} from "./cortex_m";
-import {ApReg, Csw, Dap, DapCmd, DapVal, IHID, Reg} from "./dap";
-import {Breakpoint} from "./debug";
-import {
-    addInt32,
-    apReg,
-    assert,
-    bank,
-    bufferConcat,
-    bufToUint32Array,
-    delay,
-    hex,
-    hexBytes,
-    readUInt32LE,
-    regRequest,
-    rid,
-} from "./util";
+import {IBreakpoint} from "./breakpoint";
+import {CortexSpecialReg} from "./cortex_m";
+import {ApReg, Dap, DapCmd, DapVal, IHID, Reg} from "./dap";
+import {addInt32, apReg, assert, bank, delay, readUInt32LE, regRequest} from "./util";
 
 export interface IFlashData {
     flashCode: number[];
@@ -37,15 +24,11 @@ export class Device {
     private csw: number;
     private idcode: number;
 
-    private breakpoints: Breakpoint[];
-
     constructor(private device: IHID) {
         this.dap = new Dap(device);
     }
 
     public async reconnect() {
-        this.clearCaches();
-
         await this.dap.disconnect();
         await delay(100);
         await this.init();
@@ -165,14 +148,6 @@ export class Device {
 
         if (buf[2] !== 1) {
             throw new Error(("(many-wr) Bad transfer status " + buf[2]));
-        }
-    }
-
-    private clearCaches() {
-        delete this.dpSelect;
-        delete this.csw;
-        for (const b of this.breakpoints) {
-            delete b.lastWritten;
         }
     }
 

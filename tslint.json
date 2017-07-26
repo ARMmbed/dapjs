@@ -9,7 +9,11 @@
         "promise-function-async": true,
         "no-console": [false],
         "no-bitwise": false,
-        "prefer-const": true
+        "prefer-const": true,
+        "no-unused-variable": true,
+        "max-classes-per-file": [
+            false
+        ]
     },
     "rulesDirectory": []
 }

@@ -7,13 +7,10 @@
         "noImplicitAny": true,
         "declaration": true,
         "sourceMap": true,
-        "lib": ["es2015", "dom"],
-        "types": ["node", "jquery"],
-        "typeRoots": ["node_modules/@types"]
+        "lib": ["es2015", "dom"]
     },
     "exclude": [
         "node_modules",
-        "built",
-        "typings"
+        "built"
     ]
 }

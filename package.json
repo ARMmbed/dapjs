@@ -7,12 +7,6 @@
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.1",
-    "@types/jquery": "^3.2.8",
-    "@types/mocha": "^2.2.41",
-    "@types/node": "^8.0.12",
-    "chai": "^4.1.0",
-    "mocha": "^3.4.2",
     "ts-node": "^3.2.1",
     "tslint": "^5.5.0",
     "typedoc": "^0.7.1",
