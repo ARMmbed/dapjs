@@ -264,7 +264,7 @@ export class CortexM {
                 CortexSpecialReg.DFSR,
                 CortexSpecialReg.DFSR_DWTTRAP | CortexSpecialReg.DFSR_BKPT | CortexSpecialReg.DFSR_HALTED,
             );
-            await this.debug.setFpbEnabled(true); // really??
+            await this.debug.enable();
         }
     }
 

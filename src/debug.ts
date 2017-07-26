@@ -6,7 +6,7 @@ export class Debug {
 
     // if the breakpoint is disabled, call it a number
     private breakpoints: Map<number, IBreakpoint | DisabledBreakpoint>;
-    private availableHWBreakpoints: Set<number>;
+    private availableHWBreakpoints: number[];
     private totalHWBreakpoints: number;
 
     private enabled: boolean;
@@ -14,7 +14,8 @@ export class Debug {
     constructor(core: CortexM) {
         this.core = core;
         this.enabled = false;
-        this.availableHWBreakpoints = new Set<number>();
+        this.availableHWBreakpoints = [];
+        this.breakpoints = new Map<number, IBreakpoint | DisabledBreakpoint>();
     }
 
     /**
@@ -32,11 +33,12 @@ export class Debug {
         this.totalHWBreakpoints = nbCode;
         console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
 
-        for (let i = 0; i < nbCode; i++) {
-            this.availableHWBreakpoints.add(CortexSpecialReg.FP_COMP0 + (4 * i));
-        }
-
         await this.setFpbEnabled(false);
+
+        for (let i = 0; i < nbCode; i++) {
+            this.availableHWBreakpoints.push(CortexSpecialReg.FP_COMP0 + (4 * i));
+            this.core.memory.write32(CortexSpecialReg.FP_COMP0 + (i * 4), 0);
+        }
     }
 
     /**
@@ -46,7 +48,14 @@ export class Debug {
      */
     public async setFpbEnabled(enabled = true) {
         this.enabled = enabled;
-        return this.core.memory.write32(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
+        await this.core.memory.write32(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
+    }
+
+    /**
+     * Enable debugging on the target CPU
+     */
+    public async enable() {
+        await this.core.memory.write32(CortexSpecialReg.DHCSR, CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN);
     }
 
     /**
@@ -71,17 +80,20 @@ export class Debug {
         if (addr < 0x20000000) {
             // we can use a HWBreakpoint
 
-            if (this.availableHWBreakpoints.size > 0) {
+            if (this.availableHWBreakpoints.length > 0) {
                 if (!this.enabled) {
-                    this.setFpbEnabled(true);
+                    console.log("enabling fpb");
+                    await this.setFpbEnabled(true);
                 }
 
-                const regAddr = this.availableHWBreakpoints.values().next().value;
-                this.availableHWBreakpoints.delete(regAddr);
+                const regAddr = this.availableHWBreakpoints.pop();
+                console.log(`using regAddr=${regAddr.toString(16)}`);
                 bkpt = new HWBreakpoint(regAddr, this.core, addr);
             } else {
                 bkpt = new SWBreakpoint(this.core, addr);
             }
+        } else {
+            bkpt = new SWBreakpoint(this.core, addr);
         }
 
         await bkpt.set();
@@ -96,25 +108,11 @@ export class Debug {
 
                 if (bkpt instanceof HWBreakpoint) {
                     // return the register address to the pool
-                    this.availableHWBreakpoints.add(bkpt.regAddr);
+                    this.availableHWBreakpoints.push(bkpt.regAddr);
                 }
             }
 
             this.breakpoints.delete(addr);
-        } else {
-            console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
-        }
-    }
-
-    public async disableBreakpoint(addr: number) {
-        if (this.breakpoints.has(addr)) {
-            const bkpt = this.breakpoints.get(addr);
-
-            if (typeof bkpt !== "number") {
-                this.breakpoints.set(addr, addr);
-            } else {
-                console.warn(`Breakpoint at ${addr.toString(16)} already set.`);
-            }
         } else {
             console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
         }

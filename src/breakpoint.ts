@@ -12,13 +12,13 @@ export class HWBreakpoint implements IBreakpoint {
 
     public async set() {
         /* set hardware breakpoint */
-        const bpMatch = (this.addr & 0x2 ? 2 : 1) << 30;
-        this.parent.memory.write32(this.regAddr, this.addr & 0x1ffffffc | bpMatch | 1);
+        const bpMatch = ((this.addr & 0x2) ? 2 : 1) << 30;
+        await this.parent.memory.write32(this.regAddr, this.addr & 0x1ffffffc | bpMatch | 1);
     }
 
     public async clear() {
         /* clear hardware breakpoint */
-        this.parent.memory.write32(this.regAddr, 0);
+        await this.parent.memory.write32(this.regAddr, 0);
     }
 }
 
