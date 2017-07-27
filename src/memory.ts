@@ -61,13 +61,18 @@ export class Memory {
         await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
         await this.dev.writeAp(ApReg.TAR, addr);
 
+        let val;
+
         try {
-            return await this.dev.readAp(ApReg.DRW);
+            val = await this.dev.readAp(ApReg.DRW);
         } catch (e) {
             // transfer wait, try again.
             await delay(100);
-            return await this.read32(addr);
+            val = await this.read16(addr);
         }
+
+        val = (val >> ((addr & 0x02) << 3) & 0xffff);
+        return val;
     }
 
     /**
