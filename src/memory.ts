@@ -113,7 +113,7 @@ export class Memory {
      * @param addr Memory address to write to.
      * @param words Array of 32-bit words to write to memory.
      */
-    public async writeBlock(addr: number, words: number[]) {
+    public async writeBlock(addr: number, words: Uint32Array) {
         if (words.length === 0) {
             return;
         }
@@ -158,7 +158,7 @@ export class Memory {
         return bufferConcat(blocks);
     }
 
-    private async writeBlockCore(addr: number, words: number[]): Promise<void> {
+    private async writeBlockCore(addr: number, words: Uint32Array): Promise<void> {
         try {
             await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
             await this.dev.writeAp(ApReg.TAR, addr);

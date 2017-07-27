@@ -331,7 +331,7 @@ export class CortexM {
      * @returns A promise for the value of r0 on completion of the function call.
      */
     public async runCode(
-        code: number[],
+        code: Uint32Array,
         address: number,
         pc: number,
         lr: number,

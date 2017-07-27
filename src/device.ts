@@ -3,20 +3,6 @@ import {CortexSpecialReg} from "./cortex_m";
 import {ApReg, Dap, DapCmd, DapVal, IHID, Reg} from "./dap";
 import {addInt32, apReg, assert, bank, delay, readUInt32LE, regRequest} from "./util";
 
-export interface IFlashData {
-    flashCode: number[];
-    flashWords: number[];
-    numBuffers: number;
-    bufferAddr: number;
-    flashAddr: number;
-}
-
-export interface ICpuState {
-    pc: number;
-    lr: number;
-    stack: number[];
-}
-
 export class Device {
     private dap: Dap;
 
@@ -133,16 +119,16 @@ export class Device {
         return buf.slice(3, 3 + cnt * 4);
     }
 
-    public async writeRegRepeat(regId: Reg, data: number[]) {
+    public async writeRegRepeat(regId: Reg, data: Uint32Array) {
         assert(data.length <= 15);
 
         const request = regRequest(regId, true);
         const sendargs = [0, data.length];
 
-        for (const d of data) {
+        data.forEach((d) => {
             sendargs.push(request);
             addInt32(sendargs, d);
-        }
+        });
 
         const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
 
