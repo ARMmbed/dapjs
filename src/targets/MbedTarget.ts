@@ -1,4 +1,4 @@
-import {CoreState, CortexM, CortexReg, CortexSpecialReg} from "../cortex_m";
+import {CortexReg} from "../cortex_m";
 import {Device} from "../device";
 import {FlashTarget} from "./FlashTarget";
 
@@ -50,17 +50,19 @@ export class MbedTarget extends FlashTarget {
      * **TODO**: check that this has been called before calling other flash methods.
      */
     public async flashInit() {
+        // await this.reset(true);
         await this.halt();
-
+        await this.writeCoreRegister(CortexReg.XPSR, 0x1000000);
         await this.writeCoreRegister(CortexReg.R9, this.flashAlgo.staticBase);
+
         console.log("Uploading anaylyzer");
         await this.memory.writeBlock(0x1ffff000, analyzer);
 
         const result = await this.runCode(
             this.flashAlgo.instructions,
             this.flashAlgo.loadAddress,
-            this.flashAlgo.loadAddress + 1,
-            this.flashAlgo.breakpointLocation,
+            this.flashAlgo.pcInit,
+            this.flashAlgo.loadAddress + 3,
             this.flashAlgo.stackPointer,
             true,
             0, 0, 0,
@@ -77,15 +79,18 @@ export class MbedTarget extends FlashTarget {
      */
     public async eraseChip() {
         await this.halt();
+
         await this.writeCoreRegister(CortexReg.R9, this.flashAlgo.staticBase);
+        console.log("Uploading anaylyzer");
+        await this.memory.writeBlock(0x1ffff000, analyzer);
 
         const result = await this.runCode(
             this.flashAlgo.instructions,
             this.flashAlgo.loadAddress,
-            this.flashAlgo.pcEraseAll + this.flashAlgo.loadAddress + 0x20,
-            this.flashAlgo.breakpointLocation,
+            this.flashAlgo.pcEraseAll,
+            this.flashAlgo.loadAddress + 1,
             this.flashAlgo.stackPointer,
-            false,
+            true,
             0, 0, 0,
         );
 
@@ -106,15 +111,15 @@ export class MbedTarget extends FlashTarget {
             const startAddress = this.flashAlgo.flashStart + ptr;
             const bufferAddress = this.flashAlgo.staticBase;
 
-            console.log(`Writing program to memory: ${bufferAddress} ${data.length}`)
+            console.log(`Writing program to memory: ${bufferAddress} ${data.length}`);
             await this.memory.writeBlock(bufferAddress, data.slice(ptr, ptr + this.flashAlgo.pageSize));
 
             console.log("Running flashing algorithm");
-            const result = await this.runCode(
+            await this.runCode(
                 this.flashAlgo.instructions,
                 this.flashAlgo.loadAddress,
-                this.flashAlgo.pcProgramPage + this.flashAlgo.loadAddress + 0x20, // pc
-                this.flashAlgo.breakpointLocation, // lr
+                this.flashAlgo.pcProgramPage, // pc
+                this.flashAlgo.loadAddress + 1, // lr
                 this.flashAlgo.stackPointer, // sp
                 /* upload? */
                 ptr === 0,

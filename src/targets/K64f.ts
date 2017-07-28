@@ -16,6 +16,11 @@
 */
 
 export const K64F_FLASH_ALGO = {
+    breakpointLocation: 0x20000003,
+
+    flashSize: 0x0,
+    flashStart: 0x0,
+
     // Flash algorithm as a hex string
     instructions: new Uint32Array([
         0xE00ABE00, 0x062D780D, 0x24084068, 0xD3000040, 0x1E644058, 0x1C49D1FA, 0x2A001E52, 0x4770D1F2,
@@ -57,31 +62,17 @@ export const K64F_FLASH_ALGO = {
         0x00800000, 0x01000000, 0x02000000, 0x00000000,
     ]),
 
-    // Relative function addresses
-    pcInit: 0x21,
-    pcUnInit: 0x49,
-    pcProgramPage: 0x9f,
-    pcEraseSector: 0x71,
-    pcEraseAll: 0x4d,
-
-    // Relative region addresses and sizes
-    roStart: 0x0,
-    roSize: 0x504,
-    rwStart: 0x504,
-    rwSize: 0x8,
-    ziStart: 0x50c,
-    ziSize: 0x34,
-
-    // Flash information
-    flashStart: 0x0,
-    flashSize: 0x0,
-    pageSize: 0x400,
-    sectorSizes: [
-        [0x0, 0x400],
-    ],
-
-    breakpointLocation: 0x20000001,
-    staticBase:  0x20000000 + 0x00000020 + 0x0000046c,
-    stackPointer: 0x20000800,
     loadAddress: 0x20000000,
+
+    pageSize: 0x1000,
+
+    // Relative function addresses
+    pcEraseAll: 0x20000059,
+    pcEraseSector: 0x2000007D,
+    pcInit: 0x20000021,
+    // pcUnInit: 0x49,
+    pcProgramPage: 0x200000AB,
+
+    stackPointer: 0x20001000,
+    staticBase:  0x20000000 + 0x20 + 0x474,
 };

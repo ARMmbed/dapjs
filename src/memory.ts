@@ -123,12 +123,9 @@ export class Memory {
             return;
         }
 
-        console.debug(`write block: 0x${addr.toString(16)} ${words.length} len`);
-
         // TODO: do we need this, or the second part?
         if (1 > 0) {
             await this.writeBlockCore(addr, words);
-            console.debug("written");
             return;
         }
 
@@ -137,8 +134,6 @@ export class Memory {
         for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
             await this.writeBlockCore(addr + i * blSz * 4, words.slice(i * blSz, i * blSz + blSz));
         }
-
-        console.debug("written");
     }
 
     private async readBlockCore(addr: number, words: number) {

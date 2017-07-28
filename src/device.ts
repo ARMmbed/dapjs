@@ -1,4 +1,3 @@
-import {IBreakpoint} from "./breakpoint";
 import {CortexSpecialReg} from "./cortex_m";
 import {ApReg, Dap, DapCmd, DapVal, IHID, Reg} from "./dap";
 import {addInt32, apReg, assert, bank, delay, readUInt32LE, regRequest} from "./util";

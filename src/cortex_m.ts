@@ -353,9 +353,20 @@ export class CortexM {
             await this.memory.writeBlock(address, code);
         }
 
+        const pc1 = await this.readCoreRegister(CortexReg.PC);
+        const lr1 = await this.readCoreRegister(CortexReg.LR);
+        const sp1 = await this.readCoreRegister(CortexReg.SP);
+
+        console.log(pc.toString(16), lr.toString(16), sp.toString(16));
+        console.log(pc1.toString(16), lr1.toString(16), sp1.toString(16));
+
+        await this.writeCoreRegister(CortexReg.PC, pc);
+        await this.writeCoreRegister(CortexReg.LR, lr);
+        await this.writeCoreRegister(CortexReg.SP, sp);
+
         // Run the program
         await this.resume();
-        await this.waitForHalt();
+        await this.waitForHalt(10000); // timeout after 10s
 
         return await this.readCoreRegister(CortexReg.R0);
     }
@@ -363,8 +374,25 @@ export class CortexM {
     /**
      * Spin until the chip has halted.
      */
-    public async waitForHalt() {
-        while (!(await this.isHalted())) { /* empty */ }
+    public async waitForHalt(timeout = 0) {
+        return new Promise<void>(async (resolve, reject) => {
+            let running = true;
+
+            if (timeout > 0) {
+                setTimeout(() => {
+                    reject("waitForHalt timed out.");
+                    running = false;
+                }, timeout);
+            }
+
+            while (running && !(await this.isHalted())) {
+                /* empty */
+            }
+
+            if (running) {
+                resolve();
+            }
+        });
     }
 
     private async softwareReset() {

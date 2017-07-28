@@ -16,6 +16,11 @@
 */
 
 export const MICROBIT_FLASH_ALGO = {
+    breakpointLocation: 0x20000001,
+
+    flashSize: 0x40000,
+    flashStart: 0x0,
+
     // Flash algorithm as a hex string
     instructions: new Uint32Array([
         0x47702000, 0x47702000, 0x4c34b4f0, 0x60602002, 0x60e02001, 0x4e334d32, 0x4b344f33, 0x07c06828,
@@ -25,35 +30,19 @@ export const MICROBIT_FLASH_ALGO = {
         0x4817d1f9, 0x07c06800, 0x2000d0ed, 0xbcf06060, 0xb4f04770, 0x4911088e, 0x604b2301, 0x4d134f11,
         0xc002ca02, 0x6809490e, 0xd00707c9, 0xd1f71e76, 0x2100480a, 0xbcf06041, 0x47704608, 0x06096879,
         0xd0ef0e09, 0x685b4b08, 0xd0eb2b00, 0x07cc4b08, 0x601dd000, 0x08491d1b, 0xe7e3d1f9, 0x4001e500,
-        0x4001e400, 0x40010400, 0x40010500, 0x6e524635, 0x40010600, 0x10001000, 0x00000000
+        0x4001e400, 0x40010400, 0x40010500, 0x6e524635, 0x40010600, 0x10001000, 0x00000000,
     ]),
 
-    // Relative function addresses
-    pcInit: 0x1,
-    pcUnInit: 0x5,
-    pcProgramPage: 0x93,
-    pcEraseSector: 0x49,
-    pcEraseAll: 0x9,
-
-    // Relative region addresses and sizes
-    roStart: 0x0,
-    roSize: 0xf8,
-    rwStart: 0xf8,
-    rwSize: 0x4,
-    ziStart: 0xfc,
-    ziSize: 0x0,
-
-    // Flash information
-    flashStart: 0x0,
-    flashSize: 0x40000,
+    loadAddress: 0x20000000,
     pageSize: 0x4,
-    sectorSizes: [
-        [0x0, 0x400],
-    ],
 
-    breakpointLocation: 0x20000001,
-    staticBase: 0x20000118,
+    // Relative function addresses
+    pcEraseAll: 0x9,
+    pcEraseSector: 0x49,
+    pcInit: 0x1,
+    pcProgramPage: 0x93,
+    pcUnInit: 0x5,
+
     stackPointer: 0x20000800,
-    loadAddress: 0x20000000
+    staticBase: 0x20000118,
 };
-    

@@ -1,4 +1,4 @@
-import {CortexM, CortexSpecialReg} from "./cortex_m";
+import {CortexM} from "./cortex_m";
 
 export interface IBreakpoint {
     set(): Promise<void>;
@@ -26,7 +26,6 @@ export class SWBreakpoint implements IBreakpoint {
     private static BKPT_INSTRUCTION: number = 0xbe00;
 
     private instruction: number;
-    private enabled: boolean = false;
 
     constructor(private readonly parent: CortexM, public readonly addr: number) {  }
 

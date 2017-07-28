@@ -37,7 +37,7 @@ export class Debug {
 
         for (let i = 0; i < nbCode; i++) {
             this.availableHWBreakpoints.push(CortexSpecialReg.FP_COMP0 + (4 * i));
-            this.core.memory.write32(CortexSpecialReg.FP_COMP0 + (i * 4), 0);
+            await this.core.memory.write32(CortexSpecialReg.FP_COMP0 + (i * 4), 0);
         }
     }
 
@@ -104,7 +104,7 @@ export class Debug {
         if (this.breakpoints.has(addr)) {
             const bkpt = this.breakpoints.get(addr);
             if (typeof bkpt !== "number") {
-                bkpt.clear();
+                await bkpt.clear();
 
                 if (bkpt instanceof HWBreakpoint) {
                     // return the register address to the pool
@@ -151,7 +151,7 @@ export class Debug {
 
         await this.core.waitForHalt();
 
-        this.core.memory.write32(
+        await this.core.memory.write32(
             CortexSpecialReg.DHCSR,
             CortexSpecialReg.DBGKEY |
             CortexSpecialReg.C_DEBUGEN |
