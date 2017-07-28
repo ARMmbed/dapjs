@@ -297,17 +297,15 @@ export class CortexM {
      * Reset the CPU core. This currently does a software reset - it is also technically possible to perform a 'hard'
      * reset using the reset pin from the debugger.
      */
-    public async reset() {
-        await this.memory.write32(
-            CortexSpecialReg.NVIC_AIRCR,
-            CortexSpecialReg.NVIC_AIRCR_VECTKEY | CortexSpecialReg.NVIC_AIRCR_SYSRESETREQ,
-        );
-
-        // wait for the system to come out of reset
-        let dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
-
-        while ((dhcsr & CortexSpecialReg.S_RESET_ST) !== 0) {
-            dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
+    public async reset(halt = false) {
+        if (halt) {
+            await this.halt();
+            const demcr = await this.memory.read32(CortexSpecialReg.DEMCR);
+            await this.softwareReset();
+            await this.waitForHalt();
+            await this.memory.write32(CortexSpecialReg.DEMCR, demcr);
+        } else {
+            await this.softwareReset();
         }
     }
 
@@ -367,5 +365,19 @@ export class CortexM {
      */
     public async waitForHalt() {
         while (!(await this.isHalted())) { /* empty */ }
+    }
+
+    private async softwareReset() {
+        await this.memory.write32(
+            CortexSpecialReg.NVIC_AIRCR,
+            CortexSpecialReg.NVIC_AIRCR_VECTKEY | CortexSpecialReg.NVIC_AIRCR_SYSRESETREQ,
+        );
+
+        // wait for the system to come out of reset
+        let dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
+
+        while ((dhcsr & CortexSpecialReg.S_RESET_ST) !== 0) {
+            dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
+        }
     }
 }
