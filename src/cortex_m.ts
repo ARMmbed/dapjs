@@ -3,6 +3,8 @@ import {Device} from "./device";
 import {Memory} from "./memory";
 import {assert} from "./util";
 
+const DEFAULT_RUNCODE_TIMEOUT = 10000 /* ms */;
+
 export const enum CortexSpecialReg {
     // Debug Fault Status Register
     DFSR = 0xE000ED30,
@@ -359,20 +361,9 @@ export class CortexM {
             await this.memory.writeBlock(address, code);
         }
 
-        const pc1 = await this.readCoreRegister(CortexReg.PC);
-        const lr1 = await this.readCoreRegister(CortexReg.LR);
-        const sp1 = await this.readCoreRegister(CortexReg.SP);
-
-        console.log(pc.toString(16), lr.toString(16), sp.toString(16));
-        console.log(pc1.toString(16), lr1.toString(16), sp1.toString(16));
-
-        await this.writeCoreRegister(CortexReg.PC, pc);
-        await this.writeCoreRegister(CortexReg.LR, lr);
-        await this.writeCoreRegister(CortexReg.SP, sp);
-
-        // Run the program
+        // Run the program and wait for halt
         await this.resume();
-        await this.waitForHalt(10000); // timeout after 10s
+        await this.waitForHalt(DEFAULT_RUNCODE_TIMEOUT); // timeout after 10s
 
         return await this.readCoreRegister(CortexReg.R0);
     }

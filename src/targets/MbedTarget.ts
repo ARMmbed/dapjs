@@ -50,26 +50,25 @@ export class MbedTarget extends FlashTarget {
      * **TODO**: check that this has been called before calling other flash methods.
      */
     public async flashInit() {
-        // await this.reset(true);
-        await this.halt();
-        await this.writeCoreRegister(CortexReg.XPSR, 0x1000000);
+        // reset and halt
+        await this.reset(true);
+
+        // make sure we're in Thumb mode.
+        await this.writeCoreRegister(CortexReg.XPSR, 1 << 24);
         await this.writeCoreRegister(CortexReg.R9, this.flashAlgo.staticBase);
 
-        console.log("Uploading anaylyzer");
+        // upload analyzer
         await this.memory.writeBlock(0x1ffff000, analyzer);
 
         const result = await this.runCode(
             this.flashAlgo.instructions,
             this.flashAlgo.loadAddress,
             this.flashAlgo.pcInit,
-            this.flashAlgo.loadAddress + 3,
+            this.flashAlgo.loadAddress + 1,
             this.flashAlgo.stackPointer,
             true,
-            0, 0, 0,
+            0, 0, 0, 0,
         );
-
-        // the board should be reset etc. afterwards
-        // we should also probably run the flash unInit routine
 
         return result;
     }
@@ -81,7 +80,6 @@ export class MbedTarget extends FlashTarget {
         await this.halt();
 
         await this.writeCoreRegister(CortexReg.R9, this.flashAlgo.staticBase);
-        console.log("Uploading anaylyzer");
         await this.memory.writeBlock(0x1ffff000, analyzer);
 
         const result = await this.runCode(
