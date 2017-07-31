@@ -1,7 +1,7 @@
-import {Debug} from "./debug";
-import {Device} from "./device";
+import {DAP} from "../dap";
+import {Debug} from "../debug/debug";
+import {assert} from "../util";
 import {Memory} from "./memory";
-import {assert} from "./util";
 
 const DEFAULT_RUNCODE_TIMEOUT = 10000 /* ms */;
 
@@ -55,14 +55,6 @@ export const enum CortexSpecialReg {
     NVIC_AIRCR_VECTKEY = (0x5FA << 16),
     NVIC_AIRCR_VECTRESET = (1 << 0),
     NVIC_AIRCR_SYSRESETREQ = (1 << 2),
-
-    CSYSPWRUPACK = 0x80000000,
-    CDBGPWRUPACK = 0x20000000,
-    CSYSPWRUPREQ = 0x40000000,
-    CDBGPWRUPREQ = 0x10000000,
-
-    TRNNORMAL = 0x00000000,
-    MASKLANE = 0x00000f00,
 
     DBGKEY = (0xA05F << 16),
 
@@ -159,9 +151,9 @@ export class CortexM {
     public readonly memory: Memory;
     public readonly debug: Debug;
 
-    protected dev: Device;
+    protected dev: DAP;
 
-    constructor(device: Device) {
+    constructor(device: DAP) {
         this.dev = device;
         this.memory = new Memory(device);
         this.debug = new Debug(this);
@@ -173,9 +165,9 @@ export class CortexM {
     public async init() {
         await this.dev.init();
 
+        // FIXME: don't run this if security is enabled on the K64F
         await this.debug.setupFpb();
         await this.readCoreType();
-        console.debug("Initialized.");
     }
 
     /**

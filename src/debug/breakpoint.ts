@@ -1,4 +1,4 @@
-import {CortexM} from "./cortex_m";
+import {CortexM} from "../core/cortex_m";
 
 export interface IBreakpoint {
     set(): Promise<void>;

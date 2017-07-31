@@ -1,11 +1,10 @@
-import {ApReg, Csw, DapVal} from "./dap";
-import {Device} from "./device";
-import {apReg, assert, bufferConcat, delay} from "./util";
+import {ApReg, Csw, DAP,  DapVal} from "../dap";
+import {apReg, assert, bufferConcat, delay} from "../util";
 
 export class Memory {
-    private dev: Device;
+    private dev: DAP;
 
-    constructor(dev: Device) {
+    constructor(dev: DAP) {
         this.dev = dev;
     }
 
