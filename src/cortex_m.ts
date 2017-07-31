@@ -300,9 +300,15 @@ export class CortexM {
     public async reset(halt = false) {
         if (halt) {
             await this.halt();
+
+            // VC_CORERESET causes the core to halt on reset.
             const demcr = await this.memory.read32(CortexSpecialReg.DEMCR);
+            await this.memory.write32(CortexSpecialReg.DEMCR, demcr | CortexSpecialReg.DEMCR_VC_CORERESET);
+
             await this.softwareReset();
             await this.waitForHalt();
+
+            // Unset the VC_CORERESET bit
             await this.memory.write32(CortexSpecialReg.DEMCR, demcr);
         } else {
             await this.softwareReset();
