@@ -143,6 +143,8 @@ export class FlashTarget extends CortexM {
         const totalBytes = program.totalByteLength();
         let cumulativeBytes = 0;
 
+        const startTime = Date.now();
+
         for (const section of program.sections) {
             await this.flash(section.data, section.address, (progress) => {
                 const sectionBytes = section.data.byteLength * progress;
@@ -151,6 +153,12 @@ export class FlashTarget extends CortexM {
 
             cumulativeBytes += section.data.byteLength;
         }
+
+        const endTime = Date.now();
+        const elapsedTime = endTime - startTime;
+
+        const transferRate = totalBytes / elapsedTime; // B/ms == kB/s
+        console.debug(`Transfered ${totalBytes} bytes at ${transferRate} kB/s`);
 
         await this.flashUnInit();
         progressCb(1.0);
