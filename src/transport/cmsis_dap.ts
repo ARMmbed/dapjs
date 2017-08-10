@@ -86,14 +86,14 @@ export class CMSISDAP {
             throw new Error("DAP_INFO returned invalid packet count.");
         }
 
-        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000));
+        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 10000000));
 
         const buf = await this.cmdNums(DapCmd.DAP_CONNECT, [0]);
         if (buf[1] !== 1) {
             throw new Error("SWD mode not enabled.");
         }
 
-        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 1000000));
+        await this.cmdNums(DapCmd.DAP_SWJ_CLOCK, addInt32(null, 10000000));
         await this.cmdNums(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]);
         await this.cmdNums(DapCmd.DAP_SWD_CONFIGURE, [0]);
         await this.jtagToSwd();
