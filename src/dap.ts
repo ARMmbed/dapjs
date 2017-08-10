@@ -124,9 +124,7 @@ export class PreparedDapCommand {
     }
 
     public async go(): Promise<number[]> {
-        let v: number[] = [];
-
-        // console.log(`Collected ${this.commands.length} commands`);
+        const v: number[] = [];
 
         for (let i = 0; i < this.commands.length; i++) {
             const command = this.commands[i];
@@ -134,9 +132,9 @@ export class PreparedDapCommand {
 
             const result = await this.device.dap.cmdNums(DapCmd.DAP_TRANSFER, command);
 
-            const resultu8 = new Uint8Array(result.slice(3, 4 * this.readCounts[i] + 3));
-            const resultu32 = new Uint32Array(resultu8.buffer);
-            v = v.concat(Array.from(resultu32));
+            for (let j = 0; j < this.readCounts[i]; j++) {
+                v.push(readUInt32LE(result, 3 + 4 * j));
+            }
         }
 
         return v;
