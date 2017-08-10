@@ -64,6 +64,7 @@ export class CMSISDAP {
             case DapCmd.DAP_CONNECT:
             case DapCmd.DAP_INFO:
             case DapCmd.DAP_TRANSFER:
+            case DapCmd.DAP_TRANSFER_BLOCK:
                 break;
             default:
                 if (buf[1] !== 0) {

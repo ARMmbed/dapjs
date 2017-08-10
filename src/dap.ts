@@ -288,19 +288,26 @@ export class DAP {
     }
 
     public async writeRegRepeat(regId: Reg, data: Uint32Array) {
-        assert(data.length <= 15);
+        const remainingLength = 64 - 1 - 1 - 2 - 1; // 14
+        assert(data.length <= remainingLength / 4);
+
+        /*
+            BYTE | BYTE *****| SHORT**********| BYTE *************| WORD *********|
+          > 0x06 | DAP Index | Transfer Count | Transfer Request  | Transfer Data |
+                 |***********|****************|*******************|+++++++++++++++|
+        */
 
         const request = regRequest(regId, true);
-        const sendargs = [0, data.length];
+        const sendargs = [0, data.length, 0, request];
 
         data.forEach((d) => {
-            sendargs.push(request);
+            // separate d into bytes
             addInt32(sendargs, d);
         });
 
-        const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
+        const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER_BLOCK, sendargs);
 
-        if (buf[2] !== 1) {
+        if (buf[3] !== 1) {
             throw new Error(("(many-wr) Bad transfer status " + buf[2]));
         }
     }
