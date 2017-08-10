@@ -105,7 +105,7 @@ export class FlashTarget extends CortexM {
         while (ptr < data.byteLength) {
             const wordPtr = ptr / 4;
 
-            const pageData = data.slice(wordPtr, wordPtr + pageSizeWords);
+            const pageData = data.subarray(wordPtr, wordPtr + pageSizeWords);
             const flashAddress = flashStart + ptr;
 
             await this.memory.writeBlock(bufferAddress, pageData);

@@ -135,7 +135,7 @@ export class CMSISDAP {
                     return buf[3] << 8 | buf[2];
                 }
         }
-        return buf.slice(2, buf[1] + 2 - 1); // .toString("utf8")
+        return buf.subarray(2, buf[1] + 2 - 1); // .toString("utf8")
     }
 
     private async send(command: number[]) {

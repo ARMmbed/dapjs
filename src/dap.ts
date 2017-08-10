@@ -301,7 +301,7 @@ export class DAP {
             throw new Error(("(many) Bad transfer status " + buf[2]));
         }
 
-        return buf.slice(3, 3 + cnt * 4);
+        return buf.subarray(3, 3 + cnt * 4);
     }
 
     public async writeRegRepeat(regId: Reg, data: Uint32Array) {

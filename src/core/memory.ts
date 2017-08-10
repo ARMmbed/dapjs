@@ -159,7 +159,7 @@ export class Memory {
         }
 
         const result = await bufferConcat(bufs);
-        return result.slice(0, words * 4);
+        return result.subarray(0, words * 4);
     }
 
     /**
@@ -210,7 +210,7 @@ export class Memory {
             prep.writeAp(ApReg.TAR, addr);
 
             for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
-                prep.writeRegRepeat(reg, words.slice(i * blSz, i * blSz + blSz));
+                prep.writeRegRepeat(reg, words.subarray(i * blSz, i * blSz + blSz));
             }
 
             await prep.go();
