@@ -53,9 +53,12 @@ export class Memory {
      * @param data Data to write (values above 2**32 will be truncated)
      */
     public async write32(addr: number, data: number) {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
-        await this.dev.writeAp(ApReg.DRW, data);
+        const prep = new PreparedDapCommand(this.dev);
+        prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+        prep.writeAp(ApReg.TAR, addr);
+        prep.writeAp(ApReg.DRW, data);
+
+        await prep.go();
     }
 
     /**
@@ -65,10 +68,14 @@ export class Memory {
      * @param data Data to write (values above 2**16 will be truncated)
      */
     public async write16(addr: number, data: number) {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
         data = data << ((addr & 0x02) << 3);
-        await this.dev.writeAp(ApReg.TAR, addr);
-        await this.dev.writeAp(ApReg.DRW, data);
+
+        const prep = new PreparedDapCommand(this.dev);
+        prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
+        prep.writeAp(ApReg.TAR, addr);
+        prep.writeAp(ApReg.DRW, data);
+
+        await prep.go();
     }
 
     /**
@@ -77,11 +84,14 @@ export class Memory {
      * @param addr Memory address to read from.
      */
     public async read32(addr: number): Promise<number> {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
+        const prep = new PreparedDapCommand(this.dev);
+
+        prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+        prep.writeAp(ApReg.TAR, addr);
+        prep.readAp(ApReg.DRW);
 
         try {
-            return await this.dev.readAp(ApReg.DRW);
+            return (await prep.go())[0];
         } catch (e) {
             // transfer wait, try again.
             await delay(100);
@@ -95,13 +105,16 @@ export class Memory {
      * @param addr Memory address to read from.
      */
     public async read16(addr: number): Promise<number> {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
-        await this.dev.writeAp(ApReg.TAR, addr);
+        const prep = new PreparedDapCommand(this.dev);
+
+        prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
+        prep.writeAp(ApReg.TAR, addr);
+        prep.readAp(ApReg.DRW);
 
         let val;
 
         try {
-            val = await this.dev.readAp(ApReg.DRW);
+            val = (await prep.go())[0];
         } catch (e) {
             // transfer wait, try again.
             await delay(100);
@@ -160,22 +173,14 @@ export class Memory {
             return;
         }
 
-        // TODO: do we need this, or the second part?
-        if (1 > 0) {
-            await this.writeBlockCore(addr, words);
-            return;
-        }
-
-        const blSz = 10;
-
-        for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
-            await this.writeBlockCore(addr + i * blSz * 4, words.slice(i * blSz, i * blSz + blSz));
-        }
+        return this.writeBlockCore(addr, words);
     }
 
     private async readBlockCore(addr: number, words: number) {
-        await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        await this.dev.writeAp(ApReg.TAR, addr);
+        const prep = new PreparedDapCommand(this.dev);
+        prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+        prep.writeAp(ApReg.TAR, addr);
+        await prep.go();
 
         let lastSize = words % 15;
         if (lastSize === 0) {
@@ -197,15 +202,18 @@ export class Memory {
 
     private async writeBlockCore(addr: number, words: Uint32Array): Promise<void> {
         try {
-            await this.dev.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-            await this.dev.writeAp(ApReg.TAR, addr);
-            const blSz = 12; // with 15 we get strange errors
-
+            const blSz = 14;
             const reg = apReg(ApReg.DRW, DapVal.WRITE);
 
+            const prep = new PreparedDapCommand(this.dev);
+            prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+            prep.writeAp(ApReg.TAR, addr);
+
             for (let i = 0; i < Math.ceil(words.length / blSz); i++) {
-                await this.dev.writeRegRepeat(reg, words.slice(i * blSz, i * blSz + blSz));
+                prep.writeRegRepeat(reg, words.slice(i * blSz, i * blSz + blSz));
             }
+
+            await prep.go();
         } catch (e) {
             if (e.dapWait) {
                 console.debug(`transfer wait, write block`);

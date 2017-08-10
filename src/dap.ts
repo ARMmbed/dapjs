@@ -116,6 +116,13 @@ export class PreparedDapCommand {
         this.readCounts[this.currentCommand]++;
     }
 
+    public writeRegRepeat(regId: Reg, data: Uint32Array) {
+        // fill up the rest of the command we have left
+        data.forEach((cmd) => {
+            this.writeReg(regId, cmd);
+        });
+    }
+
     public async go(): Promise<number[]> {
         let v: number[] = [];
 
@@ -124,7 +131,7 @@ export class PreparedDapCommand {
         for (let i = 0; i < this.commands.length; i++) {
             const command = this.commands[i];
             command[1] = this.commandCounts[i];
-            // console.log(command);
+
             const result = await this.device.dap.cmdNums(DapCmd.DAP_TRANSFER, command);
 
             const resultu8 = new Uint8Array(result.slice(3, 4 * this.readCounts[i] + 3));
@@ -194,26 +201,31 @@ export class DAP {
         const n = await this.readDp(Reg.IDCODE);
         this.idcode = n;
 
-        await this.writeReg(Reg.DP_0x0, 1 << 2); // clear sticky error
-        await this.writeDp(Reg.SELECT, 0);
-        await this.writeDp(Reg.CTRL_STAT, DapRegisters.CSYSPWRUPREQ | DapRegisters.CDBGPWRUPREQ);
+        let prep = new PreparedDapCommand(this);
+        prep.writeReg(Reg.DP_0x0, 1 << 2); // clear sticky error
+        prep.writeDp(Reg.SELECT, 0);
+        prep.writeDp(Reg.CTRL_STAT, DapRegisters.CSYSPWRUPREQ | DapRegisters.CDBGPWRUPREQ);
 
         const m = DapRegisters.CDBGPWRUPACK | DapRegisters.CSYSPWRUPACK;
-        let v = await this.readDp(Reg.CTRL_STAT);
+        prep.readDp(Reg.CTRL_STAT);
+        let v = (await prep.go())[0];
 
         while ((v & m) !== m) {
             v = await this.readDp(Reg.CTRL_STAT);
         }
 
-        await this.writeDp(
+        prep = new PreparedDapCommand(this);
+        prep.writeDp(
             Reg.CTRL_STAT,
             (DapRegisters.CSYSPWRUPREQ |
             DapRegisters.CDBGPWRUPREQ |
             DapRegisters.TRNNORMAL |
             DapRegisters.MASKLANE),
         );
-        await this.writeDp(Reg.SELECT, 0);
-        await this.readAp(ApReg.IDR);
+        prep.writeDp(Reg.SELECT, 0);
+        prep.readAp(ApReg.IDR);
+
+        await prep.go();
     }
 
     public async writeReg(regId: Reg, val: number) {
@@ -232,8 +244,11 @@ export class DAP {
     }
 
     public async readAp(addr: ApReg) {
-        await this.writeDp(Reg.SELECT, bank(addr));
-        return await this.readReg(apReg(addr, DapVal.READ));
+        const prep = new PreparedDapCommand(this);
+        prep.writeDp(Reg.SELECT, bank(addr));
+        prep.readReg(apReg(addr, DapVal.READ));
+
+        return (await prep.go())[0];
     }
 
     public writeDp(addr: Reg, data: number) {
@@ -249,8 +264,6 @@ export class DAP {
     }
 
     public async writeAp(addr: ApReg, data: number) {
-        await this.writeDp(Reg.SELECT, bank(addr));
-
         if (addr === ApReg.CSW) {
             if (data === this.csw) {
                 return Promise.resolve();
@@ -259,7 +272,11 @@ export class DAP {
             this.csw = data;
         }
 
-        await this.writeReg(apReg(addr, DapVal.WRITE), data);
+        const prep = new PreparedDapCommand(this);
+        prep.writeDp(Reg.SELECT, bank(addr));
+        prep.writeReg(apReg(addr, DapVal.WRITE), data);
+
+        await prep.go();
     }
 
     public async close() {

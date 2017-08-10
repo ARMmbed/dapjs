@@ -95,8 +95,6 @@ export class FlashTarget extends CortexM {
             await this.flashInit();
         }
 
-        await this.halt();
-
         const pageSizeWords = this.platform.flashAlgo.pageSize / 4;
         const bufferAddress = this.platform.flashAlgo.pageBuffers[0];
         const flashStart = address || this.platform.flashAlgo.flashStart;
@@ -110,8 +108,6 @@ export class FlashTarget extends CortexM {
             const pageData = data.slice(wordPtr, wordPtr + pageSizeWords);
             const flashAddress = flashStart + ptr;
 
-            this.platform.overrideSecurityBits(flashAddress, pageData);
-
             await this.memory.writeBlock(bufferAddress, pageData);
             await this.runCode(
                 this.platform.flashAlgo.instructions,
@@ -120,7 +116,7 @@ export class FlashTarget extends CortexM {
                 this.platform.flashAlgo.loadAddress + 1, // lr
                 this.platform.flashAlgo.stackPointer, // sp
                 /* upload? */
-                ptr === 0,
+                false,
                 /* args */
                 flashAddress, this.platform.flashAlgo.pageSize, bufferAddress,
             );
@@ -158,6 +154,7 @@ export class FlashTarget extends CortexM {
         const elapsedTime = endTime - startTime;
 
         const transferRate = totalBytes / elapsedTime; // B/ms == kB/s
+        console.debug(`Transfer took ${elapsedTime / 1000} s`);
         console.debug(`Transfered ${totalBytes} bytes at ${transferRate} kB/s`);
 
         await this.flashUnInit();

@@ -154,6 +154,20 @@ export class PreparedCortexMCommand {
         this.cmd.write32(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
     }
 
+    public halt() {
+        this.cmd.write32(
+            CortexSpecialReg.DHCSR,
+            CortexSpecialReg.DBGKEY | CortexSpecialReg.C_DEBUGEN | CortexSpecialReg.C_HALT,
+        );
+    }
+
+    public resume() {
+        this.cmd.write32(
+            CortexSpecialReg.DFSR,
+            CortexSpecialReg.DFSR_DWTTRAP | CortexSpecialReg.DFSR_BKPT | CortexSpecialReg.DFSR_HALTED,
+        );
+    }
+
     public async go() {
         // this.cmd.read32(CortexSpecialReg.DHCSR);
 
@@ -252,9 +266,12 @@ export class CortexM {
      * @param val Value to be written.
      */
     public async writeCoreRegister(no: CortexReg, val: number) {
-        await this.memory.write32(CortexSpecialReg.DCRDR, val);
-        await this.memory.write32(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
-        const v = await this.memory.read32(CortexSpecialReg.DHCSR);
+        const prep = new PreparedMemoryCommand(this.dev);
+
+        prep.write32(CortexSpecialReg.DCRDR, val);
+        prep.write32(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
+        prep.read32(CortexSpecialReg.DHCSR);
+        const v = (await prep.go())[0];
 
         assert(v & CortexSpecialReg.S_REGRDY);
     }
@@ -297,8 +314,15 @@ export class CortexM {
      * stating the current halted state of the CPU.
      */
     public async status() {
-        const dhcsr = await this.memory.read32(CortexSpecialReg.DHCSR);
-        const dfsr = await this.memory.read32(CortexSpecialReg.DFSR);
+        const prep = new PreparedMemoryCommand(this.dev);
+
+        prep.read32(CortexSpecialReg.DHCSR);
+        prep.read32(CortexSpecialReg.DFSR);
+
+        const results = await prep.go();
+
+        const dhcsr = results[0];
+        const dfsr = results[1];
 
         return {
             dfsr,
@@ -335,9 +359,6 @@ export class CortexM {
      * in order for this function to return. This can be achieved by placing a `bkpt`
      * instruction at the end of the function.
      *
-     * **FIXME**: currently causes a hard fault when the core is resumed after successfully uploading
-     * the blob to memory and setting core registers.
-     *
      * @param code array containing the machine code (32-bit words).
      * @param address memory address at which to place the code.
      * @param pc initial value of the program counter.
@@ -356,25 +377,33 @@ export class CortexM {
         sp: number,
         upload: boolean,
         ...args: number[]) {
-        // Halt the core
-        await this.halt();
+        const cmd = new PreparedCortexMCommand(this.dev);
+
+        cmd.halt();
 
         // Point the program counter to the start of the program
-        await this.writeCoreRegister(CortexReg.PC, pc);
-        await this.writeCoreRegister(CortexReg.LR, lr);
-        await this.writeCoreRegister(CortexReg.SP, sp);
+        cmd.writeCoreRegister(CortexReg.PC, pc);
+        cmd.writeCoreRegister(CortexReg.LR, lr);
+        cmd.writeCoreRegister(CortexReg.SP, sp);
 
         for (let i = 0; i < args.length; i++) {
-            await this.writeCoreRegister(i, args[i]);
+            cmd.writeCoreRegister(i, args[i]);
         }
+
+        if (!upload) {
+            // batch the resume command if we're not uploading the program.
+            cmd.resume();
+        }
+
+        await cmd.go();
 
         // Write the program to memory at the specified address
         if (upload) {
             await this.memory.writeBlock(address, code);
+            // Run the program and wait for halt
+            await this.resume();
         }
 
-        // Run the program and wait for halt
-        await this.resume();
         await this.waitForHalt(DEFAULT_RUNCODE_TIMEOUT); // timeout after 10s
 
         return await this.readCoreRegister(CortexReg.R0);
