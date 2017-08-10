@@ -377,6 +377,9 @@ export class CortexM {
         sp: number,
         upload: boolean,
         ...args: number[]) {
+
+        // await this.halt();
+
         const cmd = new PreparedCortexMCommand(this.dev);
 
         cmd.halt();
@@ -390,20 +393,15 @@ export class CortexM {
             cmd.writeCoreRegister(i, args[i]);
         }
 
-        if (!upload) {
-            // batch the resume command if we're not uploading the program.
-            cmd.resume();
-        }
-
         await cmd.go();
 
         // Write the program to memory at the specified address
         if (upload) {
             await this.memory.writeBlock(address, code);
-            // Run the program and wait for halt
-            await this.resume();
         }
 
+        // Run the program and wait for halt
+        await this.resume();
         await this.waitForHalt(DEFAULT_RUNCODE_TIMEOUT); // timeout after 10s
 
         return await this.readCoreRegister(CortexReg.R0);
