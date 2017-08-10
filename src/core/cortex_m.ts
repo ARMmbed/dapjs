@@ -1,7 +1,7 @@
 import {DAP} from "../dap";
 import {Debug} from "../debug/debug";
 import {assert} from "../util";
-import {Memory} from "./memory";
+import {Memory, PreparedMemoryCommand} from "./memory";
 
 const DEFAULT_RUNCODE_TIMEOUT = 10000 /* ms */;
 
@@ -140,6 +140,26 @@ export const enum CoreState {
     TARGET_SLEEPING,
     TARGET_HALTED,
     TARGET_RUNNING,
+}
+
+export class PreparedCortexMCommand {
+    private cmd: PreparedMemoryCommand;
+
+    constructor(dap: DAP) {
+        this.cmd = new PreparedMemoryCommand(dap);
+    }
+
+    public writeCoreRegister(no: CortexReg, val: number) {
+        this.cmd.write32(CortexSpecialReg.DCRDR, val);
+        this.cmd.write32(CortexSpecialReg.DCRSR, no | CortexSpecialReg.DCRSR_REGWnR);
+    }
+
+    public async go() {
+        // this.cmd.read32(CortexSpecialReg.DHCSR);
+
+        const v = await this.cmd.go();
+        // assert(v & CortexSpecialReg.S_REGRDY);
+    }
 }
 
 /**

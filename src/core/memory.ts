@@ -1,5 +1,43 @@
-import {ApReg, Csw, DAP,  DapVal} from "../dap";
+import {ApReg, Csw, DAP,  DapVal, PreparedDapCommand} from "../dap";
 import {apReg, assert, bufferConcat, delay} from "../util";
+
+export class PreparedMemoryCommand {
+    private cmd: PreparedDapCommand;
+
+    constructor(dap: DAP) {
+        this.cmd = new PreparedDapCommand(dap);
+    }
+
+    public write32(addr: number, data: number) {
+        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+        this.cmd.writeAp(ApReg.TAR, addr);
+        this.cmd.writeAp(ApReg.DRW, data);
+    }
+
+    public write16(addr: number, data: number) {
+        data = data << ((addr & 0x02) << 3);
+
+        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
+        this.cmd.writeAp(ApReg.TAR, addr);
+        this.cmd.writeAp(ApReg.DRW, data);
+    }
+
+    public read32(addr: number) {
+        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
+        this.cmd.writeAp(ApReg.TAR, addr);
+        this.cmd.readAp(ApReg.DRW);
+    }
+
+    public read16(addr: number) {
+        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
+        this.cmd.writeAp(ApReg.TAR, addr);
+        this.cmd.readAp(ApReg.DRW);
+    }
+
+    public async go() {
+        return this.cmd.go();
+    }
+}
 
 export class Memory {
     private dev: DAP;

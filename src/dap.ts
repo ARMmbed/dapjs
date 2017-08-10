@@ -66,8 +66,113 @@ export const enum ApReg {
     IDR = 0xFC,
 }
 
+export class PreparedDapCommand {
+    private commands: number[][];
+    private readCounts: number[];
+    private currentCommand: number;
+    private commandCounts: number[];
+
+    private dpSelect: number;
+    private csw: number;
+
+    constructor(private device: DAP) {
+        this.commands = [[0, 1]];
+        this.commandCounts = [0];
+        this.currentCommand = 0;
+        this.readCounts = [0];
+    }
+
+    public writeReg(regId: Reg, value: number) {
+        const request = regRequest(regId, true);
+
+        if (this.commands[this.currentCommand].length + 5 > 64) {
+            // start a new command
+            this.commands.push([0, 1]);
+            this.commandCounts.push(0);
+            this.readCounts.push(0);
+            this.currentCommand++;
+        }
+
+        this.commands[this.currentCommand].push(request);
+        addInt32(this.commands[this.currentCommand], value);
+
+        this.commandCounts[this.currentCommand]++;
+    }
+
+    public readReg(regId: Reg) {
+        const request = regRequest(regId, false);
+
+        if (this.commands[this.currentCommand].length + 1 > 64) {
+            // start a new command
+            this.commands.push([0, 1]);
+            this.commandCounts.push(0);
+            this.readCounts.push(0);
+            this.currentCommand++;
+        }
+
+        this.commands[this.currentCommand].push(request);
+
+        this.commandCounts[this.currentCommand]++;
+        this.readCounts[this.currentCommand]++;
+    }
+
+    public async go(): Promise<number[]> {
+        let v: number[] = [];
+
+        // console.log(`Collected ${this.commands.length} commands`);
+
+        for (let i = 0; i < this.commands.length; i++) {
+            const command = this.commands[i];
+            command[1] = this.commandCounts[i];
+            // console.log(command);
+            const result = await this.device.dap.cmdNums(DapCmd.DAP_TRANSFER, command);
+
+            const resultu8 = new Uint8Array(result.slice(3, 4 * this.readCounts[i] + 3));
+            const resultu32 = new Uint32Array(resultu8.buffer);
+            v = v.concat(Array.from(resultu32));
+        }
+
+        return v;
+    }
+
+    public writeDp(addr: Reg, data: number) {
+        if (addr === Reg.SELECT) {
+            if (data === this.dpSelect) {
+                return Promise.resolve();
+            }
+
+            this.dpSelect = data;
+        }
+
+        return this.writeReg(addr, data);
+    }
+
+    public writeAp(addr: ApReg, data: number) {
+        this.writeDp(Reg.SELECT, bank(addr));
+
+        if (addr === ApReg.CSW) {
+            if (data === this.csw) {
+                return Promise.resolve();
+            }
+
+            this.csw = data;
+        }
+
+        this.writeReg(apReg(addr, DapVal.WRITE), data);
+    }
+
+    public readDp(addr: Reg) {
+        return this.readReg(addr);
+    }
+
+    public readAp(addr: ApReg) {
+        this.writeDp(Reg.SELECT, bank(addr));
+        return this.readReg(apReg(addr, DapVal.READ));
+    }
+}
+
 export class DAP {
-    private dap: CMSISDAP;
+    public dap: CMSISDAP;
 
     private dpSelect: number;
     private csw: number;
