@@ -177,9 +177,57 @@ export class PreparedCortexMCommand {
 }
 
 /**
- * Abstraction of an ARM Cortex M CPU from a programmer's perspective. Provides functionality
- * for setting breakpoints, reading general-purpose registers, reading from memory and stopping
- * and starting the CPU.
+ * # Cortex M
+ *
+ * Manages access to a CPU core, and its associated memory and debug functionality.
+ * Please note that all of the methods that involve interaction with the CPU core
+ * are asynchronous, so must be `await`ed, or explicitly handled as a Promise.
+ *
+ * ## Usage
+ *
+ * First, let's create an instance of `CortexM`, using an associated _Debug Access
+ * Port_ (DAP) instance that we created earlier.
+ *
+ * ```typescript
+ * const core = new CortexM(dap);
+ * ```
+ *
+ * Now, we can halt and resume the core just like this:
+ *
+ * > **NOTE:** If you're not using ES2017, you can replace the use of `async` and
+ * > `await` with direct use of Promises. These examples also need to be run within
+ * > an `async` function for `async` to be used.
+ *
+ * ```typescript
+ * await core.halt();
+ * await core.resume();
+ * ```
+ *
+ * Resetting the core is just as easy:
+ *
+ * ```typescript
+ * await core.reset();
+ * ```
+ *
+ * You can even halt immediately after reset:
+ *
+ * ```typescript
+ * await core.reset(true);
+ * ```
+ *
+ * We can also read and write 32-bit values to/from core registers:
+ *
+ * ```typescript
+ * const sp = await core.readCoreRegister(CortexReg.SP);
+ *
+ * await core.writeCoreRegister(CortexReg.R0, 0x1000);
+ * await core.writeCoreRegister(CortexReg.PC, 0x1234);
+ * ```
+ *
+ * ### See also
+ *
+ * For details on debugging and memory features, see the documentation for
+ * `Debug` and `Memory`.
  */
 export class CortexM {
     public readonly memory: Memory;
