@@ -1,4 +1,4 @@
-import {CortexM, CortexReg} from "../core/cortex_m";
+import {CortexM, CortexReg} from "../core/cortex";
 import {DAP} from "../dap";
 import {IPlatform} from "./platform";
 

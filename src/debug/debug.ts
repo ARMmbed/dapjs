@@ -1,4 +1,4 @@
-import {CortexM, CortexSpecialReg} from "../core/cortex_m";
+import {CortexM, CortexSpecialReg} from "../core/cortex";
 import {DisabledBreakpoint, HWBreakpoint, IBreakpoint, SWBreakpoint} from "./breakpoint";
 
 export class Debug {
