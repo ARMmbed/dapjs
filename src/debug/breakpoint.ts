@@ -30,7 +30,7 @@ export class SWBreakpoint implements IBreakpoint {
     constructor(private readonly parent: CortexM, public readonly addr: number) {  }
 
     public async set() {
-        // read the instruction from the CPU... pleeeeease be in thumb mode
+        // read the instruction from the CPU...
         this.instruction = await this.parent.memory.read16(this.addr);
         await this.parent.memory.write16(this.addr, SWBreakpoint.BKPT_INSTRUCTION);
     }

@@ -3,6 +3,30 @@ import {CortexM} from "../cortex/cortex";
 
 import {DisabledBreakpoint, HWBreakpoint, IBreakpoint, SWBreakpoint} from "./breakpoint";
 
+/**
+ * # Debug Interface
+ *
+ * Keeps track of breakpoints set on the target, as well as deciding whether to
+ * use a hardware breakpoint or a software breakpoint.
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * const dbg = core.debug;
+ *
+ * await dbg.setBreakpoint(0x123456);
+ *
+ * // resume the core and wait for the breakpoint
+ * await core.resume();
+ * await core.waitForHalt();
+ *
+ * // step forward one instruction
+ * await dbg.step();
+ *
+ * // remove the breakpoint
+ * await dbg.deleteBreakpoint(0x123456);
+ * ```
+ */
 export class Debug {
     private core: CortexM;
 
