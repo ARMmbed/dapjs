@@ -1,6 +1,6 @@
 import {DAP} from "../dap";
 
-import {CortexReg, CortexSpecialReg} from "./cortex";
+import {CortexReg, CortexSpecialReg} from "./cortex_constants";
 import {PreparedMemoryCommand} from "./memory";
 
 /**
