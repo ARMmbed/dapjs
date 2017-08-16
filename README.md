@@ -1,19 +1,53 @@
-# DAP.JS
+# DAP.js
 
-Node.js interface to DAP-CMSIS over USB/HID
+DAP.js is a JavaScript interface to CMSIS-DAP, aiming to implement a subset of
+the functionality provided by [pyOCD](https://github.com/mbedmicro/pyOCD), enabling
+debugging of Arm Cortex-M devices in Node.js and in the browser using [WebUSB](https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web).
 
-This package is meant to provide a subset of functionality of [pyOCD](https://github.com/mbedmicro/pyOCD).
+## Features
 
-It's currently only being tested with BBC micro:bit devices.
+- General
+    - Read core registers
+    - Run arbitrary assembled Arm machine code
+- Debugging
+    - Set hardware and software breakpoints
+    - Step (instruction level)
+- Memory
+    - Read blocks from memory:
+        - 16-bit reads/writes
+        - 32-bit reads/writes
+        - Word-aligned mass reads and writes
+- Flashing
+    - Full-chip erase
+    - Flash binary files and intel hex files
+    - Support for the NRF51 (including the micro:bit) and NXP's FRDM-K64F.
+- Performance
+    - Support for batched commands to improve HID report utilisation
+    - Flashing at ~10-20 kB/s, comparable with PyOCD and OpenOCD
 
-The is explicitly not using node.js features not present in browsers (in particular `Buffer` type)
-so it's easier to refactor it to use different USB/HID providers (WinRT, Chrome Apps etc).
+## Example
 
-## Note: running with WebUSB
+For a more full-featured example, see [dapjs-web-demo](https://github.com/ArmMbed/dapjs-web-demo).
 
-Chrome does not attempt to unmount the kernel driver for the device. As such,
-this will _not_ work if the mbed serial driver is installed. This has only been
-tested on Windows 10 and Chrome so far.
+```typescript
+let device = new HID(device_path);
+let core = new CortexM(new DAP(device));
+
+await core.init();
+await core.halt();
+
+// detect core type
+const [impl, isa, type] = await this.target.readCoreType();
+
+// read core registers!
+const r0 = await this.target.readCoreRegister(CortexReg.R0);
+
+// step through code :)
+await this.target.debug.step();
+
+// set breakpoints
+await this.target.debug.setBreakpoints(0x3c000);
+```
 
 ## Build process
 
