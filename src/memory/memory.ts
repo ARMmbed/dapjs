@@ -1,44 +1,52 @@
-import {ApReg, Csw, DAP,  DapVal, PreparedDapCommand} from "../dap";
+import DAP from "../dap/dap";
+
+import {ApReg, Csw,  DapVal} from "../dap/constants";
+import {PreparedDapCommand} from "../dap/prepared";
 import {apReg, assert, bufferConcat, delay} from "../util";
 
-export class PreparedMemoryCommand {
-    private cmd: PreparedDapCommand;
+import {PreparedMemoryCommand} from "./prepared";
 
-    constructor(dap: DAP) {
-        this.cmd = new PreparedDapCommand(dap);
-    }
-
-    public write32(addr: number, data: number) {
-        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        this.cmd.writeAp(ApReg.TAR, addr);
-        this.cmd.writeAp(ApReg.DRW, data);
-    }
-
-    public write16(addr: number, data: number) {
-        data = data << ((addr & 0x02) << 3);
-
-        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
-        this.cmd.writeAp(ApReg.TAR, addr);
-        this.cmd.writeAp(ApReg.DRW, data);
-    }
-
-    public read32(addr: number) {
-        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
-        this.cmd.writeAp(ApReg.TAR, addr);
-        this.cmd.readAp(ApReg.DRW);
-    }
-
-    public read16(addr: number) {
-        this.cmd.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
-        this.cmd.writeAp(ApReg.TAR, addr);
-        this.cmd.readAp(ApReg.DRW);
-    }
-
-    public async go() {
-        return this.cmd.go();
-    }
-}
-
+/**
+ * # Memory Interface
+ *
+ * Controls access to the target's memory.
+ *
+ * ## Usage
+ *
+ * Using an instance of `CortexM`, as described before, we can simply read and
+ * write numbers to memory as follows:
+ *
+ * ```typescript
+ * const mem = core.memory;
+ *
+ * // NOTE: the address parameter must be word (4-byte) aligned.
+ * await mem.write32(0x200000, 12345);
+ * const val = await mem.read32(0x200000);
+ *
+ * // val === 12345
+ *
+ * // NOTE: the address parameter must be half-word (2-byte) aligned
+ * await mem.write16(0x2000002, 65534);
+ * const val16 = await mem.read16(0x2000002);
+ *
+ * // val16 === 65534
+ * ```
+ *
+ * To write a larger block of memory, we can use `readBlock` and `writeBlock`. Again,
+ * these blocks must be written to word-aligned addresses in memory.
+ *
+ * ```typescript
+ * const data = new Uint32Array([0x1234, 0x5678, 0x9ABC, 0xDEF0]);
+ * await mem.writeBlock(0x200000, data);
+ *
+ * const readData = await mem.readBlock(0x200000, data.length, 0x100);
+ * ```
+ *
+ * ## See also
+ *
+ * `PreparedMemoryCommand` provides an equivalent API with better performance (in some
+ * cases) by enabling batched memory operations.
+ */
 export class Memory {
     private dev: DAP;
 
@@ -53,7 +61,7 @@ export class Memory {
      * @param data Data to write (values above 2**32 will be truncated)
      */
     public async write32(addr: number, data: number) {
-        const prep = new PreparedDapCommand(this.dev);
+        const prep = this.dev.prepareCommand();
         prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
         prep.writeAp(ApReg.TAR, addr);
         prep.writeAp(ApReg.DRW, data);
@@ -70,7 +78,7 @@ export class Memory {
     public async write16(addr: number, data: number) {
         data = data << ((addr & 0x02) << 3);
 
-        const prep = new PreparedDapCommand(this.dev);
+        const prep = this.dev.prepareCommand();
         prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
         prep.writeAp(ApReg.TAR, addr);
         prep.writeAp(ApReg.DRW, data);
@@ -84,7 +92,7 @@ export class Memory {
      * @param addr Memory address to read from.
      */
     public async read32(addr: number): Promise<number> {
-        const prep = new PreparedDapCommand(this.dev);
+        const prep = this.dev.prepareCommand();
 
         prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
         prep.writeAp(ApReg.TAR, addr);
@@ -105,7 +113,7 @@ export class Memory {
      * @param addr Memory address to read from.
      */
     public async read16(addr: number): Promise<number> {
-        const prep = new PreparedDapCommand(this.dev);
+        const prep = this.dev.prepareCommand();
 
         prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE16);
         prep.writeAp(ApReg.TAR, addr);
@@ -176,8 +184,12 @@ export class Memory {
         return this.writeBlockCore(addr, words);
     }
 
+    public prepareCommand() {
+        return new PreparedMemoryCommand(this.dev);
+    }
+
     private async readBlockCore(addr: number, words: number) {
-        const prep = new PreparedDapCommand(this.dev);
+        const prep = this.dev.prepareCommand();
         prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
         prep.writeAp(ApReg.TAR, addr);
         await prep.go();
@@ -205,7 +217,7 @@ export class Memory {
             const blSz = 14;
             const reg = apReg(ApReg.DRW, DapVal.WRITE);
 
-            const prep = new PreparedDapCommand(this.dev);
+            const prep = this.dev.prepareCommand();
             prep.writeAp(ApReg.CSW, Csw.CSW_VALUE | Csw.CSW_SIZE32);
             prep.writeAp(ApReg.TAR, addr);
 

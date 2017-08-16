@@ -1,5 +1,8 @@
-import {DAP} from "../dap";
+import DAP from "../dap/dap";
+
 import {Debug} from "../debug/debug";
+import {Memory} from "../memory/memory";
+import {PreparedMemoryCommand} from "../memory/prepared";
 import {assert} from "../util";
 
 import {
@@ -17,16 +20,16 @@ import {
     CPUIDImplementer,
     DEFAULT_RUNCODE_TIMEOUT,
     ISA,
-} from "./cortex_constants";
-import {PreparedCortexMCommand} from "./cortex_prepared";
-import {Memory, PreparedMemoryCommand} from "./memory";
+} from "./constants";
+import {PreparedCortexMCommand} from "./prepared";
 
 /**
  * # Cortex M
  *
  * Manages access to a CPU core, and its associated memory and debug functionality.
- * Please note that all of the methods that involve interaction with the CPU core
- * are asynchronous, so must be `await`ed, or explicitly handled as a Promise.
+ *
+ * > **NOTE:** all of the methods that involve interaction with the CPU core
+ * > are asynchronous, so must be `await`ed, or explicitly handled as a Promise.
  *
  * ## Usage
  *
@@ -75,10 +78,20 @@ import {Memory, PreparedMemoryCommand} from "./memory";
  * `Debug` and `Memory`.
  */
 export class CortexM {
+    /**
+     * Read and write to on-chip memory associated with this CPU core.
+     */
     public readonly memory: Memory;
+
+    /**
+     * Control the CPU's debugging features.
+     */
     public readonly debug: Debug;
 
-    protected dev: DAP;
+    /**
+     * Underlying Debug Access Port (DAP).
+     */
+    private dev: DAP;
 
     constructor(device: DAP) {
         this.dev = device;
@@ -138,6 +151,10 @@ export class CortexM {
         console.debug(`Found an ARM ${CoreNames.get(coreType)}`);
 
         return [implementer, arch, coreType];
+    }
+
+    public prepareCommand(): PreparedCortexMCommand {
+        return new PreparedCortexMCommand(this.dev);
     }
 
     /**
@@ -273,7 +290,7 @@ export class CortexM {
 
         // await this.halt();
 
-        const cmd = new PreparedCortexMCommand(this.dev);
+        const cmd = this.prepareCommand();
 
         cmd.halt();
 

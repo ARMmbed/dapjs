@@ -1,5 +1,5 @@
-import {CortexM} from "../core/cortex";
-import {CortexSpecialReg} from "../core/cortex_constants";
+import {CortexSpecialReg} from "../cortex/constants";
+import {CortexM} from "../cortex/cortex";
 
 import {DisabledBreakpoint, HWBreakpoint, IBreakpoint, SWBreakpoint} from "./breakpoint";
 

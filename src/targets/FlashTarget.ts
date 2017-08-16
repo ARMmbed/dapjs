@@ -1,6 +1,6 @@
-import {CortexM} from "../core/cortex";
-import {CortexReg} from "../core/cortex_constants";
-import {DAP} from "../dap";
+import {CortexReg} from "../cortex/constants";
+import {CortexM} from "../cortex/cortex";
+import DAP from "../dap/dap";
 import {IPlatform} from "./platform";
 
 import {FlashProgram} from "./FlashProgram";

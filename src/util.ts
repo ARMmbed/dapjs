@@ -1,4 +1,4 @@
-import {ApReg, DapVal, Reg} from "./dap";
+import {ApReg, DapVal, Reg} from "./dap/constants";
 
 export const readUInt32LE = (b: Uint8Array, idx: number) => {
     return (b[idx] |

@@ -1,4 +1,3 @@
-
 import {IFlashAlgo, IPlatform} from "./platform";
 
 const K64F_FLASH_ALGO = {
