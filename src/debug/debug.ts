@@ -20,37 +20,8 @@ export class Debug {
         this.breakpoints = new Map<number, IBreakpoint | DisabledBreakpoint>();
     }
 
-    /**
-     * Set up (and disable) the Flash Patch & Breakpoint unit. It will be enabled when
-     * the first breakpoint is set.
-     *
-     * Also reads the number of available hardware breakpoints.
-     */
-    public async setupFpb() {
-        // setup FPB (breakpoint)
-        const fpcr = await this.core.memory.read32(CortexSpecialReg.FP_CTRL);
-        const nbCode = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xf);
-        const nbLit = (fpcr >> 7) & 0xf;
-
-        this.totalHWBreakpoints = nbCode;
-        console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
-
-        await this.setFpbEnabled(false);
-
-        for (let i = 0; i < nbCode; i++) {
-            this.availableHWBreakpoints.push(CortexSpecialReg.FP_COMP0 + (4 * i));
-            await this.core.memory.write32(CortexSpecialReg.FP_COMP0 + (i * 4), 0);
-        }
-    }
-
-    /**
-     * Enable or disable the Flash Patch and Breakpoint unit (FPB).
-     *
-     * @param enabled
-     */
-    public async setFpbEnabled(enabled = true) {
-        this.enabled = enabled;
-        await this.core.memory.write32(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
+    public async init() {
+        this.setupFpb();
     }
 
     /**
@@ -159,5 +130,38 @@ export class Debug {
             CortexSpecialReg.C_DEBUGEN |
             CortexSpecialReg.C_HALT,
         );
+    }
+
+    /**
+     * Set up (and disable) the Flash Patch & Breakpoint unit. It will be enabled when
+     * the first breakpoint is set.
+     *
+     * Also reads the number of available hardware breakpoints.
+     */
+    private async setupFpb() {
+        // setup FPB (breakpoint)
+        const fpcr = await this.core.memory.read32(CortexSpecialReg.FP_CTRL);
+        const nbCode = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xf);
+        const nbLit = (fpcr >> 7) & 0xf;
+
+        this.totalHWBreakpoints = nbCode;
+        console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
+
+        await this.setFpbEnabled(false);
+
+        for (let i = 0; i < nbCode; i++) {
+            this.availableHWBreakpoints.push(CortexSpecialReg.FP_COMP0 + (4 * i));
+            await this.core.memory.write32(CortexSpecialReg.FP_COMP0 + (i * 4), 0);
+        }
+    }
+
+    /**
+     * Enable or disable the Flash Patch and Breakpoint unit (FPB).
+     *
+     * @param enabled
+     */
+    private async setFpbEnabled(enabled = true) {
+        this.enabled = enabled;
+        await this.core.memory.write32(CortexSpecialReg.FP_CTRL, CortexSpecialReg.FP_CTRL_KEY | (enabled ? 1 : 0));
     }
 }

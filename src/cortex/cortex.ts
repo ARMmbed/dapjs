@@ -106,7 +106,7 @@ export class CortexM {
         await this.dev.init();
 
         // FIXME: don't run this if security is enabled on the K64F
-        await this.debug.setupFpb();
+        await this.debug.init();
         await this.readCoreType();
     }
 
