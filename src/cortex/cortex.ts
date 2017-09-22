@@ -1,4 +1,4 @@
-import DAP from "../dap/dap";
+import {DAP} from "../dap/dap";
 
 import {Debug} from "../debug/debug";
 import {Memory} from "../memory/memory";

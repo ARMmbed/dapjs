@@ -5,7 +5,7 @@ import {CMSISDAP, DapCmd} from "../transport/cmsis_dap";
 import {IHID} from "../transport/hid";
 import {addInt32, apReg, assert, bank, delay, readUInt32LE, regRequest} from "../util";
 
-export default class DAP {
+export class DAP {
     public dap: CMSISDAP;
 
     private dpSelect: number;

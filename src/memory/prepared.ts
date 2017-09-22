@@ -1,4 +1,4 @@
-import DAP from "../dap/dap";
+import {DAP} from "../dap/dap";
 
 import {ApReg, Csw} from "../dap/constants";
 import {PreparedDapCommand} from "../dap/prepared";

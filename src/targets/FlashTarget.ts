@@ -1,6 +1,6 @@
 import {CortexReg} from "../cortex/constants";
 import {CortexM} from "../cortex/cortex";
-import DAP from "../dap/dap";
+import {DAP} from "../dap/dap";
 import {IPlatform} from "./platform";
 
 import {FlashProgram} from "./FlashProgram";
@@ -8,6 +8,10 @@ import {FlashProgram} from "./FlashProgram";
 import {K64F} from "./K64F";
 import {NRF51} from "./NRF51";
 
+/**
+ * Analyzer code blob, from PyOCD. This can be used to compute a table of CRC
+ * values. See https://github.com/mbedmicro/pyOCD/tree/master/src/analyzer.
+ */
 const analyzer = new Uint32Array([
     0x2180468c, 0x2600b5f0, 0x4f2c2501, 0x447f4c2c, 0x1c2b0049, 0x425b4033, 0x40230872, 0x085a4053,
     0x425b402b, 0x40534023, 0x402b085a, 0x4023425b, 0x085a4053, 0x425b402b, 0x40534023, 0x402b085a,
@@ -18,6 +22,38 @@ const analyzer = new Uint32Array([
     0xedb88320, 0x00000044,
 ]);
 
+/**
+ * # Flash Target
+ *
+ * Represents a target device containing a flash region. In rare cases that a
+ * target chip only has RAM, uploading a program is as simple as writing a
+ * block of data to memory.
+ *
+ * ## Usage
+ *
+ * Initialising the `FlashTarget` object is the same as configuring a Cortex-M
+ * object, but with an additional parameter for the platform (contains the
+ * flashing algorithm and memory layout).
+ *
+ * ```typescript
+ * import {K64F, DAP, FlashTarget} from "dapjs";
+ *
+ * // make sure hid is an object implementing the `IHID` interface.
+ * const dap = new DAP(hid);
+ * const device = new FlashTarget(dap, K64F);
+ * ```
+ *
+ * Now, we can do all of the operations you'd expect. As usual, these examples
+ * work in a function marked `async`. Alternatively, they can be implemented
+ * using Promises directly.
+ *
+ * ```typescript
+ * await device.eraseChip();
+ *
+ * // flash a hex program
+ *
+ * ```
+ */
 export class FlashTarget extends CortexM {
     protected platform: IPlatform;
     private inited: boolean;
@@ -86,10 +122,11 @@ export class FlashTarget extends CortexM {
     }
 
     /**
-     * Upload a program to flash memory on the chip.
-     * TODO: add a callback to provide progress data
+     * Flash a contiguous block of data to flash at a specified address.
      *
      * @param data Array of 32-bit integers to write to flash.
+     * @param address Memory address in flash to write to.
+     * @param progressCb Callback to keep track of progress through upload (from 0.0 to 1.0)
      */
     public async flash(data: Uint32Array, address?: number, progressCb?: (progress: number) => void) {
         if (!this.inited) {
@@ -133,6 +170,12 @@ export class FlashTarget extends CortexM {
         }
     }
 
+    /**
+     * Upload a program consisting of one or more disjoint sections to flash.
+     * 
+     * @param program Program to be uploaded
+     * @param progressCb Callback to receive progress updates (from 0.0 to 1.0)
+     */
     public async program(program: FlashProgram, progressCb: (progress: number) => void) {
         await this.flashInit();
         await this.eraseChip();
@@ -162,11 +205,23 @@ export class FlashTarget extends CortexM {
         progressCb(1.0);
     }
 
+    /**
+     * Un-init the flash algorithm. Commonly, we use this to ensure that the flashing
+     * algorithms are re-uploaded after resets.
+     */
     public flashUnInit() {
         this.inited = false;
     }
 }
 
+/**
+ * Map of mbed device codes to platform objects. Can be used by applications
+ * to dynamically select flashing algorithm based on the devices connected to
+ * the computer.
+ *
+ * > *TODO:* extend the mbed devices API to include data stored here, so that we can
+ * > expand to cover all devices without needing to update DAP.js.
+ */
 export let FlashTargets = new Map<string, IPlatform>();
 FlashTargets.set("0240", new K64F());
 FlashTargets.set("9900", new NRF51());

@@ -140,9 +140,10 @@ export class CMSISDAP {
 
     private async send(command: number[]) {
         const array = Uint8Array.from(command);
+        console.log(command.map((v) => v.toString(16)));
         await this.hid.write(array.buffer);
-
         const response = await this.hid.read();
+        console.log(new Uint8Array(response.buffer));
         return new Uint8Array(response.buffer);
     }
 }

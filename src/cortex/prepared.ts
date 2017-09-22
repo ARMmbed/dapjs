@@ -1,4 +1,4 @@
-import DAP from "../dap/dap";
+import {DAP} from "../dap/dap";
 import {PreparedMemoryCommand} from "../memory/prepared";
 
 import {CortexReg, CortexSpecialReg} from "./constants";
