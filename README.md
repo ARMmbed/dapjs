@@ -25,29 +25,6 @@ debugging of Arm Cortex-M devices in Node.js and in the browser using [WebUSB](h
     - Support for batched commands to improve HID report utilisation
     - Flashing at ~10-20 kB/s, comparable with PyOCD and OpenOCD
 
-## Example
-
-For a more full-featured example, see [dapjs-web-demo](https://github.com/ArmMbed/dapjs-web-demo).
-
-```typescript
-let device = new HID(device_path);
-let core = new CortexM(new DAP(device));
-
-await core.init();
-await core.halt();
-
-// detect core type
-const [impl, isa, type] = await this.target.readCoreType();
-
-// read core registers!
-const r0 = await this.target.readCoreRegister(CortexReg.R0);
-
-// step through code :)
-await this.target.debug.step();
-
-// set breakpoints
-await this.target.debug.setBreakpoints(0x3c000);
-```
 
 ## Build process
 
@@ -55,6 +32,33 @@ await this.target.debug.setBreakpoints(0x3c000);
 typings install
 npm install
 make
+```
+
+`dap.bundle.js` will be created in `built` folder.
+
+## Example
+
+For a more full-featured example, see [dapjs-web-demo](https://github.com/ArmMbed/dapjs-web-demo).
+
+```javascript
+device = await navigator.usb.requestDevice({ filters: [{vendorId: 0x0d28}]});
+this.deviceCode = device.serialNumber.slice(0, 4);
+selector = new DAPjs.PlatformSelector();
+const info = await selector.lookupDevice(this.deviceCode);
+this.hid = new DAPjs.HID(device);
+// open hid device
+await this.hid.open();
+dapDevice = new DAPjs.DAP(this.hid);
+this.target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+// init and halt target
+await this.target.init();
+await this.target.halt();
+// program_data contains binary data
+program_data = DAPjs.FlashProgram.fromBinary(0, program_data);
+await this.target.program(program_data, (progress) => {
+    console.log(progress);
+});
+await this.target.reset();
 ```
 
 ## License

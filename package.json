@@ -23,7 +23,17 @@
     "type": "git",
     "url": "git+https://github.com/Microsoft/dapjs.git"
   },
-  "author": "Arkadiusz Zaluski <arkadiusz.zaluski@arm.com>",
+  "author": "Michal Moskal <michal@moskal.me>",
+  "contributors": [
+    {
+      "name": "Arkadiusz Zaluski",
+      "email": "arkadiusz.zaluski@arm.com"
+    },
+    {
+      "name": "Matthew Else",
+      "email": "matthew.else@arm.com"
+    }
+  ],
   "license": "MIT",
   "homepage": "https://github.com/ARM/dapjs",
   "typings": "built/main.d.ts",

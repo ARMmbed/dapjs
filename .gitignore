@@ -3,4 +3,5 @@ typings
 *.sw?
 *.ts.new
 *.tgz
+*.DS_Store
 built/
