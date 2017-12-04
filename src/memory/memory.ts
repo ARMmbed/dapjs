@@ -228,7 +228,6 @@ export class Memory {
             await prep.go();
         } catch (e) {
             if (e.dapWait) {
-                console.debug(`transfer wait, write block`);
                 await delay(100);
                 return await this.writeBlockCore(addr, words);
             } else {

@@ -76,8 +76,6 @@ export class CMSISDAP {
     }
 
     public async connect() {
-        console.log("Connecting...");
-
         const v = await this.info(Info.PACKET_COUNT);
 
         if (v as number) {
@@ -97,8 +95,6 @@ export class CMSISDAP {
         await this.cmdNums(DapCmd.DAP_TRANSFER_CONFIGURE, [0, 0x50, 0, 0, 0]);
         await this.cmdNums(DapCmd.DAP_SWD_CONFIGURE, [0]);
         await this.jtagToSwd();
-
-        console.log("Connected");
     }
 
     private async jtagToSwd() {
@@ -140,10 +136,8 @@ export class CMSISDAP {
 
     private async send(command: number[]) {
         const array = Uint8Array.from(command);
-        console.log(command.map((v) => v.toString(16)));
         await this.hid.write(array.buffer);
         const response = await this.hid.read();
-        console.log(new Uint8Array(response.buffer));
         return new Uint8Array(response.buffer);
     }
 }

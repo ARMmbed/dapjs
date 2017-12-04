@@ -79,12 +79,10 @@ export class Debug {
 
             if (this.availableHWBreakpoints.length > 0) {
                 if (!this.enabled) {
-                    console.log("enabling fpb");
                     await this.setFpbEnabled(true);
                 }
 
                 const regAddr = this.availableHWBreakpoints.pop();
-                console.log(`using regAddr=${regAddr.toString(16)}`);
                 bkpt = new HWBreakpoint(regAddr, this.core, addr);
             } else {
                 bkpt = new SWBreakpoint(this.core, addr);
@@ -111,7 +109,7 @@ export class Debug {
 
             this.breakpoints.delete(addr);
         } else {
-            console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
+            //console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
         }
     }
 
@@ -122,7 +120,7 @@ export class Debug {
         const dhcsr = await this.core.memory.read32(CortexSpecialReg.DHCSR);
 
         if (!(dhcsr & (CortexSpecialReg.C_STEP | CortexSpecialReg.C_HALT))) {
-            console.error("Target is not halted.");
+            //console.error("Target is not halted.");
             return;
         }
 
@@ -169,7 +167,6 @@ export class Debug {
         const nbLit = (fpcr >> 7) & 0xf;
 
         this.totalHWBreakpoints = nbCode;
-        console.debug(`${nbCode} hardware breakpoints, ${nbLit} literal comparators`);
 
         await this.setFpbEnabled(false);
 

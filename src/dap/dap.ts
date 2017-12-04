@@ -171,7 +171,6 @@ export class DAP {
         const buf = await this.dap.cmdNums(DapCmd.DAP_TRANSFER, sendargs);
 
         if (buf[1] !== 1) {
-            console.error("Make sure you have initialised the DAP connection.");
             throw new Error(("Bad #trans " + buf[1]));
         } else if (buf[2] !== 1) {
             if (buf[2] === 2) {

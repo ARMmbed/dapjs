@@ -93,27 +93,22 @@ export class K64F implements IPlatform {
             for (let i = FPROT_ADDR; i < FPROT_ADDR_END; i++) {
                 if (u8data[i - address] !== 0xff) {
                     u8data[i - address] = 0xff;
-                    console.debug(`FCF[${i - FPROT_ADDR}] at addr ${i} changed to ${u8data[i - address]}`);
                 }
             }
 
             if (u8data[FSEC_ADDR - address] !== FSEC_VAL) {
                 u8data[FSEC_ADDR - address] = FSEC_VAL;
-                console.debug(`FSEC at addr ${FSEC_ADDR} changed to ${FSEC_VAL}`);
             }
 
             if (u8data[FOPT_ADDR - address] === 0x00) {
-                console.debug(`FOPT set to restricted value 0x00`);
             }
 
             if (u8data[FEPROT_ADDR - address] !== FEPROT_VAL) {
                 u8data[FEPROT_ADDR - address] = FEPROT_VAL;
-                console.debug(`FEPROT at addr ${FEPROT_ADDR} changed to ${FEPROT_VAL}`);
             }
 
             if (u8data[FDPROT_ADDR - address] !== FDPROT_VAL) {
                 u8data[FDPROT_ADDR - address] = FDPROT_VAL;
-                console.debug(`FDPROT at addr ${FDPROT_ADDR} changed to ${FDPROT_VAL}`);
             }
         }
     }

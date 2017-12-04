@@ -10,7 +10,9 @@
     "ts-node": "^3.2.1",
     "tslint": "^5.5.0",
     "typedoc": "^0.7.1",
-    "typescript": "^2.4.1"
+    "typescript": "^2.4.1",
+    "@types/w3c-web-usb": "^1.0.0",
+    "browserify": "^14.0.0"
   },
   "scripts": {
     "build": "tsc",
@@ -21,9 +23,9 @@
     "type": "git",
     "url": "git+https://github.com/Microsoft/dapjs.git"
   },
-  "author": "Michal Moskal <michal@moskal.me>",
+  "author": "Arkadiusz Zaluski <arkadiusz.zaluski@arm.com>",
   "license": "MIT",
-  "homepage": "https://github.com/Microsoft/dapjs",
+  "homepage": "https://github.com/ARM/dapjs",
   "typings": "built/main.d.ts",
   "main": "built/main.js"
 }
