@@ -109,7 +109,7 @@ export class Debug {
 
             this.breakpoints.delete(addr);
         } else {
-            //console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
+            console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
         }
     }
 
@@ -120,7 +120,7 @@ export class Debug {
         const dhcsr = await this.core.memory.read32(CortexSpecialReg.DHCSR);
 
         if (!(dhcsr & (CortexSpecialReg.C_STEP | CortexSpecialReg.C_HALT))) {
-            //console.error("Target is not halted.");
+            console.error("Target is not halted.");
             return;
         }
 
