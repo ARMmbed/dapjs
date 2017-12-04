@@ -147,9 +147,6 @@ export class CortexM {
         const implementer = ((cpuid & CPUID_IMPLEMENTER_MASK) >> CPUID_IMPLEMENTER_POS) as CPUIDImplementer;
         const arch = ((cpuid & CPUID_ARCHITECTURE_MASK) >> CPUID_ARCHITECTURE_POS) as ISA;
         const coreType = ((cpuid & CPUID_PARTNO_MASK) >> CPUID_PARTNO_POS) as CoreType;
-
-        console.debug(`Found an ARM ${CoreNames.get(coreType)}`);
-
         return [implementer, arch, coreType];
     }
 

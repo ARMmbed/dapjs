@@ -198,8 +198,6 @@ export class FlashTarget extends CortexM {
         const elapsedTime = endTime - startTime;
 
         const transferRate = totalBytes / elapsedTime; // B/ms == kB/s
-        console.debug(`Transfer took ${elapsedTime / 1000} s`);
-        console.debug(`Transfered ${totalBytes} bytes at ${transferRate} kB/s`);
 
         await this.flashUnInit();
         progressCb(1.0);

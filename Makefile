@@ -1,3 +1,3 @@
 all:
 	node node_modules/typescript/bin/tsc
-	#node built/main.js
+	browserify built/main.js --standalone DAPjs > built/dap.bundle.js
