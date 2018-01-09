@@ -20,8 +20,8 @@ export class PlatformSelector {
         xhr.open("get", `https://os.mbed.com/api/v3/platforms/${code}/`, true);
         xhr.responseType = "json";
 
-        return new Promise<IPlatform>((resolve, reject) => {
-            xhr.onload = (e: any) => {
+        return new Promise<IPlatform>((resolve, _reject) => {
+            xhr.onload = (_e: any) => {
                 const device = {
                     name: xhr.response.name,
                     productCode: xhr.response.productcode,

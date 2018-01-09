@@ -42,7 +42,7 @@ export class NRF51 implements IPlatform {
         this.flashAlgo = NRF51_FLASH_ALGO;
     }
 
-    public overrideSecurityBits(address: number, data: Uint32Array) {
+    public overrideSecurityBits(_address: number, _data: Uint32Array) {
         /* empty */
     }
 }

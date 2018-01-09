@@ -111,7 +111,7 @@ export class PreparedDapCommand {
      */
     public writeRegRepeat(regId: Reg, data: Uint32Array) {
         // fill up the rest of the command we have left
-        data.forEach((cmd) => {
+        data.forEach(cmd => {
             this.writeReg(regId, cmd);
         });
     }

@@ -35,6 +35,9 @@ export class FlashSection {
  * The base address is commonly zero.
  */
 export class FlashProgram {
+
+    constructor(public sections: FlashSection[]) {}
+
     public static fromIntelHex(hex: string): FlashProgram {
         const lines = hex.split(/\n/);
         let upperAddr = 0;
@@ -89,10 +92,8 @@ export class FlashProgram {
         return new FlashProgram([new FlashSection(addr, bin)]);
     }
 
-    constructor(public sections: FlashSection[]) {}
-
     public totalByteLength() {
-        return this.sections.map((s) => s.data.byteLength).reduce((x, y) => x + y);
+        return this.sections.map(s => s.data.byteLength).reduce((x, y) => x + y);
     }
 
     public toString() {

@@ -37,7 +37,7 @@ const enum Info {
 
 export class CMSISDAP {
     private hid: IHID;
-    private maxSent = 1;
+    // private maxSent = 1;
 
     constructor(hid: IHID) {
         this.hid = hid;
@@ -79,7 +79,7 @@ export class CMSISDAP {
         const v = await this.info(Info.PACKET_COUNT);
 
         if (v as number) {
-            this.maxSent = v as number;
+            // this.maxSent = v as number;
         } else {
             throw new Error("DAP_INFO returned invalid packet count.");
         }

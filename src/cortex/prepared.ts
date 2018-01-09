@@ -92,6 +92,6 @@ export class PreparedCortexMCommand {
      * Execute all scheduled commands.
      */
     public async go() {
-        const v = await this.cmd.go();
+        await this.cmd.go();
     }
 }

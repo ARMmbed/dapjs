@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en_GB">
+
+    <head>
+        <title>WebUSB tester</title>
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+        <!-- Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+        <!-- DAP.js -->
+        <script type="text/javascript" src="/bundles/dap.bundle.js"></script>
+        <style>
+            body {
+                font-family: 'Open Sans';            
+            }
+            
+            pre {
+                padding: 8px;
+                margin: 0 0 15px;
+                font-size: 13px;
+                line-height: 1.72222;
+                color: inherit;
+                white-space: pre;
+                background-color: #fff;
+                border: 2px solid #e7e9ec;
+                border-radius: 6px;
+            }
+            
+            p {
+                margin: 0 0 15px;
+                font-size: 18px;
+                line-height: 1.8em;
+            }
+            
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+            
+                padding-top: 20px;
+            }
+            
+            .demo_head {
+                margin-top: 20px;
+                font-size: 30px;
+            }
+            
+            .letter-ol {
+                list-style-type: lower-alpha;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class='container'>
+            <p style="display: none" id="noWebUSB" class="palette palette-alizarin">
+            It looks like your browser does not support WebUSB, or does not have it enabled. For instructions about enabling it, <a href="https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web#before_we_start" style="color: #000;">click here</a>.
+            </p>
+
+            <p class="demo_head">DAP.js Demo</p>
+
+            <p>
+            Flash and debug mbed enabled development boards in the browser
+            using CMSIS-DAP over WebUSB. Currently tested in Google Chrome
+            on Windows with an <a href="https://os.mbed.com/platforms/FRDM-K64F/">NXP Freedom K64F</a> and the <a href="http://tech.microbit.org/">micro:bit</a>.
+            </p>
+
+            <p>
+            WebUSB is an experimental technology providing low-level USB
+            access from JavaScript code running in the browser.
+            </p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <ol>
+                        <li>
+                            <p>
+                                Select a device:
+                            </p>
+                            <p>
+                                <button onclick="selectBoard()" class="btn btn-primary">Choose</button>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Choose platform:
+                            </p>
+                            <p>
+                                <select id="platform-chooser" class="form-control" disabled>
+                                    <optgroup id="platform-detected" label="Detected">
+                                    </optgroup>
+                                    <optgroup label="Others">
+                                        <option value="generic">Generic Cortex-M (no flash support)</option>
+                                        <option value="microbit">micro:bit</option>
+                                        <option value="K64F">NXP Freedom K64F</option>
+                                    </optgroup>
+                                </select>
+                            </p>
+                            <p>
+                                <button id='connect' onclick="connect()" class="btn btn-success" disabled>Connect</button>
+                            </p>
+                        </li>
+                        <li>
+                            <p>
+                                Flash a binary:
+                            </p>
+                            <p>
+                                <div class="btn-group">
+                                    <button onclick="flash('binaries/blinky-green')" class="btn btn-success when-connected" disabled>Flash Green</button>
+                                    <button onclick="flash('binaries/blinky-red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
+                                </div>
+                            </p>
+                            <div id='progress-container' style='display: none'>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 0%" id="flash-progress"></div>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <p>
+                                Tools:
+                            </p>
+                            <p>
+                                <div class="btn-group">
+                                    <button onclick="halt()" class="btn btn-danger when-connected" disabled>Halt</button>
+                                    <button onclick="resume()" class="btn btn-primary when-connected" disabled>Resume</button>
+                                </div>
+                            </p>
+                            <p>
+                                <button onclick="step()" class="btn btn-info when-connected" disabled>Step</button>
+                            </p>
+                            <p>
+                                <button onclick="printRegisters()" class="btn btn-info when-connected" disabled>Read Registers</button>
+                            </p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="col-md-8">
+                    <pre id="logger"></pre>
+                </div>
+            </div>
+        </div>
+
+        <script>
+function arrToString(arr) {
+    let r = "";
+    for (let i = 0; i < arr.length; ++i) {
+        r += ("0000" + i).slice(-4) + ": " + ("00000000" + (arr[i] >>> 0).toString(16)).slice(-8);
+
+        if (i !== arr.length - 1) {
+            r += "\n";
+        }
+    }
+    return r;
+}
+
+function machineStateToString(s) {
+    return "REGS:\n" + arrToString(s.registers);
+}
+
+async function resume() {
+    await this.target.resume();
+    log("Resumed.");
+}
+
+async function printRegisters() {
+    const halt = false;
+
+    await this.target.halt();
+    const st = await snapshotMachineState();
+
+    clearLog();
+    log(machineStateToString(st));
+}
+
+async function step() {
+    await this.target.debug.step();
+    const st = await snapshotMachineState();
+
+    clearLog();
+    log(machineStateToString(st));
+}
+
+function log(data) {
+    logger = document.getElementById("logger");
+    logger.innerHTML = logger.innerHTML + data + "\n";
+}
+
+function clearLog() {
+    document.getElementById("logger").innerHTML = "";
+}
+
+/**
+ * Snapshot the current state of the CPU. Reads all general-purpose registers, and returns them in an array.
+ */
+async function snapshotMachineState() {
+    const state = {
+        registers: [],
+    };
+    for (let i = 0; i < 16; i++) {
+        state.registers[i] = await this.target.readCoreRegister(i);
+    }
+    return state;
+}
+
+async function connect() {
+    this.hid = new DAPjs.HID(this.device);
+
+    log("Opening device.");
+
+    // open hid device
+    await this.hid.open();
+
+    log("Device opened.");
+
+    this.dapDevice = new DAPjs.DAP(this.hid);
+    this.target = new DAPjs.FlashTarget(this.dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+
+    log("Initialising device.");
+
+    await this.target.init();
+
+    log("Halting target.");
+
+    await this.target.halt();
+
+    log("Target halted.");
+
+    const [imp, isa, type] = await this.target.readCoreType();
+    log(`Connected to an ARM ${DAPjs.CoreNames.get(type)} (${DAPjs.ISANames.get(isa)})`);
+
+    document.getElementById("connect").disabled = true;
+
+    const elements = Array.from(document.querySelectorAll(".when-connected"));
+
+    for (const elem of elements) {
+        elem.disabled = false;
+    }
+}
+
+async function halt() {
+    await this.target.halt();
+    log("Halted.");
+}
+
+async function flash(binary){
+    // Erase flash
+    await this.target.halt();
+    this.flashProgressBar.style.width = "0%";
+    this.flashProgressBarContainer.style.display = "block";
+
+    console.log(binary);
+
+    const xhr = new XMLHttpRequest();
+    if (this.deviceCode === "9900") {
+        binary += ".hex";
+        xhr.responseType = "text";
+    } else {
+        binary += ".bin";
+        xhr.responseType = "arraybuffer";
+    }
+    xhr.open("GET", binary, true);
+
+    xhr.onload = async (e) => {
+        if (this.deviceCode === "9900") {
+            console.log("Flashing a micro:bit hex");
+
+            const program = DAPjs.FlashProgram.fromIntelHex(xhr.responseText);
+            await this.target.program(program, (progress) => {
+                this.flashProgressBar.style.width = `${progress * 100}%`;
+            });
+
+            log(`Successfully flashed binary.`);
+            log("Done.");
+
+            await this.target.reset();
+        } else {
+            console.log("Flashing a K64F binary");
+
+            const array = new Uint32Array(xhr.response);
+            const program = DAPjs.FlashProgram.fromBinary(0, array);
+
+            log(`Binary file ${array.length} words long`);
+
+            // Push binary to board
+            await this.target.program(program, (progress) => {
+                this.flashProgressBar.style.width = `${progress * 100}%`;
+            });
+
+            log(`Successfully flashed binary.`);
+            log("Done.");
+
+            await this.target.reset();
+
+            // make sure we don't have any issues flashing twice in the same session.
+            this.target.flashUnInit();
+        }
+    };
+
+    xhr.send();
+}
+
+async function selectBoard() {
+    this.device = await navigator.usb.requestDevice({ filters: [{vendorId: 0x0d28}]});
+    this.deviceCode = this.device.serialNumber.slice(0, 4);
+    const platform = await this.selector.lookupDevice(this.deviceCode);
+    document.getElementById("connect").disabled = false;
+    document.getElementById("platform-chooser").disabled = false;
+    document.getElementById("platform-chooser").innerHTML = `<option value='${platform.productCode}' id='${platform.productCode}'>${platform.name}</option>`;
+}
+
+window.onload = function() {
+    this.flashProgressBar = document.getElementById('flash-progress');
+    this.flashProgressBarContainer = document.getElementById('progress-container');
+    this.selector = new DAPjs.PlatformSelector();
+};
+        </script>
+    </body>
+</html>

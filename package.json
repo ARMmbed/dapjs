@@ -1,27 +1,17 @@
 {
   "name": "dapjs",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
-  "dependencies": {
-    "glob": "^7.1.2",
-    "minimatch": "^3.0.4"
-  },
-  "devDependencies": {
-    "ts-node": "^3.2.1",
-    "tslint": "^5.5.0",
-    "typedoc": "^0.7.1",
-    "typescript": "^2.4.1",
-    "@types/w3c-web-usb": "^1.0.0",
-    "browserify": "^14.0.0"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "docs": "node .\node_modules\typedoc\bin\typedoc -p .\tsconfig.json --out docs"
+  "homepage": "https://github.com/ARMmbed/dapjs",
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "main": "./index.js",
+  "browser": {
+    "./index.js": "./bundles/dap.bundle.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Microsoft/dapjs.git"
+    "url": "git://github.com/ARMmbed/dapjs.git"
   },
   "author": "Michal Moskal <michal@moskal.me>",
   "contributors": [
@@ -32,10 +22,48 @@
     {
       "name": "Matthew Else",
       "email": "matthew.else@arm.com"
+    },
+    {
+      "name": "Rob Moran",
+      "email": "rob.moran@arm.com"
     }
   ],
-  "license": "MIT",
-  "homepage": "https://github.com/ARM/dapjs",
-  "typings": "built/main.d.ts",
-  "main": "built/main.js"
+  "keywords": [
+    "dap",
+    "daplink",
+    "cmsis",
+    "usb",
+    "webusb"
+  ],
+  "scripts": {
+    "start": "node server",
+    "gulp": "gulp"
+  },
+  "engines": {
+    "node": ">=4.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.3.0",
+    "@types/w3c-web-usb": "^1.0.0",
+    "browserify": "^14.0.0",
+    "del": "^3.0.0",
+    "express": "^4.16.2",
+    "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^2.6.3",
+    "gulp-tslint": "^8.1.2",
+    "gulp-typedoc": "^2.1.2",
+    "gulp-typescript": "^3.2.3",
+    "gulp-uglify": "^3.0.0",
+    "merge2": "^1.2.0",
+    "ts-node": "^3.2.1",
+    "tslint": "^5.5.0",
+    "tslint-eslint-rules": "^4.1.1",
+    "typedoc": "^0.9.0",
+    "typescript": "^2.4.1",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "dependencies": {
+    "webusb": "0.0.2"
+  }
 }

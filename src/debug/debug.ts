@@ -33,7 +33,7 @@ export class Debug {
     // if the breakpoint is disabled, call it a number
     private breakpoints: Map<number, IBreakpoint | DisabledBreakpoint>;
     private availableHWBreakpoints: number[];
-    private totalHWBreakpoints: number;
+    // private totalHWBreakpoints: number;
 
     private enabled: boolean;
 
@@ -45,7 +45,7 @@ export class Debug {
     }
 
     public async init() {
-        this.setupFpb();
+        return this.setupFpb();
     }
 
     /**
@@ -66,6 +66,7 @@ export class Debug {
             const breakpoint = this.breakpoints.get(addr);
             if (typeof breakpoint !== "number") {
                 // already enabled
+                // tslint:disable-next-line:no-console
                 console.warn(`Breakpoint at ${addr.toString(16)} already enabled.`);
                 return;
             }
@@ -109,6 +110,7 @@ export class Debug {
 
             this.breakpoints.delete(addr);
         } else {
+            // tslint:disable-next-line:no-console
             console.warn(`Breakpoint at ${addr.toString(16)} does not exist.`);
         }
     }
@@ -120,6 +122,7 @@ export class Debug {
         const dhcsr = await this.core.memory.read32(CortexSpecialReg.DHCSR);
 
         if (!(dhcsr & (CortexSpecialReg.C_STEP | CortexSpecialReg.C_HALT))) {
+            // tslint:disable-next-line:no-console
             console.error("Target is not halted.");
             return;
         }
@@ -164,9 +167,9 @@ export class Debug {
         // setup FPB (breakpoint)
         const fpcr = await this.core.memory.read32(CortexSpecialReg.FP_CTRL);
         const nbCode = ((fpcr >> 8) & 0x70) | ((fpcr >> 4) & 0xf);
-        const nbLit = (fpcr >> 7) & 0xf;
+        // const nbLit = (fpcr >> 7) & 0xf;
 
-        this.totalHWBreakpoints = nbCode;
+        // this.totalHWBreakpoints = nbCode;
 
         await this.setFpbEnabled(false);
 

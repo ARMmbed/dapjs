@@ -1,5 +1,8 @@
 # DAP.js
 
+[![Circle CI](https://circleci.com/gh/ARMmbed/dapjs.svg?style=shield&circle-token=d37ef109d0134f6f8e4eb12a65214a8b159f77d8)](https://circleci.com/gh/ARMmbed/dapjs/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://spdx.org/licenses/MIT.html)
+
 DAP.js is a JavaScript interface to CMSIS-DAP, aiming to implement a subset of
 the functionality provided by [pyOCD](https://github.com/mbedmicro/pyOCD), enabling
 debugging of Arm Cortex-M devices in Node.js and in the browser using [WebUSB](https://developers.google.com/web/updates/2016/03/access-usb-devices-on-the-web).
@@ -25,45 +28,61 @@ debugging of Arm Cortex-M devices in Node.js and in the browser using [WebUSB](h
     - Support for batched commands to improve HID report utilisation
     - Flashing at ~10-20 kB/s, comparable with PyOCD and OpenOCD
 
+## Prerequisites
 
-## Build process
+[Node.js > v4.8.0](https://nodejs.org), which includes `npm`.
 
-```
-typings install
-npm install
-make
-```
+## Installation
 
-`dap.bundle.js` will be created in `built` folder.
+The SDK is distributed using npm. To install the package in your project:
+
+    $ npm install dapjs
+
+## Development setup
+
+After cloning this repository:
+
+    $ npm install
+
+Then run one of the gulp commands:
+
+    $ gulp
+    $ gulp watch
+    $ npm run gulp
 
 ## Example
 
-For a more full-featured example, see [dapjs-web-demo](https://github.com/ArmMbed/dapjs-web-demo).
+For more full-featured examples, please refer to the [examples](https://github.com/ARMmbed/dapjs/tree/master/examples) folder and see the web example running at:
+
+https://armmbed.github.io/dapjs/
 
 ```javascript
-device = await navigator.usb.requestDevice({ filters: [{vendorId: 0x0d28}]});
+device = await navigator.usb.requestDevice({
+    filters: [{vendorId: 0x0d28}]
+});
+
 this.deviceCode = device.serialNumber.slice(0, 4);
 selector = new DAPjs.PlatformSelector();
 const info = await selector.lookupDevice(this.deviceCode);
 this.hid = new DAPjs.HID(device);
+
 // open hid device
 await this.hid.open();
 dapDevice = new DAPjs.DAP(this.hid);
 this.target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+
 // init and halt target
 await this.target.init();
 await this.target.halt();
+
 // program_data contains binary data
 program_data = DAPjs.FlashProgram.fromBinary(0, program_data);
 await this.target.program(program_data, (progress) => {
     console.log(progress);
 });
+
 await this.target.reset();
 ```
-
-## License
-
-MIT
 
 ## Code of Conduct
 
