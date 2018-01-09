@@ -10,7 +10,7 @@ export class DAP {
 
     private dpSelect: number;
     private csw: number;
-    private idcode: number;
+    // private idcode: number;
 
     constructor(private device: IHID) {
         this.dap = new CMSISDAP(device);
@@ -25,8 +25,9 @@ export class DAP {
     public async init() {
         await this.dap.connect();
 
-        const n = await this.readDp(Reg.IDCODE);
-        this.idcode = n;
+        await this.readDp(Reg.IDCODE);
+        // const n = await this.readDp(Reg.IDCODE);
+        // this.idcode = n;
 
         let prep = this.prepareCommand();
         prep.writeReg(Reg.DP_0x0, 1 << 2); // clear sticky error
@@ -148,7 +149,7 @@ export class DAP {
         const request = regRequest(regId, true);
         const sendargs = [0, data.length, 0, request];
 
-        data.forEach((d) => {
+        data.forEach(d => {
             // separate d into bytes
             addInt32(sendargs, d);
         });

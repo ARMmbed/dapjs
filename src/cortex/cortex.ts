@@ -6,7 +6,6 @@ import {PreparedMemoryCommand} from "../memory/prepared";
 import {assert} from "../util";
 
 import {
-    CoreNames,
     CoreState,
     CoreType,
     CortexReg,

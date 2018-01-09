@@ -1,7 +1,6 @@
 import {DAP} from "../dap/dap";
 
 import {ApReg, Csw,  DapVal} from "../dap/constants";
-import {PreparedDapCommand} from "../dap/prepared";
 import {apReg, assert, bufferConcat, delay} from "../util";
 
 import {PreparedMemoryCommand} from "./prepared";

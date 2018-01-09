@@ -22,7 +22,7 @@ export const bufferConcat = (bufs: Uint8Array[]) => {
 };
 
 export const delay = async (t: number) => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         setTimeout(resolve, t);
     });
 };
@@ -107,9 +107,9 @@ export const hexBytes = (bytes: number[]) => {
     let chk = 0;
     let r = ":";
 
-    bytes.forEach((b) => chk += b);
+    bytes.forEach(b => chk += b);
     bytes.push((-chk) & 0xff);
-    bytes.forEach((b) => r += ("0" + b.toString(16)).slice(-2));
+    bytes.forEach(b => r += ("0" + b.toString(16)).slice(-2));
 
     return r.toUpperCase();
 };
@@ -122,4 +122,4 @@ export const hex2bin = (hexstr: string) => {
     }
 
     return array;
-}
+};

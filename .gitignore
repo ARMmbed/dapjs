@@ -1,7 +1,9 @@
-node_modules/
-typings
-*.sw?
-*.ts.new
-*.tgz
-*.DS_Store
-built/
+.DS_Store
+.vscode
+node_modules
+bundles
+lib
+types
+docs
+npm-debug.log
+package-lock.json

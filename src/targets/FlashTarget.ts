@@ -172,7 +172,7 @@ export class FlashTarget extends CortexM {
 
     /**
      * Upload a program consisting of one or more disjoint sections to flash.
-     * 
+     *
      * @param program Program to be uploaded
      * @param progressCb Callback to receive progress updates (from 0.0 to 1.0)
      */
@@ -183,10 +183,10 @@ export class FlashTarget extends CortexM {
         const totalBytes = program.totalByteLength();
         let cumulativeBytes = 0;
 
-        const startTime = Date.now();
+        // const startTime = Date.now();
 
         for (const section of program.sections) {
-            await this.flash(section.data, section.address, (progress) => {
+            await this.flash(section.data, section.address, progress => {
                 const sectionBytes = section.data.byteLength * progress;
                 progressCb((cumulativeBytes + sectionBytes) / totalBytes);
             });
@@ -194,10 +194,10 @@ export class FlashTarget extends CortexM {
             cumulativeBytes += section.data.byteLength;
         }
 
-        const endTime = Date.now();
-        const elapsedTime = endTime - startTime;
+        // const endTime = Date.now();
+        // const elapsedTime = endTime - startTime;
 
-        const transferRate = totalBytes / elapsedTime; // B/ms == kB/s
+        // const transferRate = totalBytes / elapsedTime; // B/ms == kB/s
 
         await this.flashUnInit();
         progressCb(1.0);

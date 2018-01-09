@@ -5,10 +5,10 @@ export interface IHID {
 }
 
 function bufferExtend(source: ArrayBuffer, length: number) {
-    let sarr = new Uint8Array(source);
+    const sarr = new Uint8Array(source);
 
-    let dest = new ArrayBuffer(length);
-    let darr = new Uint8Array(dest);
+    const dest = new ArrayBuffer(length);
+    const darr = new Uint8Array(dest);
 
     for (let i = 0; i < Math.min(source.byteLength, length); i++) {
         darr[i] = sarr[i];
@@ -22,27 +22,27 @@ export class HID {
     private interfaces: USBInterface[];
     private interface: USBInterface;
     private endpoints: USBEndpoint[];
-    private ep_in: USBEndpoint;
-    private ep_out: USBEndpoint;
+    private epIn: USBEndpoint;
+    private epOut: USBEndpoint;
 
     constructor(device: USBDevice) {
         this.device = device;
     }
 
-    async open() {
+    public async open() {
         await this.device.open();
         await this.device.selectConfiguration(1);
 
-        let hids = this.device.configuration.interfaces.filter(
-            (intf) => intf.alternates[0].interfaceClass == 0xFF);
+        const hids = this.device.configuration.interfaces.filter(
+            intf => intf.alternates[0].interfaceClass === 0xFF);
 
-        if (hids.length == 0) {
-            throw 'No HID interfaces found.';
+        if (hids.length === 0) {
+            throw new Error("No HID interfaces found.");
         }
 
         this.interfaces = hids;
 
-        if (this.interfaces.length == 1) {
+        if (this.interfaces.length === 1) {
             this.interface = this.interfaces[0];
         }
 
@@ -50,38 +50,38 @@ export class HID {
 
         this.endpoints = this.interface.alternates[0].endpoints;
 
-        this.ep_in = null;
-        this.ep_out = null;
+        this.epIn = null;
+        this.epOut = null;
 
-        for (let endpoint of this.endpoints) {
-            if (endpoint.direction == 'in') {
-                this.ep_in = endpoint;
+        for (const endpoint of this.endpoints) {
+            if (endpoint.direction === "in") {
+                this.epIn = endpoint;
             } else {
-                this.ep_out = endpoint;
+                this.epOut = endpoint;
             }
         }
 
-        if (this.ep_in == null || this.ep_out == null) {
-            console.log('Unable to find an in and an out endpoint.');
+        if (this.epIn === null || this.epOut === null) {
+            // tslint:disable-next-line:no-console
+            console.log("Unable to find an in and an out endpoint.");
         }
     }
 
-    close() {
+    public async close() {
         return this.device.close();
     }
 
-    write(data: ArrayBuffer): Promise<USBOutTransferResult> {
-        let report_size = this.ep_out.packetSize;
-        let buffer = bufferExtend(data, report_size);
+    public async write(data: ArrayBuffer): Promise<USBOutTransferResult> {
+        const reportSize = this.epOut.packetSize;
+        const buffer = bufferExtend(data, reportSize);
 
-        return this.device.transferOut(this.ep_out.endpointNumber, buffer);
+        return this.device.transferOut(this.epOut.endpointNumber, buffer);
     }
 
-    read() : Promise<DataView> {
-        let report_size = this.ep_in.packetSize;
+    public async read(): Promise<DataView> {
+        const reportSize = this.epIn.packetSize;
 
-        return this.device.transferIn(this.ep_in.endpointNumber, report_size)
+        return this.device.transferIn(this.epIn.endpointNumber, reportSize)
             .then(res => res.data);
     }
 }
-

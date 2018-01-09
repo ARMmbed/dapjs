@@ -79,11 +79,11 @@ export class K64F implements IPlatform {
         const SECURITY_SIZE = 16;
         const FPROT_ADDR = 0x408;
         const FPROT_ADDR_END = 0x40c;
-        const FPROT_SIZE = 4;
+        // const FPROT_SIZE = 4;
         const FSEC_ADDR = 0x40c;
         const FSEC_VAL = 0xFE;
-        const FOPT_ADDR = 0x40d;
-        const FOPT_VAL = 0xFF;
+        // const FOPT_ADDR = 0x40d;
+        // const FOPT_VAL = 0xFF;
         const FEPROT_ADDR = 0x40e;
         const FEPROT_VAL = 0xFF;
         const FDPROT_ADDR = 0x40f;
@@ -100,8 +100,8 @@ export class K64F implements IPlatform {
                 u8data[FSEC_ADDR - address] = FSEC_VAL;
             }
 
-            if (u8data[FOPT_ADDR - address] === 0x00) {
-            }
+            // if (u8data[FOPT_ADDR - address] === 0x00) {
+            // }
 
             if (u8data[FEPROT_ADDR - address] !== FEPROT_VAL) {
                 u8data[FEPROT_ADDR - address] = FEPROT_VAL;

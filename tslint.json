@@ -1,20 +1,35 @@
 {
-    "defaultSeverity": "error",
     "extends": [
-        "tslint:recommended"
+        "tslint:recommended",
+        "tslint-eslint-rules"
     ],
-    "jsRules": {},
     "rules": {
-        "only-arrow-functions": [true],
-        "promise-function-async": true,
-        "no-console": [false],
+        "arrow-parens": [true, "ban-single-arg-parens"],
+        "block-spacing": [true, "always"],
+        "brace-style": [true, "1tbs", { "allowSingleLine": true }],
+        "curly": [true, "ignore-same-line"],
+        "eofline": true,
+        "interface-name": [true, "always-prefix"],
+        "linebreak-style": [true, "LF"],
+        "max-classes-per-file": [false],
+        "max-line-length": [false],
+        "member-ordering": [true, { "order": ["static-field", "instance-field", "constructor", "static-method", "instance-method"] }],
         "no-bitwise": false,
-        "prefer-const": true,
+        "no-console": [true],
+        "no-empty-interface": false,
+        "no-floating-promises": true,
+        "no-trailing-whitespace": [true],
         "no-unused-variable": true,
-        "max-classes-per-file": [
-            false
-        ],
-        "no-floating-promises": true
-    },
-    "rulesDirectory": []
+        "object-literal-shorthand": false,
+        "object-literal-sort-keys": false,
+        "ordered-imports": [true, { "import-sources-order": "any", "named-imports-order": "any" }],
+        "prefer-const": true,
+        "promise-function-async": true,
+        "semicolon": [true, "always"],
+        "ter-indent": [true, 4, { "SwitchCase": true }],
+        "ter-no-irregular-whitespace": [true],
+        "trailing-comma": [true, "never"],
+        "triple-equals": [true],
+        "variable-name": [true, "allow-leading-underscore", "allow-pascal-case"]
+    }
 }
