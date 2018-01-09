@@ -50,7 +50,7 @@ Then run one of the gulp commands:
     $ gulp watch
     $ npm run gulp
 
-## Example
+## Examples
 
 For more full-featured examples, please refer to the [examples](https://github.com/ARMmbed/dapjs/tree/master/examples) folder and see the web example running at:
 
@@ -83,6 +83,12 @@ await this.target.program(program_data, (progress) => {
 
 await this.target.reset();
 ```
+
+## Documentation
+
+API documentation can be viewed at:
+
+https://armmbed.github.io/dapjs/docs/
 
 ## Code of Conduct
 

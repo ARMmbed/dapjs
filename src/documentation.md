@@ -14,4 +14,34 @@ $ npm install dapjs
 
 ## Examples
 
-Please refer to the examples folder for some node and web examples.
+For more full-featured examples, please refer to the [examples](https://github.com/ARMmbed/dapjs/tree/master/examples) folder and see the web example running at:
+
+https://armmbed.github.io/dapjs/
+
+```javascript
+device = await navigator.usb.requestDevice({
+    filters: [{vendorId: 0x0d28}]
+});
+
+this.deviceCode = device.serialNumber.slice(0, 4);
+selector = new DAPjs.PlatformSelector();
+const info = await selector.lookupDevice(this.deviceCode);
+this.hid = new DAPjs.HID(device);
+
+// open hid device
+await this.hid.open();
+dapDevice = new DAPjs.DAP(this.hid);
+this.target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+
+// init and halt target
+await this.target.init();
+await this.target.halt();
+
+// program_data contains binary data
+program_data = DAPjs.FlashProgram.fromBinary(0, program_data);
+await this.target.program(program_data, (progress) => {
+    console.log(progress);
+});
+
+await this.target.reset();
+```
