@@ -24,7 +24,7 @@ deployment:
       - echo Syncing to $LIVE_BRANCH on GitHub...
       - git config --global user.name thegecko
       - git config --global user.email github@thegecko.org
-      - git add --force bundles lib types
+      - git add --force bundles lib types docs
       - git stash save
       - git checkout $LIVE_BRANCH
       - git merge master --no-commit
