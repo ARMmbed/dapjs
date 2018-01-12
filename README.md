@@ -30,7 +30,7 @@ debugging of Arm Cortex-M devices in Node.js and in the browser using [WebUSB](h
 
 ## Prerequisites
 
-[Node.js > v4.8.0](https://nodejs.org), which includes `npm`.
+[Node.js > v8.9.0](https://nodejs.org), which includes `npm 5`.
 
 ## Installation
 
