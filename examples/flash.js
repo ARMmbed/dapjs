@@ -25,7 +25,7 @@ var http = require("http");
 var https = require("https");
 var readline = require("readline");
 var progress = require("progress");
-var usb = require("webusb");
+var USB = require("webusb").USB;
 var DAPjs = require("../");
 
 process.stdin.setEncoding("utf8");
@@ -76,39 +76,59 @@ function downloadFile(url) {
     });
 }
 
-async function connect() {
-    var device = await usb.requestDevice({ filters: [{vendorId: 0x0d28}]});
+// Allow user to select a device
+function handleDevicesFound(devices, selectFn) {
+    //return devices[0];
+    process.stdin.setRawMode(true);
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("readable", () => {
+        var input = process.stdin.read();
+        if (input === "\u0003") {
+            process.exit();
+        } else {
+            var index = parseInt(input);
+            if (index && index <= devices.length) {
+                process.stdin.setRawMode(false);
+                selectFn(devices[index - 1]);
+            }
+        }
+    });
+
+    console.log("Select a device to flash:");
+    devices.forEach((device, index) => {
+        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
+    });
+}
+
+// Connect to a device, halt it and return a target to use
+function getTarget(device) {
+    var target = null;
     var deviceCode = device.serialNumber.slice(0, 4);
     var hid = new DAPjs.HID(device);
 
-    // open hid device
-    await hid.open();
+    // Open hid device
+    return hid.open()
+    .then(() => {
+        console.log("Device opened");
 
-    console.log("Device opened.");
-
-    var dapDevice = new DAPjs.DAP(hid);
-    var target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(deviceCode));
-
-    console.log("Initialising device.");
-
-    await target.init();
-
-    console.log("Halting target.");
-
-    await target.halt();
-
-    console.log("Target halted.");
-
-    const [imp, isa, type] = await target.readCoreType();
-    console.log(`Connected to an ARM ${DAPjs.CoreNames.get(type)} (${DAPjs.ISANames.get(isa)})`);
-
-    return target;
+        var dapDevice = new DAPjs.DAP(hid);
+        target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(deviceCode));
+        return target.init();
+    })
+    .then(() => {
+        console.log("Target initialised");
+        return target.halt();
+    })
+    .then(() => {
+        console.log("Target halted");
+        return target;
+    })
 }
 
-// Update device using image
-async function flashFirmware(target, buffer) {
+// Update device using image buffer
+function flash(target, buffer) {
 
-    var progressBar = new progress(`Updating firmware [:bar] :percent :etas`, {
+    var progressBar = new progress("Updating firmware [:bar] :percent :etas", {
         complete: "=",
         incomplete: " ",
         width: 20,
@@ -118,27 +138,25 @@ async function flashFirmware(target, buffer) {
     const array = new Uint32Array(buffer);
     const program = DAPjs.FlashProgram.fromBinary(0, array);
 
-    console.log(`Binary file ${array.length} words long`);
+    console.log(`Using binary file ${array.length} words long`);
 
     // Push binary to board
-    await target.program(program, (progress) => {
+    return target.program(program, (progress) => {
         progressBar.update(progress);
+    })
+    .then(() => {
+        return target.reset();
+    })
+    .then(() => {
+        console.log("Target reset");
+        // Make sure we don't have any issues flashing twice in the same session.
+        return target.flashUnInit();
     });
-
-    console.log(`Successfully flashed binary.`);
-    console.log("Done.");
-
-    await target.reset();
-
-    // make sure we don't have any issues flashing twice in the same session.
-    target.flashUnInit();
 }
 
-async function start(file) {
-    var target = await connect();
-    await flashFirmware(target, file);
-    process.exit();
-}
+var usb = new USB({
+    devicesFound: handleDevicesFound
+});
 
 getFileName()
 .then(fileName => {
@@ -146,8 +164,19 @@ getFileName()
     if (fileName.indexOf("http") === 0) return downloadFile(fileName);
     return loadFile(fileName);
 })
-.then(file => {
-    start(file);
+.then(buffer => {
+    return usb.requestDevice({
+        filters: [{vendorId: 0x0d28}]
+    })
+    .then(device => {
+        return getTarget(device);
+    })
+    .then(target => {
+        return flash(target, buffer);
+    });
+})
+.then(() => {
+    process.exit();
 })
 .catch(error => {
     console.log(error.message || error);
