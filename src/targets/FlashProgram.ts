@@ -1,4 +1,4 @@
-import {hex2bin} from "../util";
+import * as intelHex from "nrf-intel-hex/intel-hex.cjs";
 
 export class FlashSection {
     constructor(public address: number, public data: Uint32Array) {
@@ -39,53 +39,12 @@ export class FlashProgram {
     constructor(public sections: FlashSection[]) {}
 
     public static fromIntelHex(hex: string): FlashProgram {
-        const lines = hex.split(/\n/);
-        let upperAddr = 0;
-
-        let startAddr = 0;
-
-        let current = null;
-        const chunks: FlashSection[] = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            if (line.substr(0, 1) !== ":") {
-                throw new Error(`Invaild line in hex file: ${i + 1}`);
-            } else {
-                const length = parseInt(line.substr(1, 2), 16);
-                const addr = upperAddr + parseInt(line.substr(3, 4), 16);
-                const fieldType = parseInt(line.substr(7, 2), 16);
-                const data = line.substr(9, length * 2);
-
-                if (fieldType === 0x00) {
-                    if (current && addr !== startAddr + (current.length / 2)) {
-                        // non-contiguous
-                        const sectionData = hex2bin(current);
-                        chunks.push(new FlashSection(startAddr, new Uint32Array(sectionData.buffer)));
-
-                        current = "";
-                        startAddr = addr;
-                    } else if (!current) {
-                        startAddr = addr;
-                        current = "";
-                    }
-
-                    current += data;
-                } else if (fieldType === 0x01) {
-                    // EOF
-                    break;
-                } else if (fieldType === 0x02) {
-                    // extended segment address record
-                    upperAddr = parseInt(data, 16) << 4;
-                } else if (fieldType === 0x04) {
-                    // extended linear address record
-                    upperAddr = parseInt(data, 16) << 16;
-                }
-            }
-        }
-
-        return new FlashProgram(chunks);
+        const hexMemory = intelHex.fromHex(hex);
+        const flashSections: FlashSection[] = [];
+        hexMemory.forEach((value, key) => {
+            flashSections.push(new FlashSection(key, new Uint32Array(value.buffer)));
+        });
+        return new FlashProgram(flashSections);
     }
 
     public static fromBinary(addr: number, bin: Uint32Array) {
