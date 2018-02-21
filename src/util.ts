@@ -113,13 +113,3 @@ export const hexBytes = (bytes: number[]) => {
 
     return r.toUpperCase();
 };
-
-export const hex2bin = (hexstr: string) => {
-    const array = new Uint8Array(hexstr.length / 2);
-
-    for (let i = 0; i < hexstr.length / 2; i++) {
-        array[i] = parseInt(hexstr.substr(2 * i, 2), 16);
-    }
-
-    return array;
-};
