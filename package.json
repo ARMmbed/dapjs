@@ -55,7 +55,7 @@
     "gulp-typescript": "^3.2.3",
     "gulp-uglify": "^3.0.0",
     "merge2": "^1.2.0",
-    "nrf-intel-hex": "^1.2.0",
+    "nrf-intel-hex": "arekzaluski/nrf-intel-hex#build",
     "progress": "^2.0.0",
     "ts-node": "^3.2.1",
     "tslint": "^5.5.0",

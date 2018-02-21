@@ -1,4 +1,4 @@
-import * as intelHex from "nrf-intel-hex/intel-hex.cjs";
+import * as MemoryMap from "nrf-intel-hex";
 
 export class FlashSection {
     constructor(public address: number, public data: Uint32Array) {
@@ -39,7 +39,7 @@ export class FlashProgram {
     constructor(public sections: FlashSection[]) {}
 
     public static fromIntelHex(hex: string): FlashProgram {
-        const hexMemory = intelHex.fromHex(hex);
+        const hexMemory = MemoryMap.fromHex(hex);
         const flashSections: FlashSection[] = [];
         hexMemory.forEach((value, key) => {
             flashSections.push(new FlashSection(key, new Uint32Array(value.buffer)));
