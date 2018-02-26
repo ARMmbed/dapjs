@@ -60,7 +60,7 @@
     "tslint": "^5.9.1",
     "tslint-eslint-rules": "^4.1.1",
     "typedoc": "^0.9.0",
-    "typescript": "^2.4.1",
+    "typescript": "~2.6.2",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
     "webusb": "^1.0.0"
