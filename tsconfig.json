@@ -10,7 +10,7 @@
         "noEmitOnError": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "noImplicitAny": false,
+        "noImplicitAny": true,
         "sourceMap": true,
         "declaration": true
     }

@@ -41,7 +41,7 @@ export class FlashProgram {
     public static fromIntelHex(hex: string): FlashProgram {
         const hexMemory = MemoryMap.fromHex(hex);
         const flashSections: FlashSection[] = [];
-        hexMemory.forEach((value, key) => {
+        hexMemory.forEach((value: any, key: any) => {
             flashSections.push(new FlashSection(key, new Uint32Array(value.buffer)));
         });
         return new FlashProgram(flashSections);
