@@ -2,14 +2,13 @@ var path        = require("path");
 var browserify  = require("browserify");
 var del         = require("del");
 var merge       = require("merge2");
-var tslint      = require("tslint");
 var buffer      = require("vinyl-buffer");
 var source      = require("vinyl-source-stream");
 var gulp        = require("gulp");
 var sourcemaps  = require("gulp-sourcemaps");
 var typedoc     = require("gulp-typedoc");
-var gulpTs      = require("gulp-typescript");
-var gulpTslint  = require("gulp-tslint");
+var typescript  = require("gulp-typescript");
+var tslint      = require("gulp-tslint");
 var uglify      = require("gulp-uglify");
 
 // Source
@@ -51,14 +50,11 @@ gulp.task("clean", () => {
 
 // Lint the source
 gulp.task("lint", () => {
-    var program = tslint.Linter.createProgram("./");
-
     return gulp.src(srcFiles)
-    .pipe(gulpTslint({
-        program: program,
+    .pipe(tslint({
         formatter: "stylish"
     }))
-    .pipe(gulpTslint.report({
+    .pipe(tslint.report({
         emitError: !watching
     }))
 });
@@ -85,7 +81,7 @@ gulp.task("doc", function() {
 gulp.task("compile", ["clean"], () => {
     var tsResult = gulp.src(srcFiles)
     .pipe(sourcemaps.init())
-    .pipe(gulpTs.createProject("tsconfig.json")())
+    .pipe(typescript.createProject("tsconfig.json")())
     .on("error", handleError);
 
     return merge([
