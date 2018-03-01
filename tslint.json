@@ -10,7 +10,7 @@
         "curly": [true, "ignore-same-line"],
         "eofline": true,
         "interface-name": [true, "always-prefix"],
-        "linebreak-style": [false, "LF"],
+        "linebreak-style": [true, "LF"],
         "max-classes-per-file": [false],
         "max-line-length": [false],
         "member-ordering": [true, { "order": ["static-field", "instance-field", "constructor", "static-method", "instance-method"] }],
