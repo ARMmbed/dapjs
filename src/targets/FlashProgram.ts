@@ -38,6 +38,19 @@ export class FlashProgram {
 
     constructor(public sections: FlashSection[]) {}
 
+    public static fromArrayBuffer(buffer: ArrayBuffer): FlashProgram {
+        // detect if buffer contains text or binary data
+        const lengthToCheck = buffer.byteLength > 50 ? 50 : buffer.byteLength;
+        const bufferString = Buffer.from(buffer).toString("utf8");
+        for (let i = 0; i < lengthToCheck; i++) {
+            const charCode = bufferString.charCodeAt(i);
+            if (charCode === 65533 || charCode <= 8) {
+                return FlashProgram.fromBinary(0, new Uint32Array(buffer));
+            }
+        }
+        return FlashProgram.fromIntelHex(bufferString);
+    }
+
     public static fromIntelHex(hex: string): FlashProgram {
         const lines = hex.split(/\n/);
         let upperAddr = 0;
