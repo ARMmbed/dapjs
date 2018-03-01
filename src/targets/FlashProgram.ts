@@ -44,6 +44,8 @@ export class FlashProgram {
         const bufferString = Buffer.from(buffer).toString("utf8");
         for (let i = 0; i < lengthToCheck; i++) {
             const charCode = bufferString.charCodeAt(i);
+            // 65533 is a code for unknown character
+            // 0-8 are codes for control characters
             if (charCode === 65533 || charCode <= 8) {
                 return FlashProgram.fromBinary(0, new Uint32Array(buffer));
             }
