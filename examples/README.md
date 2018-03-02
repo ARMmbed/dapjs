@@ -22,7 +22,7 @@ Source for this example can be seen in [web.html](web.html).
 
 __Note:__ Currently only the `FRDM-K64F` and `micro:bit` boards are supported in this example.
 
-## Node js
+## Node.js
 
 ### Prerequisites
 
