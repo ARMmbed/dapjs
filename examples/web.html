@@ -248,19 +248,22 @@
             }
 
             async function flash(binary){
+                switch (this.deviceCode) {
+                    case "0240":
+                        binary += "-k64f.bin"
+                        break;
+                    case "9900":
+                        binary += "-microbit.hex";
+                        break;
+                    default:
+                        log("No binary found for this target");
+                        return;
+                }
                 // Erase flash
                 await this.target.halt();
                 this.flashProgressBar.style.width = "0%";
                 this.flashProgressBarContainer.style.display = "block";
-
-                console.log(binary);
-
                 const xhr = new XMLHttpRequest();
-                if (this.deviceCode === "9900") {
-                    binary += ".hex";
-                } else {
-                    binary += ".bin";
-                }
                 xhr.responseType = "arraybuffer";
                 xhr.open("GET", binary, true);
 
