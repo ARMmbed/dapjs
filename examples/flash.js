@@ -42,7 +42,7 @@ function getFileName() {
             rl.close();
             resolve(answer);
         });
-        rl.write("binaries/blinky-green.bin");
+        rl.write("binaries/k64f-blinky-green.bin");
     });
 }
 

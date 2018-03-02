@@ -1,4 +1,5 @@
-import {hex2bin} from "../util";
+import * as MemoryMap from "nrf-intel-hex";
+import {Utils} from "../dap/utils";
 
 export class FlashSection {
     constructor(public address: number, public data: Uint32Array) {
@@ -39,68 +40,20 @@ export class FlashProgram {
     constructor(public sections: FlashSection[]) {}
 
     public static fromArrayBuffer(buffer: ArrayBuffer): FlashProgram {
-        // detect if buffer contains text or binary data
-        const lengthToCheck = buffer.byteLength > 50 ? 50 : buffer.byteLength;
-        const bufferString = Buffer.from(buffer).toString("utf8");
-        for (let i = 0; i < lengthToCheck; i++) {
-            const charCode = bufferString.charCodeAt(i);
-            // 65533 is a code for unknown character
-            // 0-8 are codes for control characters
-            if (charCode === 65533 || charCode <= 8) {
-                return FlashProgram.fromBinary(0, new Uint32Array(buffer));
-            }
+        if (Utils.isBufferBinary(buffer)) {
+            return FlashProgram.fromBinary(0, new Uint32Array(buffer));
         }
+        const bufferString = Buffer.from(buffer).toString("utf8");
         return FlashProgram.fromIntelHex(bufferString);
     }
 
     public static fromIntelHex(hex: string): FlashProgram {
-        const lines = hex.split(/\n/);
-        let upperAddr = 0;
-
-        let startAddr = 0;
-
-        let current = null;
-        const chunks: FlashSection[] = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            if (line.substr(0, 1) !== ":") {
-                throw new Error(`Invaild line in hex file: ${i + 1}`);
-            } else {
-                const length = parseInt(line.substr(1, 2), 16);
-                const addr = upperAddr + parseInt(line.substr(3, 4), 16);
-                const fieldType = parseInt(line.substr(7, 2), 16);
-                const data = line.substr(9, length * 2);
-
-                if (fieldType === 0x00) {
-                    if (current && addr !== startAddr + (current.length / 2)) {
-                        // non-contiguous
-                        const sectionData = hex2bin(current);
-                        chunks.push(new FlashSection(startAddr, new Uint32Array(sectionData.buffer)));
-
-                        current = "";
-                        startAddr = addr;
-                    } else if (!current) {
-                        startAddr = addr;
-                        current = "";
-                    }
-
-                    current += data;
-                } else if (fieldType === 0x01) {
-                    // EOF
-                    break;
-                } else if (fieldType === 0x02) {
-                    // extended segment address record
-                    upperAddr = parseInt(data, 16) << 4;
-                } else if (fieldType === 0x04) {
-                    // extended linear address record
-                    upperAddr = parseInt(data, 16) << 16;
-                }
-            }
-        }
-
-        return new FlashProgram(chunks);
+        const hexMemory = MemoryMap.fromHex(hex);
+        const flashSections: FlashSection[] = [];
+        hexMemory.forEach((value: any, key: any) => {
+            flashSections.push(new FlashSection(key, new Uint32Array(value.buffer)));
+        });
+        return new FlashProgram(flashSections);
     }
 
     public static fromBinary(addr: number, bin: Uint32Array) {

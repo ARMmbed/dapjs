@@ -108,8 +108,8 @@
                             </p>
                             <p>
                                 <div class="btn-group">
-                                    <button onclick="flash('../binaries/blinky-green')" class="btn btn-success when-connected" disabled>Flash Green</button>
-                                    <button onclick="flash('../binaries/blinky-red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
+                                    <button onclick="flash('green')" class="btn btn-success when-connected" disabled>Flash Green</button>
+                                    <button onclick="flash('red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
                                 </div>
                             </p>
                             <div id='progress-container' style='display: none'>
@@ -247,58 +247,40 @@
                 log("Halted.");
             }
 
-            async function flash(binary){
+            async function flash(color){
+                const binariesPath = "../binaries/";
+                switch (this.deviceCode) {
+                    case "0240":
+                        binary = binariesPath + "k64f-blinky-" + color + ".bin";
+                        break;
+                    case "9900":
+                        binary = binariesPath + "microbit-say-" + color + ".hex";
+                        break;
+                    default:
+                        log("No binary found for this target");
+                        return;
+                }
                 // Erase flash
                 await this.target.halt();
                 this.flashProgressBar.style.width = "0%";
                 this.flashProgressBarContainer.style.display = "block";
-
-                console.log(binary);
-
                 const xhr = new XMLHttpRequest();
-                if (this.deviceCode === "9900") {
-                    binary += ".hex";
-                    xhr.responseType = "text";
-                } else {
-                    binary += ".bin";
-                    xhr.responseType = "arraybuffer";
-                }
+                xhr.responseType = "arraybuffer";
                 xhr.open("GET", binary, true);
 
                 xhr.onload = async (e) => {
-                    if (this.deviceCode === "9900") {
-                        console.log("Flashing a micro:bit hex");
+                    log(`Flashing program on board.`);
+                    const program = DAPjs.FlashProgram.fromArrayBuffer(xhr.response);
+                    await this.target.program(program, (progress) => {
+                        this.flashProgressBar.style.width = `${progress * 100}%`;
+                    });
 
-                        const program = DAPjs.FlashProgram.fromIntelHex(xhr.responseText);
-                        await this.target.program(program, (progress) => {
-                            this.flashProgressBar.style.width = `${progress * 100}%`;
-                        });
+                    log(`Successfully flashed binary.`);
+                    log("Done.");
 
-                        log(`Successfully flashed binary.`);
-                        log("Done.");
-
-                        await this.target.reset();
-                    } else {
-                        console.log("Flashing a K64F binary");
-
-                        const array = new Uint32Array(xhr.response);
-                        const program = DAPjs.FlashProgram.fromBinary(0, array);
-
-                        log(`Binary file ${array.length} words long`);
-
-                        // Push binary to board
-                        await this.target.program(program, (progress) => {
-                            this.flashProgressBar.style.width = `${progress * 100}%`;
-                        });
-
-                        log(`Successfully flashed binary.`);
-                        log("Done.");
-
-                        await this.target.reset();
-
-                        // make sure we don't have any issues flashing twice in the same session.
-                        this.target.flashUnInit();
-                    }
+                    await this.target.reset();
+                    // make sure we don't have any issues flashing twice in the same session.
+                    this.target.flashUnInit();
                 };
 
                 xhr.send();
