@@ -134,11 +134,9 @@ function flash(target, buffer) {
         width: 20,
         total: buffer.byteLength
     });
+    const program = DAPjs.FlashProgram.fromArrayBuffer(buffer);
 
-    const array = new Uint32Array(buffer);
-    const program = DAPjs.FlashProgram.fromBinary(0, array);
-
-    console.log(`Using binary file ${array.length} words long`);
+    console.log(`Using binary file ${buffer.byteLength} words long`);
 
     // Push binary to board
     return target.program(program, (progress) => {
