@@ -1,4 +1,4 @@
-import {MemoryMap} from "nrf-intel-hex";
+import * as MemoryMap from "nrf-intel-hex";
 import {Utils} from "../dap/utils";
 
 export class FlashSection {

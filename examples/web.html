@@ -108,8 +108,8 @@
                             </p>
                             <p>
                                 <div class="btn-group">
-                                    <button onclick="flash('../binaries/blinky-green')" class="btn btn-success when-connected" disabled>Flash Green</button>
-                                    <button onclick="flash('../binaries/blinky-red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
+                                    <button onclick="flash('green')" class="btn btn-success when-connected" disabled>Flash Green</button>
+                                    <button onclick="flash('red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
                                 </div>
                             </p>
                             <div id='progress-container' style='display: none'>
@@ -247,13 +247,14 @@
                 log("Halted.");
             }
 
-            async function flash(binary){
+            async function flash(color){
+                const binariesPath = "../binaries/";
                 switch (this.deviceCode) {
                     case "0240":
-                        binary += "-k64f.bin"
+                        binary = binariesPath + "k64f-blinky-" + color + ".bin";
                         break;
                     case "9900":
-                        binary += "-microbit.hex";
+                        binary = binariesPath + "microbit-say-" + color + ".hex";
                         break;
                     default:
                         log("No binary found for this target");
