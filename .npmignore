@@ -1,3 +1,9 @@
+.DS_Store
+.vscode
+node_modules
+npm-debug.log
+package-lock.json
+binaries
 .gitignore
 circle.yml
 index.html

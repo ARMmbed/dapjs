@@ -42,7 +42,7 @@ function getFileName() {
             rl.close();
             resolve(answer);
         });
-        rl.write("binaries/k64f-blinky-green.bin");
+        rl.write("https://armmbed.github.io/dapjs/binaries/k64f-blinky-green.bin");
     });
 }
 
