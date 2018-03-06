@@ -23,6 +23,7 @@ export class PlatformSelector {
         return new Promise<IPlatform>((resolve, _reject) => {
             xhr.onload = (_e: any) => {
                 const device = {
+                    id: xhr.response.id,
                     name: xhr.response.name,
                     productCode: xhr.response.productcode,
                 };
