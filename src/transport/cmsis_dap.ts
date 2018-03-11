@@ -77,7 +77,6 @@ export class CMSISDAP {
 
     public async connect() {
         const v = await this.info(Info.PACKET_COUNT);
-
         if (v as number) {
             // this.maxSent = v as number;
         } else {
