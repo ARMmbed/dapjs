@@ -29,12 +29,11 @@ export class HID {
         this.device = device;
     }
 
-    public async open() {
+    public async open(hidInterfaceClass = 0xFF) {
         await this.device.open();
         await this.device.selectConfiguration(1);
-
         const hids = this.device.configuration.interfaces.filter(
-            intf => intf.alternates[0].interfaceClass === 0xFF);
+            intf => intf.alternates[0].interfaceClass === hidInterfaceClass);
 
         if (hids.length === 0) {
             throw new Error("No HID interfaces found.");
@@ -60,11 +59,6 @@ export class HID {
                 this.epOut = endpoint;
             }
         }
-
-        if (this.epIn === null || this.epOut === null) {
-            // tslint:disable-next-line:no-console
-            console.log("Unable to find an in and an out endpoint.");
-        }
     }
 
     public async close() {
@@ -72,10 +66,25 @@ export class HID {
     }
 
     public async write(data: ArrayBuffer): Promise<USBOutTransferResult> {
-        const reportSize = this.epOut.packetSize;
-        const buffer = bufferExtend(data, reportSize);
-
-        return this.device.transferOut(this.epOut.endpointNumber, buffer);
+        if (this.epOut) {
+            const reportSize = this.epOut.packetSize;
+            const buffer = bufferExtend(data, reportSize);
+            return this.device.transferOut(this.epOut.endpointNumber, buffer);
+        } else {
+            // Device does not have out endpoint. Send data using control transfer
+            const buffer = bufferExtend(data, 64);
+            const interfaceNumber = this.interface.interfaceNumber;
+            return this.device.controlTransferOut(
+                {
+                    requestType: "class",
+                    recipient: "interface",
+                    request: 0x09,
+                    value: 0x200,
+                    index: interfaceNumber
+                },
+                buffer
+            );
+        }
     }
 
     public async read(): Promise<DataView> {

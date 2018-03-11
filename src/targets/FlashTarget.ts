@@ -223,3 +223,4 @@ export class FlashTarget extends CortexM {
 export let FlashTargets = new Map<string, IPlatform>();
 FlashTargets.set("0240", new K64F());
 FlashTargets.set("9900", new NRF51());
+FlashTargets.set("1100", new NRF51());
