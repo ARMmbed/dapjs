@@ -24,17 +24,18 @@ export class HID {
     private endpoints: USBEndpoint[];
     private epIn: USBEndpoint;
     private epOut: USBEndpoint;
+    private useControlTransfer: boolean;
 
     constructor(device: USBDevice) {
         this.device = device;
     }
 
-    public async open() {
+    public async open(hidInterfaceClass = 0x03, useControlTransfer = true) {
+        this.useControlTransfer = useControlTransfer;
         await this.device.open();
         await this.device.selectConfiguration(1);
-
         const hids = this.device.configuration.interfaces.filter(
-            intf => intf.alternates[0].interfaceClass === 0xFF);
+            intf => intf.alternates[0].interfaceClass === hidInterfaceClass);
 
         if (hids.length === 0) {
             throw new Error("No HID interfaces found.");
@@ -45,9 +46,10 @@ export class HID {
         if (this.interfaces.length === 1) {
             this.interface = this.interfaces[0];
         }
-
-        await this.device.claimInterface(this.interface.interfaceNumber);
-
+        if (!useControlTransfer) {
+            // It's not required to claim interface for device control transfer
+            await this.device.claimInterface(this.interface.interfaceNumber);
+        }
         this.endpoints = this.interface.alternates[0].endpoints;
 
         this.epIn = null;
@@ -60,11 +62,6 @@ export class HID {
                 this.epOut = endpoint;
             }
         }
-
-        if (this.epIn === null || this.epOut === null) {
-            // tslint:disable-next-line:no-console
-            console.log("Unable to find an in and an out endpoint.");
-        }
     }
 
     public async close() {
@@ -72,16 +69,44 @@ export class HID {
     }
 
     public async write(data: ArrayBuffer): Promise<USBOutTransferResult> {
-        const reportSize = this.epOut.packetSize;
-        const buffer = bufferExtend(data, reportSize);
-
-        return this.device.transferOut(this.epOut.endpointNumber, buffer);
+        if (this.epOut && !this.useControlTransfer) {
+            const reportSize = this.epOut.packetSize;
+            const buffer = bufferExtend(data, reportSize);
+            return this.device.transferOut(this.epOut.endpointNumber, buffer);
+        } else {
+            // Device does not have out endpoint. Send data using control transfer
+            const buffer = bufferExtend(data, 64);
+            const interfaceNumber = this.interface.interfaceNumber;
+            return this.device.controlTransferOut(
+                {
+                    requestType: "class",
+                    recipient: "device",
+                    request: 0x09,
+                    value: 0x200,
+                    index: interfaceNumber
+                },
+                buffer
+            );
+        }
     }
 
     public async read(): Promise<DataView> {
-        const reportSize = this.epIn.packetSize;
-
-        return this.device.transferIn(this.epIn.endpointNumber, reportSize)
-            .then(res => res.data);
+        if (this.epIn && !this.useControlTransfer) {
+            const reportSize = this.epIn.packetSize;
+            return this.device.transferIn(this.epIn.endpointNumber, reportSize)
+                .then(res => res.data);
+        } else {
+            const interfaceNumber = this.interface.interfaceNumber;
+            return this.device.controlTransferIn(
+                {
+                    requestType: "class",
+                    recipient: "device",
+                    request: 0x01,
+                    value: 0x100,
+                    index: interfaceNumber
+                },
+                64
+            ).then(res => res.data);
+        }
     }
 }
