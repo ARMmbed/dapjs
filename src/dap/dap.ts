@@ -1,4 +1,4 @@
-import {ApReg, DapRegisters, DapVal, Reg} from "./constants";
+import {ApReg, DapVal, Reg, DapRegisters} from "./constants";
 import {PreparedDapCommand} from "./prepared";
 
 import {CMSISDAP, DapCmd} from "../transport/cmsis_dap";
@@ -10,6 +10,7 @@ export class DAP {
 
     private dpSelect: number;
     private csw: number;
+    private serialTimer: any;
     // private idcode: number;
 
     constructor(private device: IHID) {
@@ -22,9 +23,25 @@ export class DAP {
         await this.init();
     }
 
+    public async startSerialMonitor() {
+        this.serialTimer = setInterval(async () => {
+            const serialData = await this.dap.getSerialData();
+            if (serialData.byteLength > 0) {
+                const data = Buffer.from(serialData.buffer).toString("utf8");
+                console.log(data.substring(2));
+            }
+        }, 1000);
+    }
+
+    public async stopSerialMonitor() {
+        if (this.serialTimer) {
+            clearInterval(this.serialTimer);
+            this.serialTimer = null;
+        }
+    }
+
     public async init() {
         await this.dap.connect();
-
         await this.readDp(Reg.IDCODE);
         // const n = await this.readDp(Reg.IDCODE);
         // this.idcode = n;

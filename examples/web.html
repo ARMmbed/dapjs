@@ -136,6 +136,17 @@
                                 <button onclick="printRegisters()" class="btn btn-info when-connected" disabled>Read Registers</button>
                             </p>
                         </li>
+                        <li>
+                            <p>
+                                Serial monitor:
+                            </p>
+                            <p>
+                                <div class="btn-group">
+                                    <button onclick="startSerialMonitor()" class="btn btn-success">Start</button>
+                                    <button onclick="stopSerialMonitor()" class="btn btn-danger">Stop</button>
+                                </div>
+                            </p>
+                        </li>
                     </ol>
                 </div>
 
@@ -287,6 +298,14 @@
                 };
 
                 xhr.send();
+            }
+
+            function startSerialMonitor() {
+                this.dapDevice.startSerialMonitor();
+            }
+
+            function stopSerialMonitor() {
+                this.dapDevice.stopSerialMonitor();
             }
 
             async function selectBoard() {

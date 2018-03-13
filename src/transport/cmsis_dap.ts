@@ -21,6 +21,11 @@ export const enum DapCmd {
     DAP_JTAG_CONFIGURE = 0x15,
     DAP_JTAG_IDCODE = 0x16,
     DAP_VENDOR0 = 0x80,
+    DAP_VENDOR1 = 0x81,
+    DAP_VENDOR2 = 0x82,
+    DAP_VENDOR3 = 0x83,
+    DAP_VENDOR4 = 0x84,
+    DAP_VENDOR5 = 0x85
 }
 
 const enum Info {
@@ -51,6 +56,22 @@ export class CMSISDAP {
         return this.cmdNums(DapCmd.DAP_DISCONNECT, []);
     }
 
+    public async getSerialData() {
+        return this.cmdNums(DapCmd.DAP_VENDOR1, []);
+    }
+
+    public async initializeSerial() {
+        return this.cmdNums(DapCmd.DAP_VENDOR2, []);
+    }
+
+    public async uninitializeSerial() {
+        return this.cmdNums(DapCmd.DAP_VENDOR3, []);
+    }
+
+    public async resetSerial() {
+        return this.cmdNums(DapCmd.DAP_VENDOR4, []);
+    }
+
     public async cmdNums(op: DapCmd, data: number[]) {
         data.unshift(op);
 
@@ -65,6 +86,12 @@ export class CMSISDAP {
             case DapCmd.DAP_INFO:
             case DapCmd.DAP_TRANSFER:
             case DapCmd.DAP_TRANSFER_BLOCK:
+                break;
+            case DapCmd.DAP_VENDOR1:
+            case DapCmd.DAP_VENDOR2:
+            case DapCmd.DAP_VENDOR3:
+            case DapCmd.DAP_VENDOR4:
+            case DapCmd.DAP_VENDOR5:
                 break;
             default:
                 if (buf[1] !== 0) {
@@ -143,10 +170,11 @@ export class CMSISDAP {
         const array = Uint8Array.from(command);
         await this.hid.write(array.buffer);
         // wait 1 ms before reading data
+        // const response = await this.hid.read();
+        // return new Uint8Array(response.buffer);
         return this.delay(1).then(async () => {
             const response = await this.hid.read();
-            const arr = new Uint8Array(response.buffer);
-            return arr;
+            return new Uint8Array(response.buffer);
         });
     }
 }
