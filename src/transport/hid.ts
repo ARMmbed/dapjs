@@ -30,7 +30,7 @@ export class HID {
         this.device = device;
     }
 
-    public async open(hidInterfaceClass = 0x03, useControlTransfer = true) {
+    public async open(hidInterfaceClass = 0xFF, useControlTransfer = true) {
         this.useControlTransfer = useControlTransfer;
         await this.device.open();
         await this.device.selectConfiguration(1);
@@ -46,10 +46,7 @@ export class HID {
         if (this.interfaces.length === 1) {
             this.interface = this.interfaces[0];
         }
-        if (!useControlTransfer) {
-            // It's not required to claim interface for device control transfer
-            await this.device.claimInterface(this.interface.interfaceNumber);
-        }
+        await this.device.claimInterface(this.interface.interfaceNumber);
         this.endpoints = this.interface.alternates[0].endpoints;
 
         this.epIn = null;
@@ -80,7 +77,7 @@ export class HID {
             return this.device.controlTransferOut(
                 {
                     requestType: "class",
-                    recipient: "device",
+                    recipient: "interface",
                     request: 0x09,
                     value: 0x200,
                     index: interfaceNumber
@@ -100,7 +97,7 @@ export class HID {
             return this.device.controlTransferIn(
                 {
                     requestType: "class",
-                    recipient: "device",
+                    recipient: "interface",
                     request: 0x01,
                     value: 0x100,
                     index: interfaceNumber
