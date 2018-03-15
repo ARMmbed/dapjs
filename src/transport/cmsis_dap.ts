@@ -77,6 +77,7 @@ export class CMSISDAP {
 
     public async connect() {
         const v = await this.info(Info.PACKET_COUNT);
+
         if (v as number) {
             // this.maxSent = v as number;
         } else {
@@ -133,20 +134,10 @@ export class CMSISDAP {
         return buf.subarray(2, buf[1] + 2 - 1); // .toString("utf8")
     }
 
-    private delay(time: number) {
-        return new Promise(resolve => {
-            setTimeout(resolve.bind(null, null), time);
-        });
-    }
-
     private async send(command: number[]) {
         const array = Uint8Array.from(command);
         await this.hid.write(array.buffer);
-        // wait 1 ms before reading data
-        return this.delay(1).then(async () => {
-            const response = await this.hid.read();
-            const arr = new Uint8Array(response.buffer);
-            return arr;
-        });
+        const response = await this.hid.read();
+        return new Uint8Array(response.buffer);
     }
 }
