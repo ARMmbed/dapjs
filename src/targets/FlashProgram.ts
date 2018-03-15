@@ -1,5 +1,5 @@
 import * as MemoryMap from "nrf-intel-hex";
-import {Utils} from "../dap/utils";
+import {isBufferBinary} from "../util";
 
 export class FlashSection {
     constructor(public address: number, public data: Uint32Array) {
@@ -40,7 +40,7 @@ export class FlashProgram {
     constructor(public sections: FlashSection[]) {}
 
     public static fromArrayBuffer(buffer: ArrayBuffer): FlashProgram {
-        if (Utils.isBufferBinary(buffer)) {
+        if (isBufferBinary(buffer)) {
             return FlashProgram.fromBinary(0, new Uint32Array(buffer));
         }
         const bufferString = Buffer.from(buffer).toString("utf8");

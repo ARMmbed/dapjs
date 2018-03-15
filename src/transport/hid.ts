@@ -25,6 +25,11 @@ export class HID {
     private epIn: USBEndpoint;
     private epOut: USBEndpoint;
     private useControlTransfer: boolean;
+    private packetSize = 64;
+    private controlTransferGetReport = 0x01;
+    private controlTransferSetReport = 0x09;
+    private controlTransferOutReport = 0x200;
+    private controlTransferInReport = 0x100;
 
     constructor(device: USBDevice) {
         this.device = device;
@@ -72,15 +77,14 @@ export class HID {
             return this.device.transferOut(this.epOut.endpointNumber, buffer);
         } else {
             // Device does not have out endpoint. Send data using control transfer
-            const buffer = bufferExtend(data, 64);
-            const interfaceNumber = this.interface.interfaceNumber;
+            const buffer = bufferExtend(data, this.packetSize);
             return this.device.controlTransferOut(
                 {
                     requestType: "class",
                     recipient: "interface",
-                    request: 0x09,
-                    value: 0x200,
-                    index: interfaceNumber
+                    request: this.controlTransferSetReport,
+                    value: this.controlTransferOutReport,
+                    index: this.interface.interfaceNumber
                 },
                 buffer
             );
@@ -93,16 +97,15 @@ export class HID {
             return this.device.transferIn(this.epIn.endpointNumber, reportSize)
                 .then(res => res.data);
         } else {
-            const interfaceNumber = this.interface.interfaceNumber;
             return this.device.controlTransferIn(
                 {
                     requestType: "class",
                     recipient: "interface",
-                    request: 0x01,
-                    value: 0x100,
-                    index: interfaceNumber
+                    request: this.controlTransferGetReport,
+                    value: this.controlTransferInReport,
+                    index: this.interface.interfaceNumber
                 },
-                64
+                this.packetSize
             ).then(res => res.data);
         }
     }
