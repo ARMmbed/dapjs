@@ -112,7 +112,8 @@ function getTarget(device) {
         console.log("Device opened");
 
         var dapDevice = new DAPjs.DAP(hid);
-        target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(deviceCode));
+        var flashAlgorithm = DAPjs.FlashAlgorithm.load(deviceCode);
+        target = new DAPjs.FlashTarget(dapDevice, flashAlgorithm);
         return target.init();
     })
     .then(() => {

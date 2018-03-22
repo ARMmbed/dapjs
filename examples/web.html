@@ -218,7 +218,9 @@
                 log("Device opened.");
 
                 this.dapDevice = new DAPjs.DAP(this.hid);
-                this.target = new DAPjs.FlashTarget(this.dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+                const flashAlgorithm = await DAPjs.FlashAlgorithm.load(this.deviceCode).catch(error => log(error));
+                if (!flashAlgorithm) return log("No flashing algorithm can be found for this board.");
+                this.target = new DAPjs.FlashTarget(this.dapDevice, flashAlgorithm);
 
                 log("Initialising device.");
 

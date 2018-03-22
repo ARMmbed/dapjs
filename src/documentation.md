@@ -31,7 +31,8 @@ this.hid = new DAPjs.HID(device);
 // open hid device
 await this.hid.open();
 dapDevice = new DAPjs.DAP(this.hid);
-this.target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+const flashAlgorithm = await DAPjs.FlashAlgorithm.load(this.deviceCode);
+this.target = new DAPjs.FlashTarget(dapDevice, flashAlgorithm);
 
 // init and halt target
 await this.target.init();
