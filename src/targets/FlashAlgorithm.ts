@@ -31,34 +31,21 @@ export class FlashAlgorithm {
     public flashAlgo: IFlashAlgo;
     public memoryMap: IMemoryRegion[];
 
-    public static async load(deviceCode: string) {
-        const xhr = new XMLHttpRequest();
-        xhr.open("get", "../../flash_targets/flash_targets.json", true);
-        xhr.responseType = "json";
-        return new Promise<FlashAlgorithm>((resolve, reject) => {
-            xhr.onload = (_e: any) => {
-                if (xhr.status !== 200) return reject(xhr.statusText);
-                let flashAlgorithm = null;
-                const algorithms = xhr.response;
-                if (deviceCode in algorithms) {
-                    flashAlgorithm = new FlashAlgorithm();
-                    flashAlgorithm.flashAlgo = FlashAlgorithm.setFlashingAlgo(algorithms[deviceCode]);
-                    flashAlgorithm.memoryMap = FlashAlgorithm.setMemoryMap(algorithms[deviceCode]);
-                }
-                resolve(flashAlgorithm);
-            };
-            xhr.send();
-        });
+    public constructor(flashAlgorithmsData: any, deviceCode: string) {
+        if (deviceCode in flashAlgorithmsData) {
+            this.setFlashingAlgo(flashAlgorithmsData[deviceCode]);
+            this.setMemoryMap(flashAlgorithmsData[deviceCode]);
+        }
     }
 
-    private static setFlashingAlgo(flashAlgorithm: any): IFlashAlgo {
+    private setFlashingAlgo(flashAlgorithm: any) {
         const instructions = flashAlgorithm.flash_algo.instructions.map((instruction: string) => {
             return parseInt(instruction, 16);
         });
         const pageBuffers = flashAlgorithm.flash_algo.page_buffers.map((pageBuffer: string) => {
             return parseInt(pageBuffer, 16);
         });
-        return {
+        this.flashAlgo = {
             analyzerAddress: parseInt(flashAlgorithm.flash_algo.analyzer_address, 16),
             analyzerSupported: flashAlgorithm.flash_algo.analyzer_supported,
             loadAddress: parseInt(flashAlgorithm.flash_algo.load_address, 16),
@@ -73,8 +60,8 @@ export class FlashAlgorithm {
         };
     }
 
-    private static setMemoryMap(flashAlgorithm: any): IMemoryRegion[] {
-        return flashAlgorithm.memory_map.map((region: any) => {
+    private setMemoryMap(flashAlgorithm: any) {
+        this.memoryMap = flashAlgorithm.memory_map.map((region: any) => {
             return {
                 blocksize: parseInt(region.blocksize, 16),
                 end: parseInt(region.end, 16),
