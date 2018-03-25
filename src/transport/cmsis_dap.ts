@@ -56,8 +56,13 @@ export class CMSISDAP {
         return this.cmdNums(DapCmd.DAP_DISCONNECT, []);
     }
 
-    public async getSerialData() {
-        return this.cmdNums(DapCmd.DAP_VENDOR1, []);
+    public async getSerialData(data: string) {
+        let arrayData = [];
+        if (data || data !== "") {
+            arrayData = data.split("").map((e: any) => e.charCodeAt());
+        }
+        console.log(arrayData);
+        return this.cmdNums(DapCmd.DAP_VENDOR1, arrayData);
     }
 
     public async initializeSerial() {

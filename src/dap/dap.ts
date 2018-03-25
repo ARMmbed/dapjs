@@ -11,10 +11,12 @@ export class DAP {
     private dpSelect: number;
     private csw: number;
     private serialTimer: any;
+    private writeData: string;
     // private idcode: number;
 
     constructor(private device: IHID) {
         this.dap = new CMSISDAP(device);
+        this.writeData = "";
     }
 
     public async reconnect() {
@@ -23,14 +25,25 @@ export class DAP {
         await this.init();
     }
 
-    public async startSerialMonitor() {
+    public async startSerialMonitor(responseCallback?: (serialData: string) => void) {
         this.serialTimer = setInterval(async () => {
-            const serialData = await this.dap.getSerialData();
+            let serialData = await this.dap.getSerialData(this.writeData);
+            this.writeData = "";
             if (serialData.byteLength > 0) {
-                const data = Buffer.from(serialData.buffer).toString("utf8");
-                console.log(data.substring(2));
+                serialData = serialData.subarray(1);
+                const emptyResponse = serialData.every((c: any) => {
+                    return c === 0;
+                });
+                if (!emptyResponse) {
+                    const data = Buffer.from(serialData.buffer).toString("utf8").substring(1);
+                    responseCallback(data);
+                }
             }
-        }, 1000);
+        }, 200);
+    }
+
+    public writeSerialData(data: string) {
+        this.writeData = data;
     }
 
     public async stopSerialMonitor() {
