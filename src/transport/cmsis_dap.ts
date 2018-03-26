@@ -165,12 +165,7 @@ export class CMSISDAP {
     private async send(command: number[]) {
         const array = Uint8Array.from(command);
         await this.hid.write(array.buffer);
-        // wait 1 ms before reading data
-        // const response = await this.hid.read();
-        // return new Uint8Array(response.buffer);
-        return this.delay(1).then(async () => {
-            const response = await this.hid.read();
-            return new Uint8Array(response.buffer);
-        });
+        const response = await this.hid.read();
+        return new Uint8Array(response.buffer);
     }
 }
