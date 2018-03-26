@@ -147,7 +147,7 @@
                             </p>
                             <p>
                                 Baud Rate:
-                                <select class="when-connected" disabled>
+                                <select id="baudRate" class="when-connected" disabled>
                                     <option value="9600">9600</option>
                                     <option value="14400">14400</option>
                                     <option value="19200">19200</option>
@@ -268,9 +268,7 @@
                 await this.target.init();
 
                 log("Halting target.");
-
                 await this.target.halt();
-
                 log("Target halted.");
 
                 const [imp, isa, type] = await this.target.readCoreType();
@@ -332,7 +330,10 @@
                 xhr.send();
             }
 
-            function startSerialMonitor() {
+            async function startSerialMonitor() {
+                var elem = document.getElementById("baudRate");
+                var baudRate = elem.options[elem.selectedIndex].value;
+                await this.dapDevice.initializeSerialMonitor(baudRate);
                 this.dapDevice.startSerialMonitor((data) => {
                     logSerial(data);
                 });

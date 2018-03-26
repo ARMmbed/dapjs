@@ -11,12 +11,10 @@ export class DAP {
     private dpSelect: number;
     private csw: number;
     private serialTimer: any;
-    private writeData: string;
     // private idcode: number;
 
     constructor(private device: IHID) {
         this.dap = new CMSISDAP(device);
-        this.writeData = "";
     }
 
     public async reconnect() {
@@ -25,10 +23,20 @@ export class DAP {
         await this.init();
     }
 
+    public async initializeSerialMonitor(baudRate: number) {
+        const serialConfig: number[] = [];
+        addInt32(serialConfig, baudRate);
+        // serialConfig.push("8".charCodeAt(0)); // data bits
+        // serialConfig.push("0".charCodeAt(0)); // parity
+        // serialConfig.push("1".charCodeAt(0)); // stop bits
+        // serialConfig.push("0".charCodeAt(0)); // flow control
+        // console.log(serialConfig);
+        await this.dap.initializeSerial(serialConfig);
+    }
+
     public async startSerialMonitor(responseCallback?: (serialData: string) => void) {
         this.serialTimer = setInterval(async () => {
-            let serialData = await this.dap.getSerialData(this.writeData);
-            this.writeData = "";
+            let serialData = await this.dap.getSerialData();
             if (serialData.byteLength > 0) {
                 serialData = serialData.subarray(1);
                 const emptyResponse = serialData.every((c: any) => {
@@ -42,8 +50,12 @@ export class DAP {
         }, 200);
     }
 
-    public writeSerialData(data: string) {
-        this.writeData = data;
+    public async writeSerialData(data: string) {
+        let arrayData = [];
+        if (data || data !== "") {
+            arrayData = data.split("").map((e: any) => e.charCodeAt());
+        }
+        return await this.dap.writeSerialData(arrayData);
     }
 
     public async stopSerialMonitor() {
