@@ -15,7 +15,7 @@
         "max-line-length": [false],
         "member-ordering": [true, { "order": ["static-field", "instance-field", "constructor", "static-method", "instance-method"] }],
         "no-bitwise": false,
-        "no-console": [false],
+        "no-console": [true],
         "no-empty-interface": false,
         "no-floating-promises": true,
         "no-trailing-whitespace": [true],
