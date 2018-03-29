@@ -261,6 +261,7 @@
                 log("Device opened.");
 
                 this.dapDevice = new DAPjs.DAP(this.hid);
+                this.serial = new DAPjs.Serial(dapDevice);
                 this.target = new DAPjs.FlashTarget(this.dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
 
                 log("Initialising device.");
@@ -333,20 +334,20 @@
             async function startSerialMonitor() {
                 var elem = document.getElementById("baudRate");
                 var baudRate = elem.options[elem.selectedIndex].value;
-                await this.dapDevice.initializeSerialMonitor(baudRate);
-                this.dapDevice.startSerialMonitor((data) => {
+                await this.serial.initialize(baudRate);
+                this.serial.start((data) => {
                     logSerial(data);
                 });
             }
 
             function writeSerial() {
                 var elem = document.getElementById("serialMonitorInput");
-                this.dapDevice.writeSerialData(elem.value);
+                this.serial.write(elem.value);
                 elem.value = "";
             }
 
             function stopSerialMonitor() {
-                this.dapDevice.stopSerialMonitor();
+                this.serial.stop();
                 clearLogSerial();
             }
 

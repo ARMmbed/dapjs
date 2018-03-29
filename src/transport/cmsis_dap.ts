@@ -56,18 +56,6 @@ export class CMSISDAP {
         return this.cmdNums(DapCmd.DAP_DISCONNECT, []);
     }
 
-    public async initializeSerial(data: number[]) {
-        return this.cmdNums(DapCmd.DAP_VENDOR1, data);
-    }
-
-    public async getSerialData() {
-        return this.cmdNums(DapCmd.DAP_VENDOR2, []);
-    }
-
-    public async writeSerialData(data: number[]) {
-        return this.cmdNums(DapCmd.DAP_VENDOR3, data);
-    }
-
     public async cmdNums(op: DapCmd, data: number[]) {
         data.unshift(op);
 

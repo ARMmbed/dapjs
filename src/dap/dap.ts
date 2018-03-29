@@ -10,7 +10,6 @@ export class DAP {
 
     private dpSelect: number;
     private csw: number;
-    private serialTimer: any;
     // private idcode: number;
 
     constructor(private device: IHID) {
@@ -21,48 +20,6 @@ export class DAP {
         await this.dap.disconnect();
         await delay(100);
         await this.init();
-    }
-
-    public async initializeSerialMonitor(baudRate: number) {
-        const serialConfig: number[] = [];
-        addInt32(serialConfig, baudRate);
-        // serialConfig.push("8".charCodeAt(0)); // data bits
-        // serialConfig.push("0".charCodeAt(0)); // parity
-        // serialConfig.push("1".charCodeAt(0)); // stop bits
-        // serialConfig.push("0".charCodeAt(0)); // flow control
-        // console.log(serialConfig);
-        await this.dap.initializeSerial(serialConfig);
-    }
-
-    public async startSerialMonitor(responseCallback?: (serialData: string) => void) {
-        this.serialTimer = setInterval(async () => {
-            let serialData = await this.dap.getSerialData();
-            if (serialData.byteLength > 0) {
-                serialData = serialData.subarray(1);
-                const emptyResponse = serialData.every((c: any) => {
-                    return c === 0;
-                });
-                if (!emptyResponse) {
-                    const data = Buffer.from(serialData.buffer).toString("utf8").substring(1);
-                    responseCallback(data);
-                }
-            }
-        }, 200);
-    }
-
-    public async writeSerialData(data: string) {
-        let arrayData = [];
-        if (data || data !== "") {
-            arrayData = data.split("").map((e: any) => e.charCodeAt());
-        }
-        return await this.dap.writeSerialData(arrayData);
-    }
-
-    public async stopSerialMonitor() {
-        if (this.serialTimer) {
-            clearInterval(this.serialTimer);
-            this.serialTimer = null;
-        }
     }
 
     public async init() {
@@ -223,5 +180,17 @@ export class DAP {
         }
 
         return buf;
+    }
+
+    public async initializeSerial(data: number[]) {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR1, data);
+    }
+
+    public async readSerial() {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR2, []);
+    }
+
+    public async writeSerial(data: number[]) {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR3, data);
     }
 }
