@@ -33,6 +33,10 @@ export class Serial {
         }, this.delay);
     }
 
+    public async getSerialSettings() {
+        return this.dap.readSerialSettings();
+    }
+
     public async stop() {
         if (this.timer) {
             clearInterval(this.timer);

@@ -182,15 +182,19 @@ export class DAP {
         return buf;
     }
 
+    public async readSerialSettings() {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR1, []);
+    }
+
     public async initializeSerial(data: number[]) {
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR1, data);
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR2, data);
     }
 
     public async readSerial() {
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR2, []);
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR3, []);
     }
 
     public async writeSerial(data: number[]) {
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR3, data);
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR4, data);
     }
 }
