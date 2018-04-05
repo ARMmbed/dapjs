@@ -46,14 +46,14 @@ function getFileName() {
     });
 }
 
-// Load a file, returning a buffer
-function loadFile(fileName) {
+// Load a file
+function loadFile(fileName, isJson=false) {
     var file = fs.readFileSync(fileName);
-    return new Uint8Array(file).buffer;
+    return isJson ? JSON.parse(file) : new Uint8Array(file).buffer;
 }
 
-// Download a file, returning a buffer
-function downloadFile(url) {
+// Download a file
+function downloadFile(url, isJson=false) {
     return new Promise((resolve, reject) => {
         console.log("Downloading file...");
         var scheme = (url.indexOf("https") === 0) ? https : http;
@@ -67,7 +67,12 @@ function downloadFile(url) {
                 if (response.statusCode !== 200) return reject(response.statusMessage);
 
                 var download = Buffer.concat(data);
-                resolve(new Uint8Array(download).buffer);
+                if (isJson) {
+                    resolve(JSON.parse(data));
+                }
+                else {
+                    resolve(new Uint8Array(download).buffer);
+                }
             });
         })
         .on("error", error => {
@@ -110,9 +115,17 @@ function getTarget(device) {
     return hid.open()
     .then(() => {
         console.log("Device opened");
-
+        // Load flashing algorithms
+        var flashAlgorithmsFile = "flash_targets/flash_targets.json";
+        if (flashAlgorithmsFile.indexOf("http") === 0) return downloadFile(flashAlgorithmsFile, true);
+        return loadFile(flashAlgorithmsFile, true);
+    })
+    .then((flashAlgorithms) => {
+        console.log("Flash algorithms loaded");
         var dapDevice = new DAPjs.DAP(hid);
-        target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(deviceCode));
+        var flashAlgorithm = new DAPjs.FlashAlgorithm(flashAlgorithms, deviceCode);
+        if (!flashAlgorithm.flashAlgo) throw new Error("Flash algorithm not found for this board.");
+        target = new DAPjs.FlashTarget(dapDevice, flashAlgorithm);
         return target.init();
     })
     .then(() => {
@@ -123,6 +136,10 @@ function getTarget(device) {
         console.log("Target halted");
         return target;
     })
+    .catch(error => {
+        console.log(error.message || error);
+        process.exit();
+    });
 }
 
 // Update device using image buffer

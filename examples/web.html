@@ -218,28 +218,35 @@
                 log("Device opened.");
 
                 this.dapDevice = new DAPjs.DAP(this.hid);
-                this.target = new DAPjs.FlashTarget(this.dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+                const xhr = new XMLHttpRequest();
+                xhr.responseType = "json";
+                xhr.open("GET", "../flash_targets/flash_targets.json", true);
+                xhr.onload = async (e) => {
+                    if (xhr.status !== 200) return log(xhr.statusText);
 
-                log("Initialising device.");
+                    let flashAlgorithm = new DAPjs.FlashAlgorithm(xhr.response, this.deviceCode);
+                    if (!flashAlgorithm.flashAlgo) return log("No flashing algorithm can be found for this board.");
 
-                await this.target.init();
+                    this.target = new DAPjs.FlashTarget(this.dapDevice, flashAlgorithm);
 
-                log("Halting target.");
+                    log("Initialising device.");
+                    await this.target.init();
 
-                await this.target.halt();
+                    log("Halting target.");
+                    await this.target.halt();
+                    log("Target halted.");
 
-                log("Target halted.");
+                    const [imp, isa, type] = await this.target.readCoreType();
+                    log(`Connected to an ARM ${DAPjs.CoreNames.get(type)} (${DAPjs.ISANames.get(isa)})`);
+                    document.getElementById("connect").disabled = true;
 
-                const [imp, isa, type] = await this.target.readCoreType();
-                log(`Connected to an ARM ${DAPjs.CoreNames.get(type)} (${DAPjs.ISANames.get(isa)})`);
+                    const elements = Array.from(document.querySelectorAll(".when-connected"));
 
-                document.getElementById("connect").disabled = true;
-
-                const elements = Array.from(document.querySelectorAll(".when-connected"));
-
-                for (const elem of elements) {
-                    elem.disabled = false;
-                }
+                    for (const elem of elements) {
+                        elem.disabled = false;
+                    }
+                };
+                xhr.send();
             }
 
             async function halt() {

@@ -69,7 +69,10 @@ this.hid = new DAPjs.HID(device);
 // open hid device
 await this.hid.open();
 dapDevice = new DAPjs.DAP(this.hid);
-this.target = new DAPjs.FlashTarget(dapDevice, DAPjs.FlashTargets.get(this.deviceCode));
+// contains flash algorithms data and memory map
+let flashAlgorithmsData = {};
+let flashAlgorithm = new DAPjs.FlashAlgorithm(flashAlgorithmsData, this.deviceCode);
+this.target = new DAPjs.FlashTarget(dapDevice, flashAlgorithm);
 
 // init and halt target
 await this.target.init();

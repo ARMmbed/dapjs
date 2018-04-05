@@ -1,12 +1,9 @@
 import {CortexReg} from "../cortex/constants";
 import {CortexM} from "../cortex/cortex";
 import {DAP} from "../dap/dap";
-import {IPlatform} from "./platform";
 
 import {FlashProgram} from "./FlashProgram";
-
-import {K64F} from "./K64F";
-import {NRF51} from "./NRF51";
+import {FlashAlgorithm} from "./FlashAlgorithm";
 
 /**
  * Analyzer code blob, from PyOCD. This can be used to compute a table of CRC
@@ -32,15 +29,15 @@ const analyzer = new Uint32Array([
  * ## Usage
  *
  * Initialising the `FlashTarget` object is the same as configuring a Cortex-M
- * object, but with an additional parameter for the platform (contains the
- * flashing algorithm and memory layout).
+ * object, but with an additional parameter for the flashing algorithm.
  *
  * ```typescript
- * import {K64F, DAP, FlashTarget} from "dapjs";
+ * import {DAP, FlashTarget} from "dapjs";
  *
  * // make sure hid is an object implementing the `IHID` interface.
  * const dap = new DAP(hid);
- * const device = new FlashTarget(dap, K64F);
+ * const flashAlgorithm = await DAPjs.FlashAlgorithm.load('0240');
+ * const device = new FlashTarget(dap, flashAlgorithm);
  * ```
  *
  * Now, we can do all of the operations you'd expect. As usual, these examples
@@ -55,14 +52,13 @@ const analyzer = new Uint32Array([
  * ```
  */
 export class FlashTarget extends CortexM {
-    protected platform: IPlatform;
+    protected flashAlgorithm: FlashAlgorithm;
     private inited: boolean;
 
-    constructor(device: DAP, platform: IPlatform) {
+    constructor(device: DAP, flashAlgorithm: FlashAlgorithm) {
         super(device);
-
-        this.platform = platform;
         this.inited = false;
+        this.flashAlgorithm = flashAlgorithm;
     }
 
     /**
@@ -79,19 +75,19 @@ export class FlashTarget extends CortexM {
 
         // make sure we're in Thumb mode.
         await this.writeCoreRegister(CortexReg.XPSR, 1 << 24);
-        await this.writeCoreRegister(CortexReg.R9, this.platform.flashAlgo.staticBase);
+        await this.writeCoreRegister(CortexReg.R9, this.flashAlgorithm.flashAlgo.staticBase);
 
         // upload analyzer
-        if (this.platform.flashAlgo.analyzerSupported) {
-            await this.memory.writeBlock(this.platform.flashAlgo.analyzerAddress, analyzer);
+        if (this.flashAlgorithm.flashAlgo.analyzerSupported) {
+            await this.memory.writeBlock(this.flashAlgorithm.flashAlgo.analyzerAddress, analyzer);
         }
 
         const result = await this.runCode(
-            this.platform.flashAlgo.instructions,
-            this.platform.flashAlgo.loadAddress,
-            this.platform.flashAlgo.pcInit,
-            this.platform.flashAlgo.loadAddress + 1,
-            this.platform.flashAlgo.stackPointer,
+            this.flashAlgorithm.flashAlgo.instructions,
+            this.flashAlgorithm.flashAlgo.loadAddress,
+            this.flashAlgorithm.flashAlgo.pcInit,
+            this.flashAlgorithm.flashAlgo.loadAddress + 1,
+            this.flashAlgorithm.flashAlgo.stackPointer,
             true,
             0, 0, 0, 0,
         );
@@ -109,11 +105,11 @@ export class FlashTarget extends CortexM {
         }
 
         const result = await this.runCode(
-            this.platform.flashAlgo.instructions,
-            this.platform.flashAlgo.loadAddress,
-            this.platform.flashAlgo.pcEraseAll,
-            this.platform.flashAlgo.loadAddress + 1,
-            this.platform.flashAlgo.stackPointer,
+            this.flashAlgorithm.flashAlgo.instructions,
+            this.flashAlgorithm.flashAlgo.loadAddress,
+            this.flashAlgorithm.flashAlgo.pcEraseAll,
+            this.flashAlgorithm.flashAlgo.loadAddress + 1,
+            this.flashAlgorithm.flashAlgo.stackPointer,
             false,
             0, 0, 0,
         );
@@ -133,9 +129,9 @@ export class FlashTarget extends CortexM {
             await this.flashInit();
         }
 
-        const pageSizeWords = this.platform.flashAlgo.pageSize / 4;
-        const bufferAddress = this.platform.flashAlgo.pageBuffers[0];
-        const flashStart = address || this.platform.flashAlgo.flashStart;
+        const pageSizeWords = this.flashAlgorithm.memoryMap[0].blocksize / 4;
+        const bufferAddress = this.flashAlgorithm.flashAlgo.pageBuffers[0];
+        const flashStart = address || this.flashAlgorithm.memoryMap[0].start;
 
         // How far through `data` are we (in bytes)
         let ptr = 0;
@@ -148,15 +144,15 @@ export class FlashTarget extends CortexM {
 
             await this.memory.writeBlock(bufferAddress, pageData);
             await this.runCode(
-                this.platform.flashAlgo.instructions,
-                this.platform.flashAlgo.loadAddress,
-                this.platform.flashAlgo.pcProgramPage, // pc
-                this.platform.flashAlgo.loadAddress + 1, // lr
-                this.platform.flashAlgo.stackPointer, // sp
+                this.flashAlgorithm.flashAlgo.instructions,
+                this.flashAlgorithm.flashAlgo.loadAddress,
+                this.flashAlgorithm.flashAlgo.pcProgramPage, // pc
+                this.flashAlgorithm.flashAlgo.loadAddress + 1, // lr
+                this.flashAlgorithm.flashAlgo.stackPointer, // sp
                 /* upload? */
                 false,
                 /* args */
-                flashAddress, this.platform.flashAlgo.pageSize, bufferAddress,
+                flashAddress, this.flashAlgorithm.memoryMap[0].blocksize, bufferAddress,
             );
 
             if (progressCb) {
@@ -211,16 +207,3 @@ export class FlashTarget extends CortexM {
         this.inited = false;
     }
 }
-
-/**
- * Map of mbed device codes to platform objects. Can be used by applications
- * to dynamically select flashing algorithm based on the devices connected to
- * the computer.
- *
- * > *TODO:* extend the mbed devices API to include data stored here, so that we can
- * > expand to cover all devices without needing to update DAP.js.
- */
-export let FlashTargets = new Map<string, IPlatform>();
-FlashTargets.set("0240", new K64F());
-FlashTargets.set("9900", new NRF51());
-FlashTargets.set("1100", new NRF51());
