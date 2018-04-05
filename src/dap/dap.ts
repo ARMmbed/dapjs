@@ -1,4 +1,4 @@
-import {ApReg, DapRegisters, DapVal, Reg} from "./constants";
+import {ApReg, DapVal, Reg, DapRegisters} from "./constants";
 import {PreparedDapCommand} from "./prepared";
 
 import {CMSISDAP, DapCmd} from "../transport/cmsis_dap";
@@ -24,7 +24,6 @@ export class DAP {
 
     public async init() {
         await this.dap.connect();
-
         await this.readDp(Reg.IDCODE);
         // const n = await this.readDp(Reg.IDCODE);
         // this.idcode = n;
@@ -181,5 +180,21 @@ export class DAP {
         }
 
         return buf;
+    }
+
+    public async readSerialSettings() {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR1, []);
+    }
+
+    public async initializeSerial(data: number[]) {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR2, data);
+    }
+
+    public async readSerial() {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR3, []);
+    }
+
+    public async writeSerial(data: number[]) {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR4, data);
     }
 }

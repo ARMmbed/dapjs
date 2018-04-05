@@ -21,6 +21,11 @@ export const enum DapCmd {
     DAP_JTAG_CONFIGURE = 0x15,
     DAP_JTAG_IDCODE = 0x16,
     DAP_VENDOR0 = 0x80,
+    DAP_VENDOR1 = 0x81,
+    DAP_VENDOR2 = 0x82,
+    DAP_VENDOR3 = 0x83,
+    DAP_VENDOR4 = 0x84,
+    DAP_VENDOR5 = 0x85
 }
 
 const enum Info {
@@ -66,6 +71,12 @@ export class CMSISDAP {
             case DapCmd.DAP_TRANSFER:
             case DapCmd.DAP_TRANSFER_BLOCK:
                 break;
+            case DapCmd.DAP_VENDOR1:
+            case DapCmd.DAP_VENDOR2:
+            case DapCmd.DAP_VENDOR3:
+            case DapCmd.DAP_VENDOR4:
+            case DapCmd.DAP_VENDOR5:
+                break;
             default:
                 if (buf[1] !== 0) {
                     throw new Error(`Bad status for ${op} -> ${buf[1]}`);
@@ -77,7 +88,6 @@ export class CMSISDAP {
 
     public async connect() {
         const v = await this.info(Info.PACKET_COUNT);
-
         if (v as number) {
             // this.maxSent = v as number;
         } else {

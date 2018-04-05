@@ -2,7 +2,7 @@
 <html lang="en_GB">
 
     <head>
-        <title>WebUSB tester</title>
+        <title>WebUSB demo</title>
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
@@ -27,12 +27,17 @@
                 background-color: #fff;
                 border: 2px solid #e7e9ec;
                 border-radius: 6px;
+                min-height: 100px;
             }
-            
+
             p {
                 margin: 0 0 15px;
                 font-size: 18px;
                 line-height: 1.8em;
+            }
+
+            input {
+                width: 100%;
             }
             
             .container {
@@ -73,7 +78,7 @@
             </p>
             
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <ol>
                         <li>
                             <p>
@@ -136,11 +141,38 @@
                                 <button onclick="printRegisters()" class="btn btn-info when-connected" disabled>Read Registers</button>
                             </p>
                         </li>
+                        <li>
+                            <p>
+                                Serial monitor:
+                            </p>
+                            <p>
+                                Baud Rate:
+                                <select id="baudRate" class="when-connected" disabled>
+                                    <option value="9600">9600</option>
+                                    <option value="14400">14400</option>
+                                    <option value="19200">19200</option>
+                                    <option value="28800">28800</option>
+                                    <option value="38400">38400</option>
+                                    <option value="57600">57600</option>
+                                    <option value="115200">115200</option>
+                                </select>
+                                <div class="btn-group">
+                                    <button onclick="startSerialMonitor()" class="btn btn-success when-connected" disabled>Start</button>
+                                    <button onclick="stopSerialMonitor()" class="btn btn-danger when-connected" disabled>Stop</button>
+                                </div>
+                            </p>
+                        </li>
                     </ol>
                 </div>
 
-                <div class="col-md-8">
+                <div class="col-md-7">
+                    Output:
                     <pre id="logger"></pre>
+                    Serial monitor:
+                    <p>
+                        <input id="serialMonitorInput" class="when-connected" type="text" maxlength="63" placeholder="Write to a board" onchange="writeSerial()">
+                    </p>
+                    <pre id="serialMonitor"></pre>
                 </div>
             </div>
         </div>
@@ -194,6 +226,15 @@
                 document.getElementById("logger").innerHTML = "";
             }
 
+            function logSerial(data) {
+                logger = document.getElementById("serialMonitor");
+                logger.innerHTML = logger.innerHTML + data + "\n";
+            }
+
+            function clearLogSerial() {
+                document.getElementById("serialMonitor").innerHTML = "";
+            }
+
             /**
              * Snapshot the current state of the CPU. Reads all general-purpose registers, and returns them in an array.
              */
@@ -208,6 +249,8 @@
             }
 
             async function connect() {
+                clearLog();
+                clearLogSerial();
                 this.hid = new DAPjs.HID(this.device);
 
                 log("Opening device.");
@@ -218,6 +261,7 @@
                 log("Device opened.");
 
                 this.dapDevice = new DAPjs.DAP(this.hid);
+
                 const xhr = new XMLHttpRequest();
                 xhr.responseType = "json";
                 xhr.open("GET", "../flash_targets/flash_targets.json", true);
@@ -227,6 +271,7 @@
                     let flashAlgorithm = new DAPjs.FlashAlgorithm(xhr.response, this.deviceCode);
                     if (!flashAlgorithm.flashAlgo) return log("No flashing algorithm can be found for this board.");
 
+                    this.serial = new DAPjs.Serial(dapDevice);
                     this.target = new DAPjs.FlashTarget(this.dapDevice, flashAlgorithm);
 
                     log("Initialising device.");
@@ -296,6 +341,26 @@
                 xhr.send();
             }
 
+            async function startSerialMonitor() {
+                var elem = document.getElementById("baudRate");
+                var baudRate = elem.options[elem.selectedIndex].value;
+                await this.serial.initialize(baudRate);
+                this.serial.start((data) => {
+                    logSerial(data);
+                });
+            }
+
+            function writeSerial() {
+                var elem = document.getElementById("serialMonitorInput");
+                this.serial.write(elem.value);
+                elem.value = "";
+            }
+
+            function stopSerialMonitor() {
+                this.serial.stop();
+                clearLogSerial();
+            }
+
             async function selectBoard() {
                 this.device = await navigator.usb.requestDevice({ filters: [{vendorId: 0x0d28}]});
                 this.deviceCode = this.device.serialNumber.slice(0, 4);
@@ -309,6 +374,18 @@
                 this.flashProgressBar = document.getElementById('flash-progress');
                 this.flashProgressBarContainer = document.getElementById('progress-container');
                 this.selector = new DAPjs.PlatformSelector();
+                navigator.usb.addEventListener('disconnect', disconnectEvent => {
+                    if (this.device && this.device.serialNumber == disconnectEvent.device.serialNumber) {
+                        this.device = null;
+                        const elements = Array.from(document.querySelectorAll(".when-connected"));
+                        for (const elem of elements) {
+                            elem.disabled = true;
+                        }
+                        clearLog();
+                        log("Device disconnected");
+                        clearLogSerial();
+                    }
+                });
             };
         </script>
     </body>
