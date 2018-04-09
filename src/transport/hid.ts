@@ -1,112 +1,126 @@
-export interface IHID {
-    write(data: ArrayBuffer): Promise<void>;
-    read(): Promise<Uint8Array>;
-    close(): Promise<void>;
-}
+/*
+* DAPjs
+* Copyright Arm Limited 2018
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
-function bufferExtend(source: ArrayBuffer, length: number) {
-    const sarr = new Uint8Array(source);
+import { platform } from "os";
+import { HID as Device } from "node-hid";
+import { Transport } from "./index";
 
-    const dest = new ArrayBuffer(length);
-    const darr = new Uint8Array(dest);
+const PACKET_SIZE = 64;
 
-    for (let i = 0; i < Math.min(source.byteLength, length); i++) {
-        darr[i] = sarr[i];
+/**
+ * HID Transport
+ */
+export class HID implements Transport {
+
+    private os: string = platform();
+    private device: Device = null;
+
+    /**
+     * HID constructor
+     * @param path Path to HID device to use
+     */
+    constructor(private path: string) {
     }
 
-    return dest;
-}
-
-export class HID {
-    private device: USBDevice;
-    private interfaces: USBInterface[];
-    private interface: USBInterface;
-    private endpoints: USBEndpoint[];
-    private epIn: USBEndpoint;
-    private epOut: USBEndpoint;
-    private useControlTransfer: boolean;
-    private packetSize = 64;
-    private controlTransferGetReport = 0x01;
-    private controlTransferSetReport = 0x09;
-    private controlTransferOutReport = 0x200;
-    private controlTransferInReport = 0x100;
-
-    constructor(device: USBDevice) {
-        this.device = device;
-    }
-
-    public async open(hidInterfaceClass = 0xFF, useControlTransfer = true) {
-        this.useControlTransfer = useControlTransfer;
-        await this.device.open();
-        await this.device.selectConfiguration(1);
-        const hids = this.device.configuration.interfaces.filter(
-            intf => intf.alternates[0].interfaceClass === hidInterfaceClass);
-
-        if (hids.length === 0) {
-            throw new Error("No HID interfaces found.");
-        }
-
-        this.interfaces = hids;
-
-        if (this.interfaces.length === 1) {
-            this.interface = this.interfaces[0];
-        }
-        await this.device.claimInterface(this.interface.interfaceNumber);
-        this.endpoints = this.interface.alternates[0].endpoints;
-
-        this.epIn = null;
-        this.epOut = null;
-
-        for (const endpoint of this.endpoints) {
-            if (endpoint.direction === "in") {
-                this.epIn = endpoint;
-            } else {
-                this.epOut = endpoint;
+    /**
+     * Open device
+     * @returns Promise
+     */
+    public open(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!this.path.length) {
+                return reject("No path specified");
             }
-        }
+
+            try {
+                this.device = new Device(this.path);
+                resolve();
+            } catch (ex) {
+                reject(ex);
+            }
+        });
     }
 
-    public async close() {
-        return this.device.close();
+    /**
+     * Close device
+     * @returns Promise
+     */
+    public close(): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            if (this.device) {
+                this.device.close();
+                this.device = null;
+            }
+
+            resolve();
+        });
     }
 
-    public async write(data: ArrayBuffer): Promise<USBOutTransferResult> {
-        if (this.epOut && !this.useControlTransfer) {
-            const reportSize = this.epOut.packetSize;
-            const buffer = bufferExtend(data, reportSize);
-            return this.device.transferOut(this.epOut.endpointNumber, buffer);
-        } else {
-            // Device does not have out endpoint. Send data using control transfer
-            const buffer = bufferExtend(data, this.packetSize);
-            return this.device.controlTransferOut(
-                {
-                    requestType: "class",
-                    recipient: "interface",
-                    request: this.controlTransferSetReport,
-                    value: this.controlTransferOutReport,
-                    index: this.interface.interfaceNumber
-                },
-                buffer
-            );
-        }
+    /**
+     * Read from device
+     * @returns Promise of DataView
+     */
+    public read(): Promise<DataView> {
+        return new Promise((resolve, reject) => {
+            this.device.read((error: string, data: number[]) => {
+                if (error) {
+                    return reject(error);
+                }
+
+                const buffer = new Uint8Array(data).buffer;
+                resolve(new DataView(buffer));
+            });
+        });
     }
 
-    public async read(): Promise<DataView> {
-        if (this.epIn && !this.useControlTransfer) {
-            const reportSize = this.epIn.packetSize;
-            return this.device.transferIn(this.epIn.endpointNumber, reportSize)
-                .then(res => res.data);
-        } else {
-            return this.device.controlTransferIn(
-                {
-                    requestType: "class",
-                    recipient: "interface",
-                    request: this.controlTransferGetReport,
-                    value: this.controlTransferInReport,
-                    index: this.interface.interfaceNumber
-                },
-                this.packetSize
-            ).then(res => res.data);
-        }
+    /**
+     * Write to device
+     * @param data Data to write
+     * @returns Promise
+     */
+    public write(data: BufferSource): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
+                return (source as ArrayBufferView).buffer !== undefined;
+            }
+
+            const arrayBuffer = isView(data) ? data.buffer : data;
+            const array = Array.from(new Uint8Array(arrayBuffer));
+
+            // Pad to packet size
+            while (array.length < PACKET_SIZE) array.push(0);
+
+            // Windows requires the prepend of an extra byte
+            // https://github.com/node-hid/node-hid/blob/master/README.md#prepend-byte-to-hid_write
+            if (this.os === "win32") {
+                array.unshift(0);  // prepend throwaway byte
+            }
+
+            this.device.write(array);
+            // const bytesWritten = this.device.write(array);
+            // if (bytesWritten !== PACKET_SIZE) return reject("Incorrect bytecount written");
+
+            resolve();
+        });
     }
 }
