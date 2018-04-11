@@ -9,7 +9,7 @@
         "brace-style": [true, "1tbs", { "allowSingleLine": true }],
         "curly": [true, "ignore-same-line"],
         "eofline": true,
-        "interface-name": [true, "always-prefix"],
+        "interface-name": [true, "never-prefix"],
         "linebreak-style": [true, "LF"],
         "max-classes-per-file": [false],
         "max-line-length": [false],

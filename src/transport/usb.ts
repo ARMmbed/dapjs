@@ -42,7 +42,7 @@ const OUT_REPORT = 0x200;
 const IN_REPORT = 0x100;
 
 /**
- * USB Transport
+ * USB Transport class
  */
 export class USB implements Transport {
 

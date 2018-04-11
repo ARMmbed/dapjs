@@ -32,7 +32,7 @@ const OUT_REPORT = 0x200;
 const IN_REPORT = 0x100;
 
 /**
- * WebUSB Transport
+ * WebUSB Transport class
  */
 export class WebUSB implements Transport {
 

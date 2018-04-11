@@ -21,33 +21,58 @@
 * SOFTWARE.
 */
 
+import { DapInfoRequest } from "./cmsis-dap";
+
 /**
- * Debug transport
+ * Debug interface
  */
-export interface Transport {
+export interface Interface {
     /**
-     * Open device
+     * Connect to target device
      * @returns Promise
      */
-    open(): Promise<void>;
+    connect(): Promise<void>;
     /**
-     * Close device
+     * Disconnect from target device
      * @returns Promise
      */
-    close(): Promise<void>;
+    disconnect(): Promise<void>;
     /**
-     * Read from device
+     * Reset target device
+     * @returns Promise
+     */
+    reset(): Promise<void>;
+    /**
+     * Execute a command
+     * @param command Command to execute
+     * @param data Data to use
      * @returns Promise of DataView
      */
-    read(): Promise<DataView>;
-    /**
-     * Write to device
-     * @param data Data to write
-     * @returns Promise
-     */
-    write(data: BufferSource): Promise<void>;
+    execute(command: number, data?: BufferSource): Promise<DataView>;
 }
 
-export { HID } from "./hid";
-export { USB } from "./usb";
-export { WebUSB } from "./webusb";
+/**
+ * CMSIS Debug interface
+ */
+export interface CmsisInterface extends Interface {
+    /**
+     * Get DAP information
+     * @param request Type of information to get
+     * @returns Promise of information as number or string
+     */
+    dapInfo(request: DapInfoRequest): Promise<number | string>;
+    /**
+     * Transfer data
+     * @param data Data to transfer
+     * @returns Promise of DataView
+     */
+    transfer(data: BufferSource): Promise<DataView>;
+    /**
+     * Transfer a block of data
+     * @param data Data to transfer
+     * @returns Promise of DataView
+     */
+    transferBlock(data: BufferSource): Promise<DataView>;
+}
+
+export { CmsisDap } from "./cmsis-dap";

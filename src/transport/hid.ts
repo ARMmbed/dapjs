@@ -28,7 +28,7 @@ import { Transport } from "./index";
 const PACKET_SIZE = 64;
 
 /**
- * HID Transport
+ * HID Transport class
  */
 export class HID implements Transport {
 
