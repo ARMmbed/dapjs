@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { Transport } from "./index";
+import { Transport } from "./";
 
 const DEFAULT_CLASS = 0xFF;
 const PACKET_SIZE = 64;

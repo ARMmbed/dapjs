@@ -30,16 +30,19 @@ export interface Transport {
      * @returns Promise
      */
     open(): Promise<void>;
+
     /**
      * Close device
      * @returns Promise
      */
     close(): Promise<void>;
+
     /**
      * Read from device
      * @returns Promise of DataView
      */
     read(): Promise<DataView>;
+
     /**
      * Write to device
      * @param data Data to write

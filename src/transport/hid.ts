@@ -23,7 +23,7 @@
 
 import { platform } from "os";
 import { HID as Device } from "node-hid";
-import { Transport } from "./index";
+import { Transport } from "./";
 
 const PACKET_SIZE = 64;
 
