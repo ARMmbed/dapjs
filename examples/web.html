@@ -308,6 +308,9 @@
                     case "9900":
                         binary = binariesPath + "microbit-say-" + color + ".hex";
                         break;
+                    case "1050":
+                        binary = binariesPath + "lpc812-blinky-" + color + ".bin";
+                        break;
                     case "1100":
                         binary = binariesPath + "nrf51dk-led-" + color + ".hex";
                         break;
@@ -324,18 +327,27 @@
                 xhr.open("GET", binary, true);
 
                 xhr.onload = async (e) => {
+                    
                     log(`Flashing program on board.`);
-                    const program = DAPjs.FlashProgram.fromArrayBuffer(xhr.response);
-                    await this.target.program(program, (progress) => {
-                        this.flashProgressBar.style.width = `${progress * 100}%`;
-                    });
-
-                    log(`Successfully flashed binary.`);
+                    const timeNow =  performance.now();
+                    if (color === "green") {
+                        const flasher =  new DAPjs.Flash(dapDevice);
+                        await flasher.flash(xhr.response, (progress) => {
+                            this.flashProgressBar.style.width = `${progress * 100}%`;
+                        });
+                    }
+                    else {
+                        const program = DAPjs.FlashProgram.fromArrayBuffer(xhr.response);
+                        await this.target.program(program, (progress) => {
+                            this.flashProgressBar.style.width = `${progress * 100}%`;
+                        });
+                        await this.target.reset();
+                        // make sure we don't have any issues flashing twice in the same session.
+                        this.target.flashUnInit();
+                    }
+                    const timeLater =  performance.now();
+                    log("Successfully flashed binary in " + (timeLater - timeNow) + " ms." );
                     log("Done.");
-
-                    await this.target.reset();
-                    // make sure we don't have any issues flashing twice in the same session.
-                    this.target.flashUnInit();
                 };
 
                 xhr.send();

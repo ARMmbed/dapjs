@@ -31,7 +31,6 @@ export const addInt32 = (arr: number[], val: number) => {
     if (!arr) {
         arr = [];
     }
-
     arr.push(val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff, (val >> 24) & 0xff);
     return arr;
 };
@@ -63,6 +62,14 @@ export const bank = (addr: number) => {
 export const apReg = (r: ApReg, mode: DapVal) => {
     const v = r | mode | DapVal.AP_ACC;
     return (4 + ((v & 0x0c) >> 2)) as Reg;
+};
+
+export const bufToUint8Array = (buf: Uint8Array) => {
+    const r: number[] = [];
+    for (let i = 0; i < buf.length; ++i) {
+        r[i] = buf[i];
+    }
+    return r;
 };
 
 export const bufToUint32Array = (buf: Uint8Array) => {

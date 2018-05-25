@@ -8,3 +8,4 @@ export {FlashProgram} from "./targets/FlashProgram";
 export {FlashAlgorithm} from "./targets/FlashAlgorithm";
 export {PlatformSelector} from "./targets/PlatformSelector";
 export {HID} from "./transport/hid";
+export {Flash} from "./flash/flash";
