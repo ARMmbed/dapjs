@@ -1,5 +1,5 @@
 import { DAP } from "../dap/dap";
-import { bufToUint8Array, isBufferBinary, bufToUint32Array } from "../util";
+import { bufToUint8Array, isBufferBinary } from "../util";
 
 export class Flash {
     private dap: DAP;
@@ -11,8 +11,7 @@ export class Flash {
     public async flash(buffer: ArrayBuffer, progressCb: (progress: number) => void) {
         const streamType = isBufferBinary(buffer) ? 0 : 1;
         let errorCode = await this.dap.openMSD(streamType);
-        if (errorCode[1] !== 0x0) {
-            console.log(errorCode[1]);
+        if (errorCode[0] !== 0x0) {
             return;
         }
         const program = bufToUint8Array(new Uint8Array(buffer));
@@ -32,8 +31,7 @@ export class Flash {
             index += pageSize;
         }
         errorCode = await this.dap.closeMSD();
-        if (errorCode[1] !== 0x0) {
-            console.log(errorCode[1]);
+        if (errorCode[0] !== 0x0) {
             return;
         }
         await this.dap.resetMSD();

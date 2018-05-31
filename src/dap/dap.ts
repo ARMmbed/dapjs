@@ -198,21 +198,22 @@ export class DAP {
         return this.dap.cmdNums(DapCmd.DAP_VENDOR4, data);
     }
 
-    public async openMSD(streamType: number) {
-        const data: number[] = [];
-        addInt32(data, streamType);
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR5, data);
-    }
-
-    public async writeMSD(data: number[]) {
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR7, data);
-    }
-
-    public async closeMSD() {
-        return this.dap.cmdNums(DapCmd.DAP_VENDOR6, []);
-    }
-
     public async resetMSD() {
         return this.dap.cmdNums(DapCmd.DAP_VENDOR9, []);
     }
+
+    public async openMSD(streamType: number) {
+        const data: number[] = [];
+        addInt32(data, streamType);
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR10, data);
+    }
+
+    public async writeMSD(data: number[]) {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR12, data);
+    }
+
+    public async closeMSD() {
+        return this.dap.cmdNums(DapCmd.DAP_VENDOR11, []);
+    }
+
 }

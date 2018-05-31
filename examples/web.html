@@ -330,7 +330,7 @@
                     
                     log(`Flashing program on board.`);
                     const timeNow =  performance.now();
-                    if (color === "green") {
+                    if (color === "green" || color === "red") {
                         const flasher =  new DAPjs.Flash(dapDevice);
                         await flasher.flash(xhr.response, (progress) => {
                             this.flashProgressBar.style.width = `${progress * 100}%`;
