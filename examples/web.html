@@ -55,6 +55,57 @@
             .letter-ol {
                 list-style-type: lower-alpha;
             }
+
+            .btn-group {
+                min-width: 100%;
+            }
+
+            .btn-flash {
+                width: 100%;
+            }
+
+            #drop {
+                position: relative;
+                padding: 10px;
+                min-width: 100%;
+                outline: 2px dashed #e7e9ec;
+                text-align: center;
+            }
+
+            #drop.hover {
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+
+            #icon {
+                width: 100%;
+                fill: #65abff;
+            }
+
+            #file {
+                width: 0.1px;
+                height: 0.1px;
+                opacity: 0;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            #select {
+                position: absolute;
+                left: 0;
+                right: 0;
+                visibility: hidden;
+            }
+
+            #label {
+                cursor: pointer;
+                text-align: center;
+                margin-bottom: 0px;
+            }
+
+            #label:hover strong {
+                color: #8bb5ba;
+            }
+
         </style>
     </head>
 
@@ -113,8 +164,24 @@
                             </p>
                             <p>
                                 <div class="btn-group">
-                                    <button onclick="flash('green')" class="btn btn-success when-connected" disabled>Flash Green</button>
-                                    <button onclick="flash('red')" class="btn btn-danger when-connected" disabled>Flash Red</button>
+                                    <button onclick="flash('green')" class="btn btn-flash btn-success when-connected" disabled>Flash Green</button>
+                                    <button onclick="flash('red')" class="btn btn-flash btn-danger when-connected" disabled>Flash Red</button>
+                                </div>
+                            </p>
+                            <p>
+                                <div id="drop" class="when-connected" disabled>
+                                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="37" height="32" viewBox="0 0 50 43">
+                                        <path d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z"/>
+                                    </svg>
+                                    <input id="file" type="file" class="when-connected" disabled />
+                                    <label id="label" for="file" class="when-connected" disabled>
+                                        <strong>Choose a binary</strong>
+                                        <span>or drag it here</span>
+                                    </label>
+                                    <div id="status">
+                                        <div id="bar"></div>
+                                        <div id="transfer"></div>
+                                    </div>
                                 </div>
                             </p>
                             <div id='progress-container' style='display: none'>
@@ -308,6 +375,9 @@
                     case "9900":
                         binary = binariesPath + "microbit-say-" + color + ".hex";
                         break;
+                    case "1050":
+                        binary = binariesPath + "lpc812-blinky-" + color + ".bin";
+                        break;
                     case "1100":
                         binary = binariesPath + "nrf51dk-led-" + color + ".hex";
                         break;
@@ -315,30 +385,27 @@
                         log("No binary found for this target");
                         return;
                 }
-                // Erase flash
-                await this.target.halt();
-                this.flashProgressBar.style.width = "0%";
-                this.flashProgressBarContainer.style.display = "block";
                 const xhr = new XMLHttpRequest();
                 xhr.responseType = "arraybuffer";
                 xhr.open("GET", binary, true);
-
                 xhr.onload = async (e) => {
-                    log(`Flashing program on board.`);
-                    const program = DAPjs.FlashProgram.fromArrayBuffer(xhr.response);
-                    await this.target.program(program, (progress) => {
-                        this.flashProgressBar.style.width = `${progress * 100}%`;
-                    });
-
-                    log(`Successfully flashed binary.`);
-                    log("Done.");
-
-                    await this.target.reset();
-                    // make sure we don't have any issues flashing twice in the same session.
-                    this.target.flashUnInit();
+                    this.flashProgram(xhr.response)
                 };
-
                 xhr.send();
+            }
+
+            async function flashProgram(binary) {
+                this.flashProgressBar.style.width = "0%";
+                this.flashProgressBarContainer.style.display = "block";
+                log(`Flashing program on board.`);
+                const timeNow =  performance.now();
+                const flashMSD =  new DAPjs.Flash(dapDevice);
+                await flashMSD.flash(binary, (progress) => {
+                    this.flashProgressBar.style.width = `${progress * 100}%`;
+                });
+                const timePassed =  performance.now() - timeNow;
+                log(`Successfully flashed binary in ${timePassed.toFixed(2)} ms.` );
+                log("Done.");
             }
 
             async function startSerialMonitor() {
@@ -385,6 +452,43 @@
                         log("Device disconnected");
                         clearLogSerial();
                     }
+                });
+                let dropEl = document.getElementById("drop");
+                let fileEl = document.getElementById("file");
+
+                fileEl.addEventListener("change", event => {
+                    reader = new FileReader();
+                    reader.onload = function(e) {
+                        flashProgram(reader.result);
+                    }
+                    reader.readAsArrayBuffer(event.target.files[0]);
+                });
+
+                dropEl.addEventListener("drop", event => {
+                    reader = new FileReader();
+                    reader.onload = function(e) {
+                        flashProgram(reader.result);
+                    }
+                    reader.readAsArrayBuffer(event.dataTransfer.files[0]);
+                });
+
+                ["drag", "dragstart", "dragend", "dragover", "dragenter", "dragleave", "drop"].forEach(eventName => {
+                    dropEl.addEventListener(eventName, event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    });
+                });
+
+                ["dragover", "dragenter"].forEach(eventName => {
+                    dropEl.addEventListener(eventName, event => {
+                        dropEl.classList.add("hover");
+                    });
+                });
+
+                ["dragleave", "dragend", "drop"].forEach(eventName => {
+                    dropEl.addEventListener(eventName, event => {
+                        dropEl.classList.remove("hover");
+                    });
                 });
             };
         </script>

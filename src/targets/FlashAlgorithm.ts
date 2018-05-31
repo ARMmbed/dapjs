@@ -42,9 +42,12 @@ export class FlashAlgorithm {
         const instructions = flashAlgorithm.flash_algo.instructions.map((instruction: string) => {
             return parseInt(instruction, 16);
         });
-        const pageBuffers = flashAlgorithm.flash_algo.page_buffers.map((pageBuffer: string) => {
-            return parseInt(pageBuffer, 16);
-        });
+        let pageBuffers = null;
+        if (flashAlgorithm.flash_algo.page_buffers !== undefined) {
+            pageBuffers = flashAlgorithm.flash_algo.page_buffers.map((pageBuffer: string) => {
+                return parseInt(pageBuffer, 16);
+            });
+        }
         this.flashAlgo = {
             analyzerAddress: parseInt(flashAlgorithm.flash_algo.analyzer_address, 16),
             analyzerSupported: flashAlgorithm.flash_algo.analyzer_supported,

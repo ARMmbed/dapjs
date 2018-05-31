@@ -31,7 +31,6 @@ export const addInt32 = (arr: number[], val: number) => {
     if (!arr) {
         arr = [];
     }
-
     arr.push(val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff, (val >> 24) & 0xff);
     return arr;
 };
@@ -65,21 +64,11 @@ export const apReg = (r: ApReg, mode: DapVal) => {
     return (4 + ((v & 0x0c) >> 2)) as Reg;
 };
 
-export const bufToUint32Array = (buf: Uint8Array) => {
-    assert((buf.length & 3) === 0);
-
+export const toArrayOfNumbers = (buf: Uint8Array) => {
     const r: number[] = [];
-
-    if (!buf.length) {
-        return r;
+    for (let i = 0; i < buf.length; ++i) {
+        r[i] = buf[i];
     }
-
-    r[buf.length / 4 - 1] = 0;
-
-    for (let i = 0; i < r.length; ++i) {
-        r[i] = readUInt32LE(buf, i << 2);
-    }
-
     return r;
 };
 

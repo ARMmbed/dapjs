@@ -25,7 +25,14 @@ export const enum DapCmd {
     DAP_VENDOR2 = 0x82,
     DAP_VENDOR3 = 0x83,
     DAP_VENDOR4 = 0x84,
-    DAP_VENDOR5 = 0x85
+    DAP_VENDOR5 = 0x85,
+    DAP_VENDOR6 = 0x86,
+    DAP_VENDOR7 = 0x87,
+    DAP_VENDOR8 = 0x88,
+    DAP_VENDOR9 = 0x89,
+    DAP_VENDOR10 = 0x8A,
+    DAP_VENDOR11 = 0x8B,
+    DAP_VENDOR12 = 0x8C
 }
 
 const enum Info {
@@ -59,7 +66,7 @@ export class CMSISDAP {
     public async cmdNums(op: DapCmd, data: number[]) {
         data.unshift(op);
 
-        const buf = await this.send(data);
+        let buf = await this.send(data);
 
         if (buf[0] !== op) {
             throw new Error(`Bad response for ${op} -> ${buf[0]}`);
@@ -76,6 +83,15 @@ export class CMSISDAP {
             case DapCmd.DAP_VENDOR3:
             case DapCmd.DAP_VENDOR4:
             case DapCmd.DAP_VENDOR5:
+            case DapCmd.DAP_VENDOR6:
+            case DapCmd.DAP_VENDOR7:
+            case DapCmd.DAP_VENDOR8:
+            case DapCmd.DAP_VENDOR9:
+            case DapCmd.DAP_VENDOR10:
+            case DapCmd.DAP_VENDOR11:
+            case DapCmd.DAP_VENDOR12:
+                // remove command code from response
+                buf = buf.subarray(1);
                 break;
             default:
                 if (buf[1] !== 0) {
