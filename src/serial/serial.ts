@@ -21,12 +21,11 @@ export class Serial {
         this.timer = setInterval(async () => {
             let serialData = await this.dap.readSerial();
             if (serialData.byteLength > 0) {
-                serialData = serialData.subarray(1);
-                const emptyResponse = serialData.every((c: any) => {
-                    return c === 0;
-                });
-                if (!emptyResponse) {
-                    const data = Buffer.from(serialData.buffer).toString("utf8").substring(1);
+                // check if there is any data returned from the device
+                if (serialData[0] !== 0x0) {
+                    // remove information about data length
+                    serialData = serialData.subarray(1);
+                    const data = String.fromCharCode.apply(null, new Uint16Array(serialData));
                     responseCallback(data);
                 }
             }
