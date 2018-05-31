@@ -64,29 +64,11 @@ export const apReg = (r: ApReg, mode: DapVal) => {
     return (4 + ((v & 0x0c) >> 2)) as Reg;
 };
 
-export const bufToUint8Array = (buf: Uint8Array) => {
+export const toArrayOfNumbers = (buf: Uint8Array) => {
     const r: number[] = [];
     for (let i = 0; i < buf.length; ++i) {
         r[i] = buf[i];
     }
-    return r;
-};
-
-export const bufToUint32Array = (buf: Uint8Array) => {
-    assert((buf.length & 3) === 0);
-
-    const r: number[] = [];
-
-    if (!buf.length) {
-        return r;
-    }
-
-    r[buf.length / 4 - 1] = 0;
-
-    for (let i = 0; i < r.length; ++i) {
-        r[i] = readUInt32LE(buf, i << 2);
-    }
-
     return r;
 };
 

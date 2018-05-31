@@ -1,5 +1,5 @@
 import { DAP } from "../dap/dap";
-import { bufToUint8Array, isBufferBinary } from "../util";
+import { toArrayOfNumbers, isBufferBinary } from "../util";
 
 export class Flash {
     private dap: DAP;
@@ -14,7 +14,7 @@ export class Flash {
         if (errorCode[0] !== 0x0) {
             return;
         }
-        const program = bufToUint8Array(new Uint8Array(buffer));
+        const program = toArrayOfNumbers(new Uint8Array(buffer));
         let index = 0;
         const pageSize = 62;
 
