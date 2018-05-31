@@ -48,6 +48,7 @@ export class Serial {
         let arrayData = [];
         if (data || data !== "") {
             arrayData = data.split("").map((e: any) => e.charCodeAt());
+            arrayData.unshift(arrayData.length);
         }
         return await this.dap.writeSerial(arrayData);
     }
