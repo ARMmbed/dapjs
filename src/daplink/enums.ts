@@ -21,6 +21,16 @@
 * SOFTWARE.
 */
 
-export { HID, USB, WebUSB } from "./transport";
-export { CmsisDap } from "./cmsis-dap";
-export { Daplink } from "./daplink";
+export const enum DaplinkSerial {
+    READ_SETTINGS = 0x81,
+    WRITE_SETTINGS = 0x82,
+    READ = 0x83,
+    WRITE = 0x84
+}
+
+export const enum DaplinkFlash {
+    RESET = 0x89,
+    OPEN = 0x8A,
+    CLOSE = 0x8B,
+    WRITE = 0x8C
+}
