@@ -13,6 +13,7 @@ var uglify      = require("gulp-uglify");
 
 // Source
 var srcDir = "src";
+var srcDocs = srcDir + "/documentation";
 var srcFiles = srcDir + "/**/*.ts";
 
 // Docs
@@ -64,8 +65,8 @@ gulp.task("doc", function() {
     return gulp.src(srcFiles)
     .pipe(typedoc({
         name: name,
-        readme: srcDir + "/documentation.md",
-        theme: srcDir + "/theme",
+        readme: srcDocs + "/index.md",
+        theme: srcDocs + "/theme",
         module: "commonjs",
         target: "es6",
         mode: "file",
