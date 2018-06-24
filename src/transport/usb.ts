@@ -33,12 +33,30 @@ import {
 } from "usb";
 import { Transport } from "./";
 
+/**
+ * @hidden
+ */
 const DEFAULT_CLASS = 0xFF;
+/**
+ * @hidden
+ */
 const PACKET_SIZE = 64;
 
+/**
+ * @hidden
+ */
 const GET_REPORT = 0x01;
+/**
+ * @hidden
+ */
 const SET_REPORT = 0x09;
+/**
+ * @hidden
+ */
 const OUT_REPORT = 0x200;
+/**
+ * @hidden
+ */
 const IN_REPORT = 0x100;
 
 /**
