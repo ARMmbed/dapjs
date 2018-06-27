@@ -115,7 +115,9 @@ export class DapLink extends CmsisDap {
 
     public getSerialBaudrate(): Promise<number> {
         return this.execute(DaplinkSerial.READ_SETTINGS)
-        .then(result => result.getUint32(1));
+        .then(result => {
+            return result.getUint32(1, true);
+        });
     }
 
     public setSerialBaudrate(baudrate: number = 9600): Promise<any> {
@@ -129,7 +131,7 @@ export class DapLink extends CmsisDap {
                 if (serialData.byteLength > 0) {
                     // check if there is any data returned from the device
                     if (serialData.getUint8(1) !== 0) {
-                        const data = String.fromCharCode.apply(null, new Uint16Array(serialData.buffer.slice(1)));
+                        const data = String.fromCharCode.apply(null, new Uint8Array(serialData.buffer.slice(1)));
                         this.emit(DapLink.EVENT_SERIAL_DATA, data);
                     }
                 }

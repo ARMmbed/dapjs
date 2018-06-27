@@ -20,66 +20,12 @@
 * SOFTWARE.
 */
 
-const fs = require("fs");
-const http = require("http");
-const https = require("https");
-const readline = require("readline");
-const progress = require("progress");
 const USB = require("webusb").USB;
-const DAPjs = require("../");
+const progress = require("progress");
+const getFile = require("./getfile");
+const DAPjs = require("../../");
 
 process.stdin.setEncoding("utf8");
-
-// Determine package URL or file path
-function getFileName() {
-    return new Promise((resolve) => {
-        if (process.argv[2]) {
-            return resolve(process.argv[2]);
-        }
-
-        let rl = readline.createInterface(process.stdin, process.stdout);
-        rl.question("Enter a URL or file path for the firmware package: ", answer => {
-            rl.close();
-            resolve(answer);
-        });
-        rl.write("binaries/k64f-blinky-green.bin");
-    });
-}
-
-// Load a file
-function loadFile(fileName, isJson=false) {
-    let file = fs.readFileSync(fileName);
-    return isJson ? JSON.parse(file) : new Uint8Array(file).buffer;
-}
-
-// Download a file
-function downloadFile(url, isJson=false) {
-    return new Promise((resolve, reject) => {
-        console.log("Downloading file...");
-        let scheme = (url.indexOf("https") === 0) ? https : http;
-
-        scheme.get(url, response => {
-            let data = [];
-            response.on("data", chunk => {
-                data.push(chunk);
-            });
-            response.on("end", () => {
-                if (response.statusCode !== 200) return reject(response.statusMessage);
-
-                let download = Buffer.concat(data);
-                if (isJson) {
-                    resolve(JSON.parse(data));
-                }
-                else {
-                    resolve(new Uint8Array(download).buffer);
-                }
-            });
-        })
-        .on("error", error => {
-            reject(error);
-        });
-    });
-}
 
 // Allow user to select a device
 function handleDevicesFound(devices, selectFn) {
@@ -137,12 +83,7 @@ let usb = new USB({
     devicesFound: handleDevicesFound
 });
 
-getFileName()
-.then(fileName => {
-    if (!fileName) throw new Error("No file name specified");
-    if (fileName.indexOf("http") === 0) return downloadFile(fileName);
-    return loadFile(fileName);
-})
+getFile()
 .then(program => {
     return usb.requestDevice({
         filters: [{vendorId: 0x0d28}]
