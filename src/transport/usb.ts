@@ -90,7 +90,7 @@ export class USB implements Transport {
         return new Buffer(arrayBuffer);
     }
 
-    private sliceBuffer(data: BufferSource, packetSize: number): BufferSource {
+    private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
         }
@@ -98,7 +98,10 @@ export class USB implements Transport {
         const arrayBuffer = isView(data) ? data.buffer : data;
         const length = Math.min(arrayBuffer.byteLength, packetSize);
 
-        return arrayBuffer.slice(length);
+        const result = new Uint8Array(length);
+        result.set(new Uint8Array(arrayBuffer));
+
+        return result;
     }
 
     /**
@@ -188,7 +191,7 @@ export class USB implements Transport {
         if (this.endpointOut) {
             return new Promise((resolve, reject) => {
                 const packetSize = this.endpointOut.descriptor.wMaxPacketSize;
-                buffer = this.sliceBuffer(data, packetSize);
+                buffer = this.extendBuffer(data, packetSize);
 
                 this.endpointOut.transfer(this.bufferSourceToBuffer(buffer), (error: string) => {
                     if (error) return reject(error);
@@ -198,7 +201,7 @@ export class USB implements Transport {
         }
 
         // Device does not have endpoint, use control transfer
-        buffer = this.sliceBuffer(data, PACKET_SIZE);
+        buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return new Promise((resolve, reject) => {
             this.device.controlTransfer(

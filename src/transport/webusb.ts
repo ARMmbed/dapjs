@@ -48,7 +48,7 @@ export class WebUSB implements Transport {
     constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS) {
     }
 
-    private sliceBuffer(data: BufferSource, packetSize: number): BufferSource {
+    private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
         }
@@ -56,7 +56,10 @@ export class WebUSB implements Transport {
         const arrayBuffer = isView(data) ? data.buffer : data;
         const length = Math.min(arrayBuffer.byteLength, packetSize);
 
-        return arrayBuffer.slice(length);
+        const result = new Uint8Array(length);
+        result.set(new Uint8Array(arrayBuffer));
+
+        return result;
     }
 
     /**
@@ -136,12 +139,12 @@ export class WebUSB implements Transport {
         // Use the endpoint if it exists
         if (this.endpointOut) {
             const packetSize = this.endpointOut.packetSize;
-            buffer = this.sliceBuffer(data, packetSize);
+            buffer = this.extendBuffer(data, packetSize);
             return this.device.transferOut(this.endpointOut.endpointNumber, buffer);
         }
 
         // Device does not have endpoint, use control transfer
-        buffer = this.sliceBuffer(data, PACKET_SIZE);
+        buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return this.device.controlTransferOut(
             {

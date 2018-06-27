@@ -20,13 +20,13 @@
 * SOFTWARE.
 */
 
-var fs = require("fs");
-var http = require("http");
-var https = require("https");
-var readline = require("readline");
-var progress = require("progress");
-var USB = require("webusb").USB;
-var DAPjs = require("../");
+const fs = require("fs");
+const http = require("http");
+const https = require("https");
+const readline = require("readline");
+const progress = require("progress");
+const USB = require("webusb").USB;
+const DAPjs = require("../");
 
 process.stdin.setEncoding("utf8");
 
@@ -37,7 +37,7 @@ function getFileName() {
             return resolve(process.argv[2]);
         }
 
-        var rl = readline.createInterface(process.stdin, process.stdout);
+        let rl = readline.createInterface(process.stdin, process.stdout);
         rl.question("Enter a URL or file path for the firmware package: ", answer => {
             rl.close();
             resolve(answer);
@@ -48,7 +48,7 @@ function getFileName() {
 
 // Load a file
 function loadFile(fileName, isJson=false) {
-    var file = fs.readFileSync(fileName);
+    let file = fs.readFileSync(fileName);
     return isJson ? JSON.parse(file) : new Uint8Array(file).buffer;
 }
 
@@ -56,17 +56,17 @@ function loadFile(fileName, isJson=false) {
 function downloadFile(url, isJson=false) {
     return new Promise((resolve, reject) => {
         console.log("Downloading file...");
-        var scheme = (url.indexOf("https") === 0) ? https : http;
+        let scheme = (url.indexOf("https") === 0) ? https : http;
 
         scheme.get(url, response => {
-            var data = [];
+            let data = [];
             response.on("data", chunk => {
                 data.push(chunk);
             });
             response.on("end", () => {
                 if (response.statusCode !== 200) return reject(response.statusMessage);
 
-                var download = Buffer.concat(data);
+                let download = Buffer.concat(data);
                 if (isJson) {
                     resolve(JSON.parse(data));
                 }
@@ -83,15 +83,14 @@ function downloadFile(url, isJson=false) {
 
 // Allow user to select a device
 function handleDevicesFound(devices, selectFn) {
-    //return devices[0];
     process.stdin.setRawMode(true);
     process.stdin.setEncoding("utf8");
     process.stdin.on("readable", () => {
-        var input = process.stdin.read();
+        let input = process.stdin.read();
         if (input === "\u0003") {
             process.exit();
         } else {
-            var index = parseInt(input);
+            let index = parseInt(input);
             if (index && index <= devices.length) {
                 process.stdin.setRawMode(false);
                 selectFn(devices[index - 1]);
@@ -105,71 +104,36 @@ function handleDevicesFound(devices, selectFn) {
     });
 }
 
-// Connect to a device, halt it and return a target to use
-function getTarget(device) {
-    var target = null;
-    var deviceCode = device.serialNumber.slice(0, 4);
-    var hid = new DAPjs.HID(device);
-
-    // Open hid device
-    return hid.open()
-    .then(() => {
-        console.log("Device opened");
-        // Load flashing algorithms
-        var flashAlgorithmsFile = "flash_targets/flash_targets.json";
-        if (flashAlgorithmsFile.indexOf("http") === 0) return downloadFile(flashAlgorithmsFile, true);
-        return loadFile(flashAlgorithmsFile, true);
-    })
-    .then((flashAlgorithms) => {
-        console.log("Flash algorithms loaded");
-        var dapDevice = new DAPjs.DAP(hid);
-        var flashAlgorithm = new DAPjs.FlashAlgorithm(flashAlgorithms, deviceCode);
-        if (!flashAlgorithm.flashAlgo) throw new Error("Flash algorithm not found for this board.");
-        target = new DAPjs.FlashTarget(dapDevice, flashAlgorithm);
-        return target.init();
-    })
-    .then(() => {
-        console.log("Target initialised");
-        return target.halt();
-    })
-    .then(() => {
-        console.log("Target halted");
-        return target;
-    })
-    .catch(error => {
-        console.log(error.message || error);
-        process.exit();
-    });
-}
-
 // Update device using image buffer
-function flash(target, buffer) {
+function flash(device, program) {
 
-    var progressBar = new progress("Updating firmware [:bar] :percent :etas", {
+    console.log(`Using binary file ${program.byteLength} words long`);
+    let transport = new DAPjs.WebUSB(device);
+    let target = new DAPjs.DapLink(transport);
+
+    // Set up progressbar
+    let progressBar = new progress("Updating firmware [:bar] :percent :etas", {
         complete: "=",
         incomplete: " ",
         width: 20,
-        total: buffer.byteLength
+        total: program.byteLength
     });
-    const program = DAPjs.FlashProgram.fromArrayBuffer(buffer);
 
-    console.log(`Using binary file ${buffer.byteLength} words long`);
+    target.on(DAPjs.DapLink.EVENT_PROGRESS, progress => {
+        progressBar.update(progress);
+    });
 
     // Push binary to board
-    return target.program(program, (progress) => {
-        progressBar.update(progress);
+    return target.connect()
+    .then(() => {
+        return target.flash(program);
     })
     .then(() => {
-        return target.reset();
-    })
-    .then(() => {
-        console.log("Target reset");
-        // Make sure we don't have any issues flashing twice in the same session.
-        return target.flashUnInit();
+        return target.disconnect();
     });
 }
 
-var usb = new USB({
+let usb = new USB({
     devicesFound: handleDevicesFound
 });
 
@@ -179,15 +143,12 @@ getFileName()
     if (fileName.indexOf("http") === 0) return downloadFile(fileName);
     return loadFile(fileName);
 })
-.then(buffer => {
+.then(program => {
     return usb.requestDevice({
         filters: [{vendorId: 0x0d28}]
     })
     .then(device => {
-        return getTarget(device);
-    })
-    .then(target => {
-        return flash(target, buffer);
+        return flash(device, program);
     });
 })
 .then(() => {

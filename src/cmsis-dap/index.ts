@@ -48,14 +48,8 @@ export class CmsisDap extends EventEmitter {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use
      */
-    constructor(private transport: Transport, private mode: DapConnectPort = 0, private clockFrequency = 10000000) {
+    constructor(private transport: Transport, private mode: DapConnectPort = DapConnectPort.DEFAULT, private clockFrequency = 10000000) {
         super();
-    }
-
-    private delay(timeout: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            setTimeout(resolve, timeout);
-        });
     }
 
     private send(data: BufferSource): Promise<DataView> {
@@ -158,7 +152,7 @@ export class CmsisDap extends EventEmitter {
         })
         .then(() => this.execute(DapCommand.DAP_CONNECT, new Uint8Array([this.mode])))
         .then(result => {
-            if (result.getUint8(1) === DapConnectResponse.FAILED || result.getUint8(1) !== this.mode) {
+            if (result.getUint8(1) === DapConnectResponse.FAILED || this.mode !== DapConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
                 throw new Error("Mode not enabled.");
             }
 
@@ -166,7 +160,7 @@ export class CmsisDap extends EventEmitter {
             return this.execute(DapCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0]));
         })
         .then(() => this.execute(DapCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
-        .then(this.jtagToSwd);
+        .then(() => this.jtagToSwd());
     }
 
     /**
@@ -175,13 +169,9 @@ export class CmsisDap extends EventEmitter {
      */
     public disconnect(): Promise<void> {
         return this.execute(DapCommand.DAP_DISCONNECT)
-        .then(this.transport.close);
-    }
-
-    public reconnect(): Promise<void> {
-        return this.disconnect()
-        .then(() => this.delay(100))
-        .then(this.connect);
+        .then(() => {
+            return this.transport.close();
+        });
     }
 
     /**

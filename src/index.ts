@@ -23,4 +23,4 @@
 
 export { HID, USB, WebUSB } from "./transport";
 export { CmsisDap } from "./cmsis-dap";
-export { Daplink } from "./daplink";
+export { DapLink } from "./daplink";

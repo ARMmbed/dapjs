@@ -33,7 +33,19 @@ const SERIAL_DELAY = 200;
  */
 const PAGE_SIZE = 62;
 
-export class Daplink extends CmsisDap {
+export class DapLink extends CmsisDap {
+
+    /**
+     * Progress event
+     * @event
+     */
+    public static EVENT_PROGRESS: string = "progress";
+
+    /**
+     * Progress event
+     * @event
+     */
+    public static EVENT_SERIAL_DATA: string = "serial";
 
     private timer: NodeJS.Timer = null;
 
@@ -64,7 +76,7 @@ export class Daplink extends CmsisDap {
 
         return this.execute(DaplinkFlash.WRITE, data)
         .then(() => {
-            this.emit("p", offset / buffer.byteLength);
+            this.emit(DapLink.EVENT_PROGRESS, offset / buffer.byteLength);
             if (end < buffer.byteLength) {
                 return this.writeBuffer(buffer, end);
             }
@@ -75,7 +87,7 @@ export class Daplink extends CmsisDap {
         return this.execute(DaplinkFlash.RESET);
     }
 
-    public async flash(buffer: BufferSource): Promise<void> {
+    public flash(buffer: BufferSource): Promise<any> {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
         }
@@ -83,7 +95,7 @@ export class Daplink extends CmsisDap {
         const arrayBuffer = isView(buffer) ? buffer.buffer : buffer;
         const streamType = this.isBufferBinary(arrayBuffer) ? 0 : 1;
 
-        this.execute(DaplinkFlash.OPEN, new Uint32Array([streamType]))
+        return this.execute(DaplinkFlash.OPEN, new Uint32Array([streamType]))
         .then(result => {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
@@ -95,9 +107,10 @@ export class Daplink extends CmsisDap {
         .then(result => {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
+            // this.emit(DapLink.EVENT_PROGRESS, 1.0);
             return this.reset();
         })
-        .then(() => this.emit("p", 1.0));
+        .then(() => this.emit(DapLink.EVENT_PROGRESS, 1.0));
     }
 
     public getSerialBaudrate(): Promise<number> {
@@ -117,14 +130,14 @@ export class Daplink extends CmsisDap {
                     // check if there is any data returned from the device
                     if (serialData.getUint8(1) !== 0) {
                         const data = String.fromCharCode.apply(null, new Uint16Array(serialData.buffer.slice(1)));
-                        this.emit("s", data);
+                        this.emit(DapLink.EVENT_SERIAL_DATA, data);
                     }
                 }
             });
         }, SERIAL_DELAY);
     }
 
-    public async stopSerialRead() {
+    public stopSerialRead() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;
