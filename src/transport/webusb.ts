@@ -37,8 +37,6 @@ const IN_REPORT = 0x100;
 export class WebUSB implements Transport {
 
     private interface: USBInterface;
-    private endpointIn: USBEndpoint;
-    private endpointOut: USBEndpoint;
 
     /**
      * WebUSB constructor
@@ -67,9 +65,6 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public open(): Promise<void> {
-        this.endpointIn = null;
-        this.endpointOut = null;
-
         return this.device.open()
         .then(() => this.device.selectConfiguration(1))
         .then(() => {
@@ -83,14 +78,6 @@ export class WebUSB implements Transport {
 
             this.interface = interfaces[0];
             return this.device.claimInterface(this.interface.interfaceNumber);
-        })
-        .then(() => {
-            const endpoints = this.interface.alternates[0].endpoints;
-
-            endpoints.forEach(endpoint => {
-                if (endpoint.direction === "in") this.endpointIn = endpoint;
-                else this.endpointOut = endpoint;
-            });
         });
     }
 
@@ -107,14 +94,6 @@ export class WebUSB implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
-        // Use the endpoint if it exists
-        if (this.endpointIn) {
-            const packetSize = this.endpointIn.packetSize;
-            return this.device.transferIn(this.endpointIn.endpointNumber, packetSize)
-            .then(result => result.data);
-        }
-
-        // Device does not have endpoint, use control transfer
         return this.device.controlTransferIn(
             {
                 requestType: "class",
@@ -134,17 +113,7 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<any> {
-        let buffer: BufferSource;
-
-        // Use the endpoint if it exists
-        if (this.endpointOut) {
-            const packetSize = this.endpointOut.packetSize;
-            buffer = this.extendBuffer(data, packetSize);
-            return this.device.transferOut(this.endpointOut.endpointNumber, buffer);
-        }
-
-        // Device does not have endpoint, use control transfer
-        buffer = this.extendBuffer(data, PACKET_SIZE);
+        const buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return this.device.controlTransferOut(
             {

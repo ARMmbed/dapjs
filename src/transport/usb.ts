@@ -27,9 +27,7 @@ import {
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
     Device,
-    Interface,
-    OutEndpoint,
-    InEndpoint
+    Interface
 } from "usb";
 import { Transport } from "./";
 
@@ -65,8 +63,6 @@ const IN_REPORT = 0x100;
 export class USB implements Transport {
 
     private interface: Interface;
-    private endpointIn: InEndpoint;
-    private endpointOut: OutEndpoint;
 
     /**
      * USB constructor
@@ -109,9 +105,6 @@ export class USB implements Transport {
      * @returns Promise
      */
     public open(): Promise<void> {
-        this.endpointIn = null;
-        this.endpointOut = null;
-
         return new Promise((resolve, reject) => {
             this.device.open();
             this.device.setConfiguration(1, error => {
@@ -125,11 +118,6 @@ export class USB implements Transport {
                 }
 
                 this.interface = interfaces[0];
-                this.interface.endpoints.forEach(endpoint => {
-                    if (endpoint.direction === "in") this.endpointIn = endpoint as InEndpoint;
-                    else this.endpointOut = endpoint as OutEndpoint;
-                });
-
                 resolve();
             });
         });
@@ -151,19 +139,6 @@ export class USB implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
-        // Use the endpoint if it exists
-        if (this.endpointIn) {
-            return new Promise((resolve, reject) => {
-                const packetSize = this.endpointIn.descriptor.wMaxPacketSize;
-                this.endpointIn.transfer(packetSize, (error, data) => {
-                    if (error) return reject(error);
-
-                    resolve(this.bufferToDataView(data));
-                });
-            });
-        }
-
-        // Device does not have endpoint, use control transfer
         return new Promise((resolve, reject) => {
             this.device.controlTransfer(
                 LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
@@ -185,23 +160,7 @@ export class USB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<any> {
-        let buffer: BufferSource;
-
-        // Use the endpoint if it exists
-        if (this.endpointOut) {
-            return new Promise((resolve, reject) => {
-                const packetSize = this.endpointOut.descriptor.wMaxPacketSize;
-                buffer = this.extendBuffer(data, packetSize);
-
-                this.endpointOut.transfer(this.bufferSourceToBuffer(buffer), (error: string) => {
-                    if (error) return reject(error);
-                    resolve();
-                });
-            });
-        }
-
-        // Device does not have endpoint, use control transfer
-        buffer = this.extendBuffer(data, PACKET_SIZE);
+        const buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return new Promise((resolve, reject) => {
             this.device.controlTransfer(

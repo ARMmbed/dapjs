@@ -105,7 +105,7 @@ export class HID implements Transport {
             }
 
             const arrayBuffer = isView(data) ? data.buffer : data;
-            const array = Array.from(new Uint8Array(arrayBuffer));
+            const array = Array.prototype.slice.call(arrayBuffer);
 
             // Pad to packet size
             while (array.length < PACKET_SIZE) array.push(0);
