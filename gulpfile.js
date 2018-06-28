@@ -17,7 +17,7 @@ var srcDocs = srcDir + "/documentation";
 var srcFiles = srcDir + "/**/*.ts";
 
 // Docs
-var name = "Mbed Cloud SDK for JavaScript";
+var name = "DAPjs";
 var docsDir = "docs";
 
 // Node
