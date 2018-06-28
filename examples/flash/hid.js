@@ -20,30 +20,15 @@
 * SOFTWARE.
 */
 
-const usb = require("usb");
+const hid = require("node-hid");
 const common = require("./common");
 const DAPjs = require("../../");
-
-function getStringDescriptor(device, index) {
-    return new Promise((resolve, reject) => {
-        try {
-            device.open();
-        } catch (_e) {
-            resolve("");
-        }
-        device.getStringDescriptor(index, (error, buffer) => {
-            device.close();
-            if (error) return reject(error);
-            resolve(buffer.toString());
-        });
-    });
-}
 
 // Allow user to select a device
 function selectDevice(vendorID) {
     return new Promise((resolve, reject) => {
-        let devices = usb.getDeviceList();
-        devices = devices.filter(device => device.deviceDescriptor.idVendor === vendorID);
+        let devices = hid.devices();
+        devices = devices.filter(device => device.vendorId === vendorID);
 
         if (devices.length === 0) {
             return reject("No devices found");
@@ -64,20 +49,23 @@ function selectDevice(vendorID) {
             }
         });
 
-        console.log("Select a device to listen to serial output:");
+        console.log("Select a device to flash:");
         devices.forEach((device, index) => {
-            getStringDescriptor(device, device.deviceDescriptor.iProduct)
-            .then(name => {
-                console.log(`${index + 1}: ${name}`);
-            });
+            console.log(`${index + 1}: ${device.product}`);
         });    
     });
 }
 
-selectDevice(0x0d28)
-.then(device => {
-    const transport = new DAPjs.USB(device);
-    return common.listen(transport);
+common.getFile()
+.then(program => {
+    return selectDevice(0x0d28)
+    .then(device => {
+        const transport = new DAPjs.HID(device);
+        return common.flash(transport, program);
+    });
+})
+.then(() => {
+    process.exit();
 })
 .catch(error => {
     console.log(error.message || error);

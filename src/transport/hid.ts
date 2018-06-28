@@ -22,7 +22,7 @@
 */
 
 import { platform } from "os";
-import { HID as Device } from "node-hid";
+import { HID as nodeHID, Device } from "node-hid";
 import { Transport } from "./";
 
 const PACKET_SIZE = 64;
@@ -33,13 +33,19 @@ const PACKET_SIZE = 64;
 export class HID implements Transport {
 
     private os: string = platform();
-    private device: Device = null;
+    private path: string = null;
+    private device: nodeHID = null;
 
     /**
      * HID constructor
      * @param path Path to HID device to use
      */
-    constructor(private path: string) {
+    constructor(deviceOrPath: Device | string) {
+        function isDevice(source: Device | string): source is Device {
+            return (source as Device).path !== undefined;
+        }
+
+        this.path = isDevice(deviceOrPath) ? deviceOrPath.path : deviceOrPath;
     }
 
     /**
@@ -53,7 +59,7 @@ export class HID implements Transport {
             }
 
             try {
-                this.device = new Device(this.path);
+                this.device = new nodeHID(this.path);
                 resolve();
             } catch (ex) {
                 reject(ex);
@@ -99,13 +105,13 @@ export class HID implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
                 return (source as ArrayBufferView).buffer !== undefined;
             }
 
             const arrayBuffer = isView(data) ? data.buffer : data;
-            const array = Array.prototype.slice.call(arrayBuffer);
+            const array = Array.prototype.slice.call(new Uint8Array(arrayBuffer));
 
             // Pad to packet size
             while (array.length < PACKET_SIZE) array.push(0);
@@ -116,9 +122,8 @@ export class HID implements Transport {
                 array.unshift(0);  // prepend throwaway byte
             }
 
-            this.device.write(array);
-            // const bytesWritten = this.device.write(array);
-            // if (bytesWritten !== PACKET_SIZE) return reject("Incorrect bytecount written");
+            const bytesWritten = this.device.write(array);
+            if (bytesWritten !== PACKET_SIZE) return reject("Incorrect bytecount written");
 
             resolve();
         });
