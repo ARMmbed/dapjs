@@ -1,36 +1,35 @@
-var path        = require("path");
-var browserify  = require("browserify");
-var del         = require("del");
-var merge       = require("merge2");
-var buffer      = require("vinyl-buffer");
-var source      = require("vinyl-source-stream");
-var gulp        = require("gulp");
-var sourcemaps  = require("gulp-sourcemaps");
-var typedoc     = require("gulp-typedoc");
-var typescript  = require("gulp-typescript");
-var tslint      = require("gulp-tslint");
-var uglify      = require("gulp-uglify");
+const path        = require("path");
+const browserify  = require("browserify");
+const del         = require("del");
+const merge       = require("merge2");
+const buffer      = require("vinyl-buffer");
+const source      = require("vinyl-source-stream");
+const gulp        = require("gulp");
+const sourcemaps  = require("gulp-sourcemaps");
+const typedoc     = require("gulp-typedoc");
+const typescript  = require("gulp-typescript");
+const tslint      = require("gulp-tslint");
 
 // Source
-var srcDir = "src";
-var srcDocs = srcDir + "/documentation";
-var srcFiles = srcDir + "/**/*.ts";
+let srcDir = "src";
+let srcDocs = srcDir + "/documentation";
+let srcFiles = srcDir + "/**/*.ts";
 
 // Docs
-var name = "DAPjs";
-var docsDir = "docs";
+let name = "DAPjs";
+let docsDir = "docs";
 
 // Node
-var nodeDir = "lib";
-var typesDir = "types";
+let nodeDir = "lib";
+let typesDir = "types";
 
 // Browser bundles
-var bundleDir = "bundles";
-var bundleFile =  "dap.bundle.js";
-var bundleGlobal = "DAPjs";
-var bundleIgnore = "webusb";
+let bundleDir = "bundles";
+let bundleFile =  "dap.bundle.js";
+let bundleGlobal = "DAPjs";
+let bundleIgnore = "webusb";
 
-var watching = false;
+let watching = false;
 
 // Error handler suppresses exists during watch
 function handleError(error) {
@@ -61,7 +60,7 @@ gulp.task("lint", () => {
 });
 
 // Create documentation
-gulp.task("doc", function() {
+gulp.task("doc", () => {
     return gulp.src(srcFiles)
     .pipe(typedoc({
         name: name,
@@ -80,7 +79,7 @@ gulp.task("doc", function() {
 
 // Build TypeScript source into CommonJS Node modules
 gulp.task("compile", ["clean"], () => {
-    var tsResult = gulp.src(srcFiles)
+    let tsResult = gulp.src(srcFiles)
     .pipe(sourcemaps.init())
     .pipe(typescript.createProject("tsconfig.json")())
     .on("error", handleError);
@@ -106,7 +105,6 @@ gulp.task("bundle", ["compile"], () => {
     .pipe(sourcemaps.init({
         loadMaps: true
     }))
-    //.pipe(uglify())
     .pipe(sourcemaps.write(".", {
         sourceRoot: path.relative(bundleDir, nodeDir)
     }))
