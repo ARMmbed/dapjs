@@ -24,6 +24,8 @@ const fs = require("fs");
 const http = require("http");
 const https = require("https");
 const readline = require("readline");
+const progress = require("progress");
+const DAPjs = require("../../");
 
 // Determine package URL or file path
 function getFileName() {
@@ -76,11 +78,41 @@ function downloadFile(url, isJson=false) {
     });
 }
 
-module.exports = function() {
-    return getFileName()
-    .then(fileName => {
-        if (!fileName) throw new Error("No file name specified");
-        if (fileName.indexOf("http") === 0) return downloadFile(fileName);
-        return loadFile(fileName);
+// Update device using image buffer
+function flash(transport, program) {
+    console.log(`Using binary file ${program.byteLength} words long`);
+    let target = new DAPjs.DapLink(transport);
+
+    // Set up progressbar
+    let progressBar = new progress("Updating firmware [:bar] :percent :etas", {
+        complete: "=",
+        incomplete: " ",
+        width: 20,
+        total: program.byteLength
+    });
+
+    target.on(DAPjs.DapLink.EVENT_PROGRESS, progress => {
+        progressBar.update(progress);
+    });
+
+    // Push binary to board
+    return target.connect()
+    .then(() => {
+        return target.flash(program);
+    })
+    .then(() => {
+        return target.disconnect();
     });
 }
+
+module.exports = {
+    getFile: () => {
+        return getFileName()
+        .then(fileName => {
+            if (!fileName) throw new Error("No file name specified");
+            if (fileName.indexOf("http") === 0) return downloadFile(fileName);
+            return loadFile(fileName);
+        });
+    },
+    flash: flash
+};

@@ -26,8 +26,7 @@ import {
     LIBUSB_RECIPIENT_INTERFACE,
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
-    Device,
-    Interface
+    Device
 } from "usb";
 import { Transport } from "./";
 
@@ -62,7 +61,7 @@ const IN_REPORT = 0x100;
  */
 export class USB implements Transport {
 
-    private interface: Interface;
+    private interfaceNumber: number;
 
     /**
      * USB constructor
@@ -117,7 +116,8 @@ export class USB implements Transport {
                     throw new Error("No HID interfaces found.");
                 }
 
-                this.interface = interfaces[0];
+                // tslint:disable-next-line:no-string-literal
+                this.interfaceNumber = interfaces[0]["interfaceNumber"];
                 resolve();
             });
         });
@@ -144,7 +144,7 @@ export class USB implements Transport {
                 LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 GET_REPORT,
                 IN_REPORT,
-                this.interface.interface,
+                this.interfaceNumber,
                 PACKET_SIZE,
                 (error, buffer) => {
                     if (error) return reject(error);
@@ -167,7 +167,7 @@ export class USB implements Transport {
                 LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 SET_REPORT,
                 OUT_REPORT,
-                this.interface.interface,
+                this.interfaceNumber,
                 this.bufferSourceToBuffer(buffer),
                 (error: string) => {
                     if (error) return reject(error);

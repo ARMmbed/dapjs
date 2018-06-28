@@ -21,11 +21,8 @@
 */
 
 const USB = require("webusb").USB;
-const progress = require("progress");
-const getFile = require("./getfile");
+const common = require("./common");
 const DAPjs = require("../../");
-
-process.stdin.setEncoding("utf8");
 
 // Allow user to select a device
 function handleDevicesFound(devices, selectFn) {
@@ -50,46 +47,18 @@ function handleDevicesFound(devices, selectFn) {
     });
 }
 
-// Update device using image buffer
-function flash(device, program) {
-
-    console.log(`Using binary file ${program.byteLength} words long`);
-    let transport = new DAPjs.WebUSB(device);
-    let target = new DAPjs.DapLink(transport);
-
-    // Set up progressbar
-    let progressBar = new progress("Updating firmware [:bar] :percent :etas", {
-        complete: "=",
-        incomplete: " ",
-        width: 20,
-        total: program.byteLength
-    });
-
-    target.on(DAPjs.DapLink.EVENT_PROGRESS, progress => {
-        progressBar.update(progress);
-    });
-
-    // Push binary to board
-    return target.connect()
-    .then(() => {
-        return target.flash(program);
-    })
-    .then(() => {
-        return target.disconnect();
-    });
-}
-
 let usb = new USB({
     devicesFound: handleDevicesFound
 });
 
-getFile()
+common.getFile()
 .then(program => {
     return usb.requestDevice({
         filters: [{vendorId: 0x0d28}]
     })
     .then(device => {
-        return flash(device, program);
+        const transport = new DAPjs.WebUSB(device);
+        return common.flash(transport, program);
     });
 })
 .then(() => {

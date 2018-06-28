@@ -36,7 +36,7 @@ const IN_REPORT = 0x100;
  */
 export class WebUSB implements Transport {
 
-    private interface: USBInterface;
+    private interfaceNumber: number;
 
     /**
      * WebUSB constructor
@@ -76,8 +76,8 @@ export class WebUSB implements Transport {
                 throw new Error("No HID interfaces found.");
             }
 
-            this.interface = interfaces[0];
-            return this.device.claimInterface(this.interface.interfaceNumber);
+            this.interfaceNumber = interfaces[0].interfaceNumber;
+            return this.device.claimInterface(this.interfaceNumber);
         });
     }
 
@@ -100,7 +100,7 @@ export class WebUSB implements Transport {
                 recipient: "interface",
                 request: GET_REPORT,
                 value: IN_REPORT,
-                index: this.interface.interfaceNumber
+                index: this.interfaceNumber
             },
             PACKET_SIZE
         )
@@ -121,7 +121,7 @@ export class WebUSB implements Transport {
                 recipient: "interface",
                 request: SET_REPORT,
                 value: OUT_REPORT,
-                index: this.interface.interfaceNumber
+                index: this.interfaceNumber
             },
             buffer
         );

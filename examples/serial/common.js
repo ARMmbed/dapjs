@@ -20,45 +20,37 @@
 * SOFTWARE.
 */
 
-const USB = require("webusb").USB;
-const common = require("./common");
 const DAPjs = require("../../");
 
-// Allow user to select a device
-function handleDevicesFound(devices, selectFn) {
-    process.stdin.setRawMode(true);
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("readable", () => {
-        let input = process.stdin.read();
-        if (input === "\u0003") {
-            process.exit();
-        } else {
-            let index = parseInt(input);
-            if (index && index <= devices.length) {
-                process.stdin.setRawMode(false);
-                selectFn(devices[index - 1]);
-            }
-        }
+// Listen to serial output from the device
+function listen(transport) {
+    let target = new DAPjs.DapLink(transport);
+
+    target.on(DAPjs.DapLink.EVENT_SERIAL_DATA, data => {
+        console.log(data);
     });
 
-    console.log("Select a device to listen to serial output:");
-    devices.forEach((device, index) => {
-        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
+    return target.connect()
+    .then(() => {
+        return target.getSerialBaudrate();
+    })
+    .then(baud => {
+        target.startSerialRead();
+        console.log(`Listening at ${baud} baud, press a key to stop...`);
+    
+        process.stdin.setRawMode(true);
+        process.stdin.on("data", () => {
+            process.stdin.setRawMode(false);
+            target.stopSerialRead()
+
+            return target.disconnect()
+            .then(() => {
+                process.exit();
+            })
+        });
     });
 }
 
-let usb = new USB({
-    devicesFound: handleDevicesFound
-});
-
-usb.requestDevice({
-    filters: [{vendorId: 0x0d28}]
-})
-.then(device => {
-    const transport = new DAPjs.WebUSB(device);
-    return common.listen(transport);
-})
-.catch(error => {
-    console.log(error.message || error);
-    process.exit();
-});
+module.exports = {
+    listen: listen
+};
