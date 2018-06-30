@@ -26,7 +26,7 @@ jobs:
       - run: git config --global user.email github@thegecko.org
       - run: git add --force bundles lib types docs
       - run: git stash save
-      - run: git checkout gh-pages2
+      - run: git checkout gh-pages
       - run: git merge master --no-commit
       - run: git checkout stash -- .
       - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
@@ -42,4 +42,4 @@ workflows:
             - build
           filters:
             branches:
-              only: f/restructure
+              only: master
