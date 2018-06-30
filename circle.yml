@@ -1,19 +1,21 @@
 version: 2
+
 jobs:
   build:
     docker:
       - image: circleci/node:6
+    working_directory: ~/work
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install libudev-dev
       - checkout
       - run: npm install
       - run: npm run gulp
+
   deploy:
-    branches:
-      only: f/restructure
     docker:
       - image: circleci/node:6
+    working_directory: /tmp/work
     steps:
       - add_ssh_keys
       - run: git config --global user.name thegecko
@@ -25,3 +27,15 @@ jobs:
       - run: git checkout stash -- .
       - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
       - run: git push
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: f/restructure
