@@ -1,33 +1,35 @@
-machine:
-  node:
-    version: 6.10.0
-  environment:
-    LIVE_BRANCH: gh-pages
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:6.10.0
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install libudev-dev
+      - checkout
+      - run: npm run gulp
+  deploy:
+    branches:
+      only:
+        - f/restructure
+    docker:
+      - image: circleci/node:6.10.0
+    environment:
+      LIVE_BRANCH: gh-pages2
+    steps:
+      - run: git config --global user.name thegecko
+      - run: git config --global user.email github@thegecko.org
+      - run: git add --force bundles lib types docs
+      - run: git stash save
+      - run: git checkout $LIVE_BRANCH
+      - run: git merge master --no-commit
+      - run: git checkout stash -- .
+      - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
+      - run: git push
 
-dependencies:
-  pre:
-    - sudo apt-get update
-    - sudo apt-get install libudev-dev
-
-compile:
-  override:
-    - npm run gulp
-
-test:
-  override:
-    - exit 0
-
-deployment:
-  staging:
-    branch: master
-    commands:
-      - echo Syncing to $LIVE_BRANCH on GitHub...
-      - git config --global user.name thegecko
-      - git config --global user.email github@thegecko.org
-      - git add --force bundles lib types docs
-      - git stash save
-      - git checkout $LIVE_BRANCH
-      - git merge master --no-commit
-      - git checkout stash -- .
-      - git commit --allow-empty --message "Automatic Deployment [skip ci]"
-      - git push
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+      - deploy
