@@ -20,7 +20,7 @@ jobs:
       - image: circleci/node:6
     steps:
       - attach_workspace:
-          at: ~
+          at: ../
       - add_ssh_keys
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
