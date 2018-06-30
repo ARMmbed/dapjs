@@ -27,7 +27,6 @@ let typesDir = "types";
 let bundleDir = "bundles";
 let bundleFile =  "dap.bundle.js";
 let bundleGlobal = "DAPjs";
-let bundleIgnore = "webusb";
 
 let watching = false;
 
@@ -97,7 +96,9 @@ gulp.task("bundle", ["compile"], () => {
     return browserify(nodeDir, {
         standalone: bundleGlobal
     })
-    .ignore(bundleIgnore)
+    .ignore("webusb")
+    .ignore("usb")
+    .ignore("node-hid")
     .bundle()
     .on("error", handleError)
     .pipe(source(bundleFile))
