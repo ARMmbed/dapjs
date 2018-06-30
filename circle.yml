@@ -2,26 +2,21 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:6.10.0
+      - image: circleci/node:6
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install libudev-dev
       - checkout
       - run: npm run gulp
   deploy:
-    branches:
-      only:
-        - f/restructure
     docker:
-      - image: circleci/node:6.10.0
-    environment:
-      LIVE_BRANCH: gh-pages2
+      - image: circleci/node:6
     steps:
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
       - run: git add --force bundles lib types docs
       - run: git stash save
-      - run: git checkout $LIVE_BRANCH
+      - run: git checkout gh-pages2
       - run: git merge master --no-commit
       - run: git checkout stash -- .
       - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
@@ -32,4 +27,9 @@ workflows:
   commit:
     jobs:
       - build
-      - deploy
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: f/restructure
