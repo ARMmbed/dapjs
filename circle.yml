@@ -4,19 +4,23 @@ jobs:
   build:
     docker:
       - image: circleci/node:6
-    working_directory: ~/work
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install libudev-dev
       - checkout
       - run: npm install
       - run: npm run gulp
+      - persist_to_workspace:
+          root: ~
+          paths:
+            - project
 
   deploy:
     docker:
       - image: circleci/node:6
-    working_directory: /tmp/work
     steps:
+      - attach_workspace:
+          at: ~
       - add_ssh_keys
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
