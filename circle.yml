@@ -21,6 +21,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ../
+      - run: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
       - run: git add --force bundles lib types docs
@@ -29,7 +30,7 @@ jobs:
       - run: git merge master --no-commit
       - run: git checkout stash -- .
       - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
-      - run: git push --quiet
+      - run: git push
 
 workflows:
   version: 2
