@@ -21,7 +21,6 @@ jobs:
     steps:
       - attach_workspace:
           at: ../
-      - add_ssh_keys
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
       - run: git add --force bundles lib types docs
@@ -30,7 +29,7 @@ jobs:
       - run: git merge master --no-commit
       - run: git checkout stash -- .
       - run: git commit --allow-empty --message "Automatic Deployment [skip ci]"
-      - run: git push
+      - run: git push --force
 
 workflows:
   version: 2
