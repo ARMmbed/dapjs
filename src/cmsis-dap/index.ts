@@ -21,6 +21,8 @@
 * SOFTWARE.
 */
 
+// https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
+
 import { EventEmitter } from "events";
 import { Transport } from "../transport";
 import {
@@ -40,7 +42,6 @@ export { TransferMode, DapPort, DapConnectPort } from "./enums";
  * CMSIS-DAP class
  */
 export class CmsisDap extends EventEmitter {
-    // private maxSent = 1;
 
     /**
      * CMSIS-DAP constructor
@@ -52,10 +53,9 @@ export class CmsisDap extends EventEmitter {
         super();
     }
 
-    private send(data: BufferSource): Promise<DataView> {
-        return this.transport.write(data)
-        .then(() => {
-            return this.transport.read();
+    private delay(timeout: number): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, timeout);
         });
     }
 
@@ -102,7 +102,8 @@ export class CmsisDap extends EventEmitter {
 
         const array = this.bufferSourceToUint8Array(command, data);
 
-        return this.send(array)
+        return this.transport.write(array)
+        .then(() => this.transport.read())
         .then(response => {
             if (response.getUint8(0) !== command) {
                 throw new Error(`Bad response for ${command} -> ${response.getUint8(0)}`);
@@ -138,18 +139,7 @@ export class CmsisDap extends EventEmitter {
      */
     public connect(): Promise<void> {
         return this.transport.open()
-        .then(() => {
-            /*
-            const v = await this.info(DapInfoRequest.PACKET_COUNT);
-            if (v as number) {
-                // this.maxSent = v as number;
-            } else {
-                throw new Error("DAP_INFO returned invalid packet count.");
-            }
-            */
-
-            return this.execute(DapCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency]));
-        })
+        .then(() => this.execute(DapCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
         .then(() => this.execute(DapCommand.DAP_CONNECT, new Uint8Array([this.mode])))
         .then(result => {
             if (result.getUint8(1) === DapConnectResponse.FAILED || this.mode !== DapConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
@@ -172,6 +162,16 @@ export class CmsisDap extends EventEmitter {
         .then(() => {
             return this.transport.close();
         });
+    }
+
+    /**
+     * Reconnect to target device
+     * @returns Promise
+     */
+    public reconnect(): Promise<void> {
+        return this.disconnect()
+        .then(() => this.delay(100))
+        .then(this.connect);
     }
 
     /**
@@ -225,8 +225,7 @@ export class CmsisDap extends EventEmitter {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(register: number, mode: TransferMode, port?: DapPort, value?: number): Promise<number> {
-        port = port || register < 4 ? DapPort.DEBUG : DapPort.ACCESS;
+    public transfer(register: number, mode: TransferMode, port: DapPort, value?: number): Promise<number> {
 
         const data = new Uint8Array(7);
         const view = new DataView(data.buffer);
@@ -236,11 +235,11 @@ export class CmsisDap extends EventEmitter {
         // Transfer count
         view.setUint8(1, 1);
         // Transfer request
-        view.setUint8(2, port | mode | (register & 3) << 2);
+        view.setUint8(2, port | mode | register);
         // Transfer data
         view.setUint32(3, value, true);
 
-        return this.execute(DapCommand.DAP_TRANSFER_BLOCK, data)
+        return this.execute(DapCommand.DAP_TRANSFER, data)
         .then(result => {
 
             // Transfer count
@@ -280,8 +279,7 @@ export class CmsisDap extends EventEmitter {
      * @param values Any values to write
      * @returns Promise of any values read
      */
-    public transferBlock(register: number, mode: TransferMode, port?: DapPort, values?: Uint32Array): Promise<Uint32Array> {
-        port = port || register < 4 ? DapPort.DEBUG : DapPort.ACCESS;
+    public transferBlock(register: number, mode: TransferMode, port: DapPort, values?: Uint32Array): Promise<Uint32Array> {
 
         const data = new Uint8Array(4 + values.byteLength);
         const view = new DataView(data.buffer);
@@ -291,7 +289,7 @@ export class CmsisDap extends EventEmitter {
         // Transfer count
         view.setUint16(1, values.length, true);
         // Transfer request
-        view.setUint8(3, port | mode | (register & 3) << 2);
+        view.setUint8(3, port | mode | register);
         // Transfer data
         data.set(values, 4);
 

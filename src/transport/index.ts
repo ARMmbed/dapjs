@@ -22,7 +22,7 @@
 */
 
 /**
- * Debug transport
+ * USB transport
  */
 export interface Transport {
     /**

@@ -51,7 +51,7 @@ export const enum DapCommand {
     DAP_TRANSFER_ABORT = 0x07,
     DAP_WRITE_ABORT = 0x08,
     DAP_DELAY = 0x09,
-    DAP_RESET_TARGET = 0x0a,
+    DAP_RESET_TARGET = 0x0A,
     DAP_SWJ_PINS = 0x10,
     DAP_SWJ_CLOCK = 0x11,
     DAP_SWJ_SEQUENCE = 0x12,
@@ -62,19 +62,13 @@ export const enum DapCommand {
     DAP_SWO_TRANSPORT = 0x17,
     DAP_SWO_MODE = 0x18,
     DAP_SWO_BAUD_RATE = 0x19,
-    DAP_SWO_CONTROL = 0x1a,
-    DAP_SWO_STATUS = 0x1b,
-    DAP_SWO_DATA = 0x1c,
-    DAP_SWD_SEQUENCE = 0x1d,
-    DAP_SWO_EXTENDED_STATUS = 0x1e,
-    DAP_EXECUTE_COMMANDS = 0x7f,
-    DAP_QUEUE_COMMANDS = 0x7e,
-    DAP_VENDOR0 = 0x80,
-    DAP_VENDOR1 = 0x81,
-    DAP_VENDOR2 = 0x82,
-    DAP_VENDOR3 = 0x83,
-    DAP_VENDOR4 = 0x84,
-    DAP_VENDOR5 = 0x85
+    DAP_SWO_CONTROL = 0x1A,
+    DAP_SWO_STATUS = 0x1B,
+    DAP_SWO_DATA = 0x1C,
+    DAP_SWD_SEQUENCE = 0x1D,
+    DAP_SWO_EXTENDED_STATUS = 0x1E,
+    DAP_EXECUTE_COMMANDS = 0x7F,
+    DAP_QUEUE_COMMANDS = 0x7E
 }
 
 /**
@@ -82,7 +76,7 @@ export const enum DapCommand {
  */
 export const enum DapResponse {
     DAP_OK = 0x00,
-    DAP_ERROR = 0xff
+    DAP_ERROR = 0xFF
 }
 
 /**
@@ -95,11 +89,11 @@ export const enum DapInfoRequest {
     CMSIS_DAP_FW_VERSION = 0x04,
     TARGET_DEVICE_VENDOR = 0x05,
     TARGET_DEVICE_NAME = 0x06,
-    CAPABILITIES = 0xf0,
-    TEST_DOMAIN_TIMER = 0xf1,
-    SWO_TRACE_BUFFER_SIZE = 0xfd,
-    PACKET_COUNT = 0xfe,
-    PACKET_SIZE = 0xff,
+    CAPABILITIES = 0xF0,
+    TEST_DOMAIN_TIMER = 0xF1,
+    SWO_TRACE_BUFFER_SIZE = 0xFD,
+    PACKET_COUNT = 0xFE,
+    PACKET_SIZE = 0xFF,
 }
 
 /**
