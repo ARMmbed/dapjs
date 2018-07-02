@@ -175,3 +175,10 @@ export const enum DapTransferResponse {
     PROTOCOL_ERROR = 0x08,
     VALUE_MISMATCH = 0x10
 }
+
+export interface TransferOperation {
+    register: number;
+    mode: TransferMode;
+    port: DapPort;
+    value?: number;
+}

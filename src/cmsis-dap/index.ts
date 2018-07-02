@@ -34,7 +34,8 @@ import {
     DapResponse,
     DapInfoRequest,
     DapResetTargeExecuteResponse,
-    DapTransferResponse
+    DapTransferResponse,
+    TransferOperation
 } from "./enums";
 export { TransferMode, DapPort, DapConnectPort } from "./enums";
 
@@ -146,7 +147,6 @@ export class CmsisDap extends EventEmitter {
                 throw new Error("Mode not enabled.");
             }
 
-            // await this.execute(DapCommand.DAP_SWJ_CLOCK, addInt32(null, this.clockFrequency));
             return this.execute(DapCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0]));
         })
         .then(() => this.execute(DapCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
@@ -172,6 +172,15 @@ export class CmsisDap extends EventEmitter {
         return this.disconnect()
         .then(() => this.delay(100))
         .then(this.connect);
+    }
+
+    /**
+     * Reset target device
+     * @returns Promise
+     */
+    public reset(): Promise<boolean> {
+        return this.execute(DapCommand.DAP_RESET_TARGET)
+        .then(response => response.getUint8(2) === DapResetTargeExecuteResponse.RESET_SEQUENCE);
     }
 
     /**
@@ -209,35 +218,53 @@ export class CmsisDap extends EventEmitter {
     }
 
     /**
-     * Reset target device
-     * @returns Promise
-     */
-    public reset(): Promise<boolean> {
-        return this.execute(DapCommand.DAP_RESET_TARGET)
-        .then(response => response.getUint8(2) === DapResetTargeExecuteResponse.RESET_SEQUENCE);
-    }
-
-    /**
-     * Transfer data
-     * @param register The register to use
-     * @param mode Whether to read or write
+     * Transfer data with a single read or write operation
      * @param port Port type (debug port or access port)
+     * @param mode Whether to read or write
+     * @param register The register to use
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(register: number, mode: TransferMode, port: DapPort, value?: number): Promise<number> {
+    public transfer(port: DapPort, mode: TransferMode, register: number, value?: number): Promise<number>;
+    /**
+     * Transfer data with multiple read or write operations
+     * @param operations The operations to use
+     * @returns Promise of any values read
+     */
+    public transfer(operations: TransferOperation[]): Promise<Uint32Array>;
+    public transfer(portOrOps: DapPort | TransferOperation[], mode?: TransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
 
-        const data = new Uint8Array(7);
+        let operations: TransferOperation[];
+
+        if (typeof portOrOps === "number") {
+            operations = [{
+                port: portOrOps,
+                mode,
+                register,
+                value
+            }];
+        } else {
+            operations = portOrOps;
+        }
+
+        const headLength = 2;
+        const opLength = 5;
+        const data = new Uint8Array(headLength + (operations.length * opLength));
         const view = new DataView(data.buffer);
 
         // DAP Index, ignored for SWD
         view.setUint8(0, 0);
         // Transfer count
-        view.setUint8(1, 1);
-        // Transfer request
-        view.setUint8(2, port | mode | register);
-        // Transfer data
-        view.setUint32(3, value, true);
+        view.setUint8(1, operations.length);
+
+        operations.forEach((operation, index) => {
+            const offset = headLength + index;
+
+            // Transfer request
+            view.setUint8(offset, operation.port | operation.mode | operation.register);
+            // Transfer data
+            view.setUint32(offset + 1, operation.value, true);
+        });
 
         return this.execute(DapCommand.DAP_TRANSFER, data)
         .then(result => {
@@ -266,38 +293,65 @@ export class CmsisDap extends EventEmitter {
             }
 
             if (mode === TransferMode.READ) {
-                return result.getUint32(3, true);
+                if (typeof portOrOps === "number") {
+                    return result.getUint32(3, true);
+                } else {
+                    return new Uint32Array(result.buffer.slice(3));
+                }
             }
         });
     }
 
     /**
-     * Transfer a block of data
-     * @param register The register to use
-     * @param mode Whether to read or write
+     * Read a block of data from a single register
      * @param port Port type (debug port or access port)
-     * @param values Any values to write
-     * @returns Promise of any values read
+     * @param register The register to use
+     * @returns Promise of values read
      */
-    public transferBlock(register: number, mode: TransferMode, port: DapPort, values?: Uint32Array): Promise<Uint32Array> {
+    public transferBlock(port: DapPort, register: number, count: number): Promise<Uint32Array>;
+    /**
+     * Write a block of data to a single register
+     * @param port Port type (debug port or access port)
+     * @param register The register to use
+     * @param values The values to write
+     * @returns Promise
+     */
+    public transferBlock(port: DapPort, register: number, values: Uint32Array): Promise<void>;
+    public transferBlock(port: DapPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
 
-        const data = new Uint8Array(4 + values.byteLength);
+        let operationCount: number;
+        let headerSize = 4;
+        let mode: TransferMode;
+
+        if (typeof countOrValues === "number") {
+            operationCount = countOrValues;
+            mode = TransferMode.READ;
+        } else {
+            operationCount = countOrValues.length;
+            mode = TransferMode.WRITE;
+            headerSize += countOrValues.byteLength;
+        }
+
+        const data = new Uint8Array(headerSize);
         const view = new DataView(data.buffer);
 
         // DAP Index, ignored for SWD
         view.setUint8(0, 0);
         // Transfer count
-        view.setUint16(1, values.length, true);
+        view.setUint16(1, operationCount, true);
         // Transfer request
         view.setUint8(3, port | mode | register);
-        // Transfer data
-        data.set(values, 4);
 
-        return this.execute(DapCommand.DAP_TRANSFER_BLOCK, data)
+        if (typeof countOrValues !== "number") {
+            // Transfer data
+            data.set(countOrValues, 4);
+        }
+
+        return this.execute(DapCommand.DAP_TRANSFER_BLOCK, view)
         .then(result => {
 
             // Transfer count
-            if (values && result.getUint16(1, true) !== values.length) {
+            if (result.getUint16(1, true) !== operationCount) {
                 throw new Error("Transfer count mismatch");
             }
 
@@ -316,7 +370,7 @@ export class CmsisDap extends EventEmitter {
                 throw new Error("Transfer response NO_ACK");
             }
 
-            if (mode === TransferMode.READ) {
+            if (typeof countOrValues === "number") {
                 return new Uint32Array(result.buffer.slice(4));
             }
         });
