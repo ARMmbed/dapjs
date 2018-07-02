@@ -22,6 +22,7 @@
 */
 
 export const enum DPRegister {
+    IDCODE = 0x0,
     ABORT = 0x0,        // write only
     DPIDR = 0x0,        // read only
     CTRL_STAT = 0x4,    // SELECT.DPBANKSEL 0x0

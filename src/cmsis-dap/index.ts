@@ -146,9 +146,8 @@ export class CmsisDap extends EventEmitter {
             if (result.getUint8(1) === DapConnectResponse.FAILED || this.mode !== DapConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
                 throw new Error("Mode not enabled.");
             }
-
-            return this.execute(DapCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0]));
         })
+        .then(() => this.execute(DapCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
         .then(() => this.execute(DapCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
         .then(() => this.jtagToSwd());
     }
@@ -258,7 +257,7 @@ export class CmsisDap extends EventEmitter {
         view.setUint8(1, operations.length);
 
         operations.forEach((operation, index) => {
-            const offset = headLength + index;
+            const offset = headLength + (index * opLength);
 
             // Transfer request
             view.setUint8(offset, operation.port | operation.mode | operation.register);
@@ -270,34 +269,33 @@ export class CmsisDap extends EventEmitter {
         .then(result => {
 
             // Transfer count
-            if (value && result.getUint8(1) !== 1) {
+            if (result.getUint8(1) !== operations.length) {
                 throw new Error("Transfer count mismatch");
             }
 
             // Transfer response
             const response = result.getUint8(2);
-            if (response & DapTransferResponse.WAIT) {
+            if (response === DapTransferResponse.WAIT) {
                 throw new Error("Transfer response WAIT");
             }
-            if (response & DapTransferResponse.FAULT) {
+            if (response === DapTransferResponse.FAULT) {
                 throw new Error("Transfer response FAULT");
             }
-            if (response & DapTransferResponse.PROTOCOL_ERROR) {
+            if (response === DapTransferResponse.PROTOCOL_ERROR) {
                 throw new Error("Transfer response PROTOCOL_ERROR");
             }
-            if (response & DapTransferResponse.VALUE_MISMATCH) {
+            if (response === DapTransferResponse.VALUE_MISMATCH) {
                 throw new Error("Transfer response VALUE_MISMATCH");
             }
-            if (response & DapTransferResponse.NO_ACK) {
+            if (response === DapTransferResponse.NO_ACK) {
                 throw new Error("Transfer response NO_ACK");
             }
 
-            if (mode === TransferMode.READ) {
-                if (typeof portOrOps === "number") {
-                    return result.getUint32(3, true);
-                } else {
-                    return new Uint32Array(result.buffer.slice(3));
-                }
+            if (typeof portOrOps === "number") {
+                return result.getUint32(3, true);
+            } else {
+                const length = operations.length * 4;
+                return new Uint32Array(result.buffer.slice(3, 3 + length));
             }
         });
     }

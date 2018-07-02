@@ -38,6 +38,7 @@ export class DAP extends CmsisDap implements Debug {
 
     public connect() {
         return super.connect()
+        .then(() => this.readDP(DPRegister.IDCODE))
         .then(() => this.transferSequence([
             this.writeDPCommand(DPRegister.ABORT, AbortBits.STKERRCLR), // clear sticky error
             this.writeDPCommand(DPRegister.SELECT, ApRegister.CSW), // select CTRL_STAT
