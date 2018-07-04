@@ -23,7 +23,7 @@
 
 import { CmsisDap, TransferMode, DapPort } from "../cmsis-dap";
 import { DPRegister, ApRegister, CSW, SelectMask, AbortBits, CtrlStatBits } from "./enums";
-import { Debug } from "./";
+import { DAP } from "./";
 import { TransferOperation } from "../cmsis-dap/enums";
 
 // http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100230_0002_00_en/smr1439293428201.html
@@ -31,7 +31,7 @@ import { TransferOperation } from "../cmsis-dap/enums";
 /**
  * Arm Debug Interface class
  */
-export class DAP extends CmsisDap implements Debug {
+export class ADI extends CmsisDap implements DAP {
 
     private selectedAddress: number = null;
     private cswValue: number = null;

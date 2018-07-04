@@ -22,9 +22,9 @@
 */
 
 /**
- * Debug interface
+ * DAP interface
  */
-export interface Debug {
+export interface DAP {
     /**
      * Read from a debug port register
      * @param registerId ID of register to read
@@ -102,4 +102,4 @@ export interface Debug {
     writeBlock(registerId: number, values: Uint32Array): Promise<void>;
 }
 
-export { DAP } from "./dap";
+export { ADI } from "./adi";
