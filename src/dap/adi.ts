@@ -21,10 +21,10 @@
 * SOFTWARE.
 */
 
-import { CmsisDap, TransferMode, DapPort } from "../cmsis-dap";
+import { CmsisDap } from "../proxy";
 import { DPRegister, ApRegister, CSW, SelectMask, AbortBits, CtrlStatBits } from "./enums";
 import { DAP } from "./";
-import { TransferOperation } from "../cmsis-dap/enums";
+import { TransferOperation, TransferMode, DapPort } from "../proxy/enums";
 
 // http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100230_0002_00_en/smr1439293428201.html
 

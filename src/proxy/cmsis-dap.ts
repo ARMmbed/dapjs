@@ -38,11 +38,12 @@ import {
     TransferOperation
 } from "./enums";
 export { TransferMode, DapPort, DapConnectPort } from "./enums";
+import { Proxy } from "./";
 
 /**
  * CMSIS-DAP class
  */
-export class CmsisDap extends EventEmitter {
+export class CmsisDap extends EventEmitter implements Proxy {
 
     /**
      * CMSIS-DAP constructor
@@ -50,7 +51,7 @@ export class CmsisDap extends EventEmitter {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use
      */
-    constructor(private transport: Transport, private mode: DapConnectPort = DapConnectPort.DEFAULT, private clockFrequency = 10000000) {
+    constructor(private transport: Transport, private mode: DapConnectPort = DapConnectPort.DEFAULT, private clockFrequency: number = 10000000) {
         super();
     }
 

@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { CmsisDap } from "../cmsis-dap";
+import { CmsisDap } from "../proxy";
 import { DaplinkFlash, DaplinkSerial } from "./enums";
 
 /**
