@@ -21,10 +21,12 @@
 * SOFTWARE.
 */
 
+import { Proxy } from "../proxy";
+
 /**
  * DAP interface
  */
-export interface DAP {
+export interface DAP extends Proxy {
     /**
      * Read from a debug port register
      * @param registerId ID of register to read
