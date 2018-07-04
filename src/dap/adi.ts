@@ -58,7 +58,7 @@ export class ADI implements DAP {
         this.proxy = isTransport(transportOrDap) ? new CmsisDap(transportOrDap, mode, clockFrequency) : transportOrDap;
     }
 
-    private readDPCommand(register: number): TransferOperation[] {
+    protected readDPCommand(register: number): TransferOperation[] {
         return [{
             mode: TransferMode.READ,
             port: DapPort.DEBUG,
@@ -66,7 +66,7 @@ export class ADI implements DAP {
         }];
     }
 
-    private writeDPCommand(register: number, value: number): TransferOperation[] {
+    protected writeDPCommand(register: number, value: number): TransferOperation[] {
         if (register === DPRegister.SELECT) {
             if (value === this.selectedAddress) {
                 return [];
@@ -82,7 +82,7 @@ export class ADI implements DAP {
         }];
     }
 
-    private readAPCommand(register: number): TransferOperation[] {
+    protected readAPCommand(register: number): TransferOperation[] {
         const address = (register & SelectMask.APSEL) | (register & SelectMask.APBANKSEL);
 
         return this.writeDPCommand(DPRegister.SELECT, address).concat({
@@ -92,7 +92,7 @@ export class ADI implements DAP {
         });
     }
 
-    private writeAPCommand(register: number, value: number): TransferOperation[] {
+    protected writeAPCommand(register: number, value: number): TransferOperation[] {
         if (register === ApRegister.CSW) {
             if (value === this.cswValue) {
                 return [];
@@ -110,7 +110,31 @@ export class ADI implements DAP {
         });
     }
 
-    private transferSequence(operations: TransferOperation[][]): Promise<Uint32Array> {
+    protected readMem16Command(register: number): TransferOperation[] {
+        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16)
+        .concat(this.writeAPCommand(ApRegister.TAR, register))
+        .concat(this.readAPCommand(ApRegister.DRW));
+    }
+
+    protected writeMem16Command(register: number, value: number): TransferOperation[] {
+        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16)
+        .concat(this.writeAPCommand(ApRegister.TAR, register))
+        .concat(this.writeAPCommand(ApRegister.DRW, value));
+    }
+
+    protected readMem32Command(register: number): TransferOperation[] {
+        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32)
+        .concat(this.writeAPCommand(ApRegister.TAR, register))
+        .concat(this.readAPCommand(ApRegister.DRW));
+    }
+
+    protected writeMem32Command(register: number, value: number): TransferOperation[] {
+        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32)
+        .concat(this.writeAPCommand(ApRegister.TAR, register))
+        .concat(this.writeAPCommand(ApRegister.DRW, value as number));
+    }
+
+    protected transferSequence(operations: TransferOperation[][]): Promise<Uint32Array> {
         const merged = [].concat(...operations);
         return this.proxy.transfer(merged);
     }
@@ -140,6 +164,7 @@ export class ADI implements DAP {
     public reconnect(): Promise<void> {
         return this.proxy.reconnect();
     }
+
     public reset(): Promise<boolean> {
         return this.proxy.reset();
     }
@@ -226,74 +251,58 @@ export class ADI implements DAP {
 
     /**
      * Read a 16-bit word from a memory access port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register data
      */
-    public readMem16(registerId: number): Promise<number> {
-        return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16),
-            this.writeAPCommand(ApRegister.TAR, registerId),
-            this.readAPCommand(ApRegister.DRW)
-        ])
+    public readMem16(register: number): Promise<number> {
+        return this.proxy.transfer(this.readMem16Command(register))
         .then(result => result[0]);
     }
 
     /**
      * Write a 16-bit word to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param value The value to write
      * @returns Promise
      */
-    public writeMem16(registerId: number, value: number): Promise<void> {
-        value = value as number << ((registerId & 0x02) << 3);
+    public writeMem16(register: number, value: number): Promise<void> {
+        value = value as number << ((register & 0x02) << 3);
 
-        return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16),
-            this.writeAPCommand(ApRegister.TAR, registerId),
-            this.writeAPCommand(ApRegister.DRW, value)
-        ])
+        return this.proxy.transfer(this.writeMem16Command(register, value))
         .then(() => undefined);
     }
 
     /**
      * Read a 32-bit word from a memory access port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register data
      */
-    public readMem32(registerId: number): Promise<number> {
-        return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, registerId),
-            this.readAPCommand(ApRegister.DRW)
-        ])
+    public readMem32(register: number): Promise<number> {
+        return this.proxy.transfer(this.readMem32Command(register))
         .then(result => result[0]);
     }
 
     /**
      * Write a 32-bit word to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param value The value to write
      * @returns Promise
      */
-    public writeMem32(registerId: number, value: number): Promise<void> {
-        return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, registerId),
-            this.writeAPCommand(ApRegister.DRW, value as number)
-        ])
+    public writeMem32(register: number, value: number): Promise<void> {
+        return this.proxy.transfer(this.writeMem32Command(register, value))
         .then(() => undefined);
     }
 
     /**
      * Read a block of 32-bit words from a memory access port register
-     * @param registerId ID of register to read from
+     * @param register ID of register to read from
      * @param count The count of values to read
      * @returns Promise of register data
      */
-    public readBlock(registerId: number, count: number): Promise<Uint32Array> {
+    public readBlock(register: number, count: number): Promise<Uint32Array> {
         return this.transferSequence([
             this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, registerId),
+            this.writeAPCommand(ApRegister.TAR, register),
         ])
         .then(() => this.proxy.transferBlock(DapPort.ACCESS, ApRegister.DRW, count))
         .then(() => undefined);
@@ -301,14 +310,14 @@ export class ADI implements DAP {
 
     /**
      * Write a block of 32-bit words to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param values The values to write
      * @returns Promise
      */
-    public writeBlock(registerId: number, values: Uint32Array): Promise<void> {
+    public writeBlock(register: number, values: Uint32Array): Promise<void> {
         return this.transferSequence([
             this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, registerId),
+            this.writeAPCommand(ApRegister.TAR, register),
         ])
         .then(() => this.proxy.transferBlock(DapPort.ACCESS, ApRegister.DRW, values))
         .then(() => undefined);

@@ -29,79 +29,79 @@ import { Proxy } from "../proxy";
 export interface DAP extends Proxy {
     /**
      * Read from a debug port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register value
      */
-    readDP(registerId: number): Promise<number>;
+    readDP(register: number): Promise<number>;
 
     /**
      * Write to a debug port register
-     * @param registerId ID of register to write
+     * @param register ID of register to write
      * @param value Value to write
      * @returns Promise
      */
-    writeDP(registerId: number, value: number): Promise<void>;
+    writeDP(register: number, value: number): Promise<void>;
 
     /**
      * Read from an access port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register value
      */
-    readAP(registerId: number): Promise<number>;
+    readAP(register: number): Promise<number>;
 
     /**
      * Write to an access port register
-     * @param registerId ID of register to write
+     * @param register ID of register to write
      * @param value Value to write
      * @returns Promise
      */
-    writeAP(registerId: number, value: number): Promise<void>;
+    writeAP(register: number, value: number): Promise<void>;
 
     /**
      * Read a 16-bit word from a memory access port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register data
      */
-    readMem16(registerId: number): Promise<number>;
+    readMem16(register: number): Promise<number>;
 
     /**
      * Write a 16-bit word to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param value The value to write
      * @returns Promise
      */
-    writeMem16(registerId: number, value: number): Promise<void>;
+    writeMem16(register: number, value: number): Promise<void>;
 
     /**
      * Read a 32-bit word from a memory access port register
-     * @param registerId ID of register to read
+     * @param register ID of register to read
      * @returns Promise of register data
      */
-    readMem32(registerId: number): Promise<number>;
+    readMem32(register: number): Promise<number>;
 
     /**
      * Write a 32-bit word to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param value The value to write
      * @returns Promise
      */
-    writeMem32(registerId: number, value: number): Promise<void>;
+    writeMem32(register: number, value: number): Promise<void>;
 
     /**
      * Read a block of 32-bit words from a memory access port register
-     * @param registerId ID of register to read from
+     * @param register ID of register to read from
      * @param count The count of values to read
      * @returns Promise of register data
      */
-    readBlock(registerId: number, count: number): Promise<Uint32Array>;
+    readBlock(register: number, count: number): Promise<Uint32Array>;
 
     /**
      * Write a block of 32-bit words to a memory access port register
-     * @param registerId ID of register to write to
+     * @param register ID of register to write to
      * @param values The values to write
      * @returns Promise
      */
-    writeBlock(registerId: number, values: Uint32Array): Promise<void>;
+    writeBlock(register: number, values: Uint32Array): Promise<void>;
 }
 
 export { ADI } from "./adi";
