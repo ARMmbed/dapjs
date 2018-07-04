@@ -21,8 +21,18 @@
 * SOFTWARE.
 */
 
-export { HID, USB, WebUSB } from "./transport";
-export { CmsisDap } from "./proxy";
-export { DapLink } from "./daplink";
-export { ADI } from "./dap";
-export { CortexM } from "./processor";
+import { DAP } from "../dap";
+
+/**
+ * Processor interface
+ */
+export interface Processor extends DAP {
+    // reset(halt?: boolean): Promise<void>;
+    halt(wait?: boolean): Promise<void>;
+    isHalted(): Promise<boolean>;
+    resume(): Promise<void>;
+    readCoreRegister(register: number): Promise<number>;
+    writeCoreRegister(register: number, value: number): Promise<void>;
+}
+
+export { CortexM } from "./cortex-m";
