@@ -7,7 +7,6 @@ jobs:
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install libusb-1.0-0-dev
-      - run: sudo apt-get install libudev-dev
       - checkout
       - run: npm install
       - run: npm run gulp
