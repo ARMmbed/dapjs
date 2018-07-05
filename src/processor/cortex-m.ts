@@ -22,10 +22,16 @@
 */
 
 import { ADI } from "../dap";
-import { CortexRegister, CoreRegister } from "./enums";
+import {
+    DebugRegister,
+    CoreRegister,
+    DhcsrMask,
+    DfsrMask,
+    DcrsrMask,
+    FpbRegister,
+    FpbCtrlMask
+} from "./enums";
 import { Processor } from "./";
-
-// http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.set.cortexm/index.html
 
 /**
  * Cortex M class
@@ -50,23 +56,57 @@ export class CortexM extends ADI implements Processor {
         return chain(false);
     }
 
-    public enableDebug() {
-        return this.writeMem32(CortexRegister.DHCSR, CortexRegister.DBGKEY | CortexRegister.C_DEBUGEN);
+    private enableDebug() {
+        return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN);
     }
 
+    /**
+     * Connect to target device
+     * @returns Promise
+     */
+    public connect() {
+        return super.connect()
+        .then(() => this.disableFPB());
+    }
+
+    /**
+     * Enable flash patch breakpoints
+     * @returns Promise
+     */
+    public enableFPB() {
+        return this.writeMem32(FpbRegister.FP_CTRL, FpbCtrlMask.KEY | FpbCtrlMask.ENABLE);
+    }
+
+    /**
+     * Disable flash patch breakpoints
+     * @returns Promise
+     */
+    public disableFPB() {
+        return this.writeMem32(FpbRegister.FP_CTRL, FpbCtrlMask.KEY | 0);
+    }
+
+    /**
+     * Whether the target is halted
+     * @returns Promise of halted state
+     */
     public isHalted(): Promise<boolean> {
-        return this.readMem32(CortexRegister.DHCSR)
+        return this.readMem32(DebugRegister.DHCSR)
         .then(dhcsr => {
-            return !!(dhcsr & CortexRegister.S_HALT);
+            return !!(dhcsr & DhcsrMask.S_HALT);
         });
     }
 
+    /**
+     * Halt the target
+     * @param wait Wait until halted before returning
+     * @returns Promise
+     */
     public halt(wait: boolean = true): Promise<void> {
         return this.isHalted()
         .then(halted => {
             if (halted) return;
 
-            return this.writeMem32(CortexRegister.DHCSR, CortexRegister.DBGKEY | CortexRegister.C_DEBUGEN | CortexRegister.C_HALT)
+            return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN | DhcsrMask.C_HALT)
             .then(() => {
                 if (!wait) return;
 
@@ -75,12 +115,17 @@ export class CortexM extends ADI implements Processor {
         });
     }
 
+    /**
+     * Resume a target
+     * @param wait Wait until resumed before returning
+     * @returns Promise
+     */
     public resume(wait: boolean = true) {
         return this.isHalted()
         .then(halted => {
             if (!halted) return;
 
-            return this.writeMem32(CortexRegister.DFSR, CortexRegister.DFSR_DWTTRAP | CortexRegister.DFSR_BKPT | CortexRegister.DFSR_HALTED)
+            return this.writeMem32(DebugRegister.DFSR, DfsrMask.DWTTRAP | DfsrMask.BKPT | DfsrMask.HALTED)
             .then(() => this.enableDebug())
             .then(() => {
                 if (!wait) return;
@@ -90,30 +135,41 @@ export class CortexM extends ADI implements Processor {
         });
     }
 
+    /**
+     * Read from a core register
+     * @param register The register to read
+     * @returns Promise of value
+     */
     public readCoreRegister(register: CoreRegister): Promise<number> {
         return this.transferSequence([
-            this.writeMem32Command(CortexRegister.DCRSR, register),
-            this.readMem32Command(CortexRegister.DHCSR)
+            this.writeMem32Command(DebugRegister.DCRSR, register),
+            this.readMem32Command(DebugRegister.DHCSR)
         ])
         .then(results => {
             const dhcsr = results[0];
-            if (!(dhcsr & CortexRegister.S_REGRDY)) {
+            if (!(dhcsr & DhcsrMask.S_REGRDY)) {
                 throw new Error("Register not ready");
             }
 
-            return this.readMem32(CortexRegister.DCRDR);
+            return this.readMem32(DebugRegister.DCRDR);
         });
     }
 
+    /**
+     * Write to a core register
+     * @param register The register to write to
+     * @param value The value to write
+     * @returns Promise
+     */
     public writeCoreRegister(register: CoreRegister, value: number): Promise<void> {
         return this.transferSequence([
-            this.writeMem32Command(CortexRegister.DCRDR, value),
-            this.writeMem32Command(CortexRegister.DCRSR, register | CortexRegister.DCRSR_REGWnR),
-            this.readMem32Command(CortexRegister.DHCSR)
+            this.writeMem32Command(DebugRegister.DCRDR, value),
+            this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR),
+            this.readMem32Command(DebugRegister.DHCSR)
         ])
         .then(results => {
             const dhcsr = results[0];
-            if (!(dhcsr & CortexRegister.S_REGRDY)) {
+            if (!(dhcsr & DhcsrMask.S_REGRDY)) {
                 throw new Error("Register not ready");
             }
         });

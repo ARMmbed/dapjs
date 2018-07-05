@@ -21,27 +21,24 @@
 * SOFTWARE.
 */
 
-// https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
-
 import { EventEmitter } from "events";
 import { Transport } from "../transport";
 import {
     DapPort,
-    TransferMode,
+    DapTransferMode,
     DapConnectPort,
     DapCommand,
     DapConnectResponse,
     DapResponse,
     DapInfoRequest,
-    DapResetTargeExecuteResponse,
-    DapTransferResponse,
-    TransferOperation
+    DapResetTargeResponse,
+    DapTransferResponse
 } from "./enums";
-export { TransferMode, DapPort, DapConnectPort } from "./enums";
-import { Proxy } from "./";
+import { Proxy, DapOperation } from "./";
 
 /**
  * CMSIS-DAP class
+ * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
  */
 export class CmsisDap extends EventEmitter implements Proxy {
 
@@ -176,11 +173,11 @@ export class CmsisDap extends EventEmitter implements Proxy {
 
     /**
      * Reset target device
-     * @returns Promise
+     * @returns Promise of whether a device specific reset sequence is implemented
      */
     public reset(): Promise<boolean> {
         return this.execute(DapCommand.DAP_RESET_TARGET)
-        .then(response => response.getUint8(2) === DapResetTargeExecuteResponse.RESET_SEQUENCE);
+        .then(response => response.getUint8(2) === DapResetTargeResponse.RESET_SEQUENCE);
     }
 
     /**
@@ -225,16 +222,16 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(port: DapPort, mode: TransferMode, register: number, value?: number): Promise<number>;
+    public transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    public transfer(operations: TransferOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DapPort | TransferOperation[], mode?: TransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
+    public transfer(operations: DapOperation[]): Promise<Uint32Array>;
+    public transfer(portOrOps: DapPort | DapOperation[], mode?: DapTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
 
-        let operations: TransferOperation[];
+        let operations: DapOperation[];
 
         if (typeof portOrOps === "number") {
             operations = [{
@@ -320,14 +317,14 @@ export class CmsisDap extends EventEmitter implements Proxy {
 
         let operationCount: number;
         let headerSize = 4;
-        let mode: TransferMode;
+        let mode: DapTransferMode;
 
         if (typeof countOrValues === "number") {
             operationCount = countOrValues;
-            mode = TransferMode.READ;
+            mode = DapTransferMode.READ;
         } else {
             operationCount = countOrValues.length;
-            mode = TransferMode.WRITE;
+            mode = DapTransferMode.WRITE;
             headerSize += countOrValues.byteLength;
         }
 

@@ -22,17 +22,58 @@
 */
 
 import { DAP } from "../dap";
+import { CoreRegister } from "./enums";
 
 /**
  * Processor interface
  */
 export interface Processor extends DAP {
-    // reset(halt?: boolean): Promise<void>;
+    /**
+     * Enable flash patch breakpoints
+     * @returns Promise
+     */
+    enableFPB(): Promise<void>;
+
+    /**
+     * Disable flash patch breakpoints
+     * @returns Promise
+     */
+    disableFPB(): Promise<void>;
+
+    /**
+     * Halt the target
+     * @param wait Wait until halted before returning
+     * @returns Promise
+     */
     halt(wait?: boolean): Promise<void>;
+
+    /**
+     * Whether the target is halted
+     * @returns Promise of halted state
+     */
     isHalted(): Promise<boolean>;
-    resume(): Promise<void>;
-    readCoreRegister(register: number): Promise<number>;
-    writeCoreRegister(register: number, value: number): Promise<void>;
+
+    /**
+     * Resume a target
+     * @param wait Wait until resumed before returning
+     * @returns Promise
+     */
+    resume(wait?: boolean): Promise<void>;
+
+    /**
+     * Read from a core register
+     * @param register The register to read
+     * @returns Promise of value
+     */
+    readCoreRegister(register: CoreRegister): Promise<number>;
+
+    /**
+     * Write to a core register
+     * @param register The register to write to
+     * @param value The value to write
+     * @returns Promise
+     */
+    writeCoreRegister(register: CoreRegister, value: number): Promise<void>;
 }
 
 export { CortexM } from "./cortex-m";

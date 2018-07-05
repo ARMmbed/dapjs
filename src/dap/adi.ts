@@ -22,12 +22,10 @@
 */
 
 import { Transport } from "../transport";
-import { Proxy, CmsisDap } from "../proxy";
-import { DPRegister, ApRegister, CSW, SelectMask, AbortBits, CtrlStatBits } from "./enums";
+import { Proxy, CmsisDap, DapOperation } from "../proxy";
+import { DPRegister, APRegister, CswMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
 import { DAP } from "./";
-import { TransferOperation, TransferMode, DapPort, DapConnectPort } from "../proxy/enums";
-
-// http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100230_0002_00_en/smr1439293428201.html
+import { DapTransferMode, DapPort, DapConnectPort } from "../proxy/enums";
 
 /**
  * Arm Debug Interface class
@@ -58,15 +56,15 @@ export class ADI implements DAP {
         this.proxy = isTransport(transportOrDap) ? new CmsisDap(transportOrDap, mode, clockFrequency) : transportOrDap;
     }
 
-    protected readDPCommand(register: number): TransferOperation[] {
+    protected readDPCommand(register: number): DapOperation[] {
         return [{
-            mode: TransferMode.READ,
+            mode: DapTransferMode.READ,
             port: DapPort.DEBUG,
             register
         }];
     }
 
-    protected writeDPCommand(register: number, value: number): TransferOperation[] {
+    protected writeDPCommand(register: number, value: number): DapOperation[] {
         if (register === DPRegister.SELECT) {
             if (value === this.selectedAddress) {
                 return [];
@@ -75,96 +73,112 @@ export class ADI implements DAP {
         }
 
         return [{
-            mode: TransferMode.WRITE,
+            mode: DapTransferMode.WRITE,
             port: DapPort.DEBUG,
             register,
             value
         }];
     }
 
-    protected readAPCommand(register: number): TransferOperation[] {
-        const address = (register & SelectMask.APSEL) | (register & SelectMask.APBANKSEL);
+    protected readAPCommand(register: number): DapOperation[] {
+        const address = (register & BankSelectMask.APSEL) | (register & BankSelectMask.APBANKSEL);
 
         return this.writeDPCommand(DPRegister.SELECT, address).concat({
-            mode: TransferMode.READ,
+            mode: DapTransferMode.READ,
             port: DapPort.ACCESS,
             register
         });
     }
 
-    protected writeAPCommand(register: number, value: number): TransferOperation[] {
-        if (register === ApRegister.CSW) {
+    protected writeAPCommand(register: number, value: number): DapOperation[] {
+        if (register === APRegister.CSW) {
             if (value === this.cswValue) {
                 return [];
             }
             this.cswValue = value;
         }
 
-        const address = (register & SelectMask.APSEL) | (register & SelectMask.APBANKSEL);
+        const address = (register & BankSelectMask.APSEL) | (register & BankSelectMask.APBANKSEL);
 
         return this.writeDPCommand(DPRegister.SELECT, address).concat({
-            mode: TransferMode.WRITE,
+            mode: DapTransferMode.WRITE,
             port: DapPort.ACCESS,
             register,
             value
         });
     }
 
-    protected readMem16Command(register: number): TransferOperation[] {
-        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16)
-        .concat(this.writeAPCommand(ApRegister.TAR, register))
-        .concat(this.readAPCommand(ApRegister.DRW));
+    protected readMem16Command(register: number): DapOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_16)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.readAPCommand(APRegister.DRW));
     }
 
-    protected writeMem16Command(register: number, value: number): TransferOperation[] {
-        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE16)
-        .concat(this.writeAPCommand(ApRegister.TAR, register))
-        .concat(this.writeAPCommand(ApRegister.DRW, value));
+    protected writeMem16Command(register: number, value: number): DapOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_16)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.writeAPCommand(APRegister.DRW, value));
     }
 
-    protected readMem32Command(register: number): TransferOperation[] {
-        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32)
-        .concat(this.writeAPCommand(ApRegister.TAR, register))
-        .concat(this.readAPCommand(ApRegister.DRW));
+    protected readMem32Command(register: number): DapOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.readAPCommand(APRegister.DRW));
     }
 
-    protected writeMem32Command(register: number, value: number): TransferOperation[] {
-        return this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32)
-        .concat(this.writeAPCommand(ApRegister.TAR, register))
-        .concat(this.writeAPCommand(ApRegister.DRW, value as number));
+    protected writeMem32Command(register: number, value: number): DapOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.writeAPCommand(APRegister.DRW, value as number));
     }
 
-    protected transferSequence(operations: TransferOperation[][]): Promise<Uint32Array> {
+    protected transferSequence(operations: DapOperation[][]): Promise<Uint32Array> {
         const merged = [].concat(...operations);
         return this.proxy.transfer(merged);
     }
 
+    /**
+     * Connect to target device
+     * @returns Promise
+     */
     public connect() {
         return this.proxy.connect()
-        .then(() => this.readDP(DPRegister.IDCODE))
+        .then(() => this.readDP(DPRegister.DPIDR))
         .then(() => this.transferSequence([
-            this.writeDPCommand(DPRegister.ABORT, AbortBits.STKERRCLR), // clear sticky error
-            this.writeDPCommand(DPRegister.SELECT, ApRegister.CSW), // select CTRL_STAT
-            this.writeDPCommand(DPRegister.CTRL_STAT, CtrlStatBits.CSYSPWRUPREQ | CtrlStatBits.CDBGPWRUPREQ),
+            this.writeDPCommand(DPRegister.ABORT, AbortMask.STKERRCLR), // clear sticky error
+            this.writeDPCommand(DPRegister.SELECT, APRegister.CSW), // select CTRL_STAT
+            this.writeDPCommand(DPRegister.CTRL_STAT, CtrlStatMask.CSYSPWRUPREQ | CtrlStatMask.CDBGPWRUPREQ),
             this.readDPCommand(DPRegister.CTRL_STAT),
         ]))
         .then(result => {
             const status = result[0];
-            const mask = CtrlStatBits.CDBGPWRUPACK | CtrlStatBits.CSYSPWRUPACK;
+            const mask = CtrlStatMask.CDBGPWRUPACK | CtrlStatMask.CSYSPWRUPACK;
             while ((status & mask) !== mask) {
                 // this.readDp(Register.CTRL_STAT);
             }
         });
     }
 
+    /**
+     * Disconnect from target device
+     * @returns Promise
+     */
     public disconnect(): Promise<void> {
         return this.proxy.disconnect();
     }
 
+    /**
+     * Reconnect to target device
+     * @returns Promise
+     */
     public reconnect(): Promise<void> {
         return this.proxy.reconnect();
     }
 
+    /**
+     * Reset target device
+     * @returns Promise
+     */
     public reset(): Promise<boolean> {
         return this.proxy.reset();
     }
@@ -177,14 +191,14 @@ export class ADI implements DAP {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(port: DapPort, mode: TransferMode, register: number, value?: number): Promise<number>;
+    public transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    public transfer(operations: TransferOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DapPort | TransferOperation[], mode?: TransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
+    public transfer(operations: DapOperation[]): Promise<Uint32Array>;
+    public transfer(portOrOps: DapPort | DapOperation[], mode?: DapTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
         return (typeof portOrOps === "number") ? this.proxy.transfer(portOrOps, mode, register, value) : this.proxy.transfer(portOrOps);
     }
 
@@ -233,7 +247,7 @@ export class ADI implements DAP {
      * @param register AP register to read
      * @returns Promise of register value
      */
-    public readAP(register: ApRegister): Promise<number> {
+    public readAP(register: APRegister): Promise<number> {
         return this.proxy.transfer(this.readAPCommand(register))
         .then(result => result[0]);
     }
@@ -244,7 +258,7 @@ export class ADI implements DAP {
      * @param value Value to write
      * @returns Promise
      */
-    public writeAP(register: ApRegister, value: number): Promise<void> {
+    public writeAP(register: APRegister, value: number): Promise<void> {
         return this.proxy.transfer(this.writeAPCommand(register, value))
         .then(() => undefined);
     }
@@ -301,10 +315,10 @@ export class ADI implements DAP {
      */
     public readBlock(register: number, count: number): Promise<Uint32Array> {
         return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, register),
+            this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32),
+            this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DapPort.ACCESS, ApRegister.DRW, count))
+        .then(() => this.proxy.transferBlock(DapPort.ACCESS, APRegister.DRW, count))
         .then(() => undefined);
     }
 
@@ -316,10 +330,10 @@ export class ADI implements DAP {
      */
     public writeBlock(register: number, values: Uint32Array): Promise<void> {
         return this.transferSequence([
-            this.writeAPCommand(ApRegister.CSW, CSW.CSW_VALUE | CSW.CSW_SIZE32),
-            this.writeAPCommand(ApRegister.TAR, register),
+            this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32),
+            this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DapPort.ACCESS, ApRegister.DRW, values))
+        .then(() => this.proxy.transferBlock(DapPort.ACCESS, APRegister.DRW, values))
         .then(() => undefined);
     }
 }

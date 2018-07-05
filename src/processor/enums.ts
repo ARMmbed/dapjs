@@ -21,92 +21,284 @@
 * SOFTWARE.
 */
 
-export const enum CortexRegister {
-    // Debug Fault Status Register
-    DFSR = 0xE000ED30,
-    DFSR_EXTERNAL = (1 << 4),
-    DFSR_VCATCH = (1 << 3),
-    DFSR_DWTTRAP = (1 << 2),
-    DFSR_BKPT = (1 << 1),
-    DFSR_HALTED = (1 << 0),
-
-    // Debug Exception and Monitor Control Register
-    DEMCR = 0xE000EDFC,
-    // DWTENA in armv6 architecture reference manual
-    DEMCR_TRCENA = (1 << 24),
-    DEMCR_VC_HARDERR = (1 << 10),
-    DEMCR_VC_BUSERR = (1 << 8),
-    DEMCR_VC_CORERESET = (1 << 0),
-
-    // CPUID Register
-    CPUID = 0xE000ED00,
-
-    // Debug Core Register Selector Register
-    DCRSR = 0xE000EDF4,
-    DCRSR_REGWnR = (1 << 16),
-    DCRSR_REGSEL = 0x1F,
-
-    // Debug Halting Control and Status Register
-    DHCSR = 0xE000EDF0,
-    C_DEBUGEN = (1 << 0),
-    C_HALT = (1 << 1),
-    C_STEP = (1 << 2),
-    C_MASKINTS = (1 << 3),
-    C_SNAPSTALL = (1 << 5),
-    S_REGRDY = (1 << 16),
-    S_HALT = (1 << 17),
-    S_SLEEP = (1 << 18),
-    S_LOCKUP = (1 << 19),
-    S_RETIRE_ST = (1 << 24),
-    S_RESET_ST = (1 << 25),
-
-    // Debug Core Register Data Register
-    DCRDR = 0xE000EDF8,
-
-    // Coprocessor Access Control Register
-    CPACR = 0xE000ED88,
-    CPACR_CP10_CP11_MASK = (3 << 20) | (3 << 22),
-
-    NVIC_AIRCR = (0xE000ED0C),
-    NVIC_AIRCR_VECTKEY = (0x5FA << 16),
-    NVIC_AIRCR_VECTRESET = (1 << 0),
-    NVIC_AIRCR_SYSRESETREQ = (1 << 2),
-
-    DBGKEY = (0xA05F << 16),
-
-    // FPB (breakpoint)
-    FP_CTRL = (0xE0002000),
-    FP_CTRL_KEY = (1 << 1),
-    FP_COMP0 = (0xE0002008),
-
-    // DWT (data watchpoint & trace)
-    DWT_CTRL = 0xE0001000,
-    DWT_COMP_BASE = 0xE0001020,
-    DWT_MASK_OFFSET = 4,
-    DWT_FUNCTION_OFFSET = 8,
-    DWT_COMP_BLOCK_SIZE = 0x10,
+/**
+ * Processor Core Registers
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100230_0004_00_en/way1435345987733.html
+ */
+export const enum CoreRegister {
+    /**
+     * General purpose register
+     */
+    R0 = 0,
+    /**
+     * General purpose register
+     */
+    R1 = 1,
+    /**
+     * General purpose register
+     */
+    R2 = 2,
+    /**
+     * General purpose register
+     */
+    R3 = 3,
+    /**
+     * General purpose register
+     */
+    R4 = 4,
+    /**
+     * General purpose register
+     */
+    R5 = 5,
+    /**
+     * General purpose register
+     */
+    R6 = 6,
+    /**
+     * General purpose register
+     */
+    R7 = 7,
+    /**
+     * General purpose register
+     */
+    R8 = 8,
+    /**
+     * General purpose register
+     */
+    R9 = 9,
+    /**
+     * General purpose register
+     */
+    R10 = 10,
+    /**
+     * General purpose register
+     */
+    R11 = 11,
+    /**
+     * General purpose register
+     */
+    R12 = 12,
+    /**
+     * Stack Pointer
+     */
+    SP = 13,
+    /**
+     * The Link Register
+     */
+    LR = 14,
+    /**
+     * The Program Counter
+     */
+    PC = 15,
+    /**
+     * The Program Status Register
+     */
+    PSR = 16,
+    /**
+     * Main Stack Pointer
+     */
+    MSP = 17,
+    /**
+     * Process Stack Pointer
+     */
+    PSP = 18,
+    /**
+     * Prevents activation of exceptions
+     */
+    PRIMASK = 20,
+    /**
+     * Controls the stack used
+     */
+    CONTROL = 20
 }
 
-export const enum CoreRegister {
-    R0 = 0,
-    R1 = 1,
-    R2 = 2,
-    R3 = 3,
-    R4 = 4,
-    R5 = 5,
-    R6 = 6,
-    R7 = 7,
-    R8 = 8,
-    R9 = 9,
-    R10 = 10,
-    R11 = 11,
-    R12 = 12,
-    SP = 13,
-    LR = 14,
-    PC = 15,
-    XPSR = 16,
-    MSP = 17, // Main Stack Pointer
-    PSP = 18, // Process Stack Pointer
-    PRIMASK = 20,  // &0xff
-    CONTROL = 20,  // &0xff000000 >> 24
+/**
+ * Debug Registers
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100165_0201_00_en/ric1417175947147.html
+ */
+export const enum DebugRegister {
+    /**
+     * Debug Fault Status Register
+     */
+    DFSR = 0xE000ED30,
+    /**
+     * Debug Halting Control and Status Register
+     */
+    DHCSR = 0xE000EDF0,
+    /**
+     * Debug Core Register Selector Register, write only
+     */
+    DCRSR = 0xE000EDF4,
+    /**
+     * Debug Core Register Data Register
+     */
+    DCRDR = 0xE000EDF8,
+    /**
+     * Debug Exception and Monitor Control Register
+     */
+    DEMCR = 0xE000EDFC
+}
+
+/**
+ * Debug Halting Control and Status Register
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0337e/CEGCJAHJ.html
+ * @hidden
+ */
+export const enum DhcsrMask {
+    /**
+     * Enables debug
+     */
+    C_DEBUGEN = (1 << 0),
+    /**
+     * Halts the core
+     */
+    C_HALT = (1 << 1),
+    /**
+     * Steps the core in halted debug
+     */
+    C_STEP = (1 << 2),
+    /**
+     * Mask interrupts when stepping or running in halted debug
+     */
+    C_MASKINTS = (1 << 3),
+    /**
+     * Enables Halting debug to gain control
+     */
+    C_SNAPSTALL = (1 << 5),
+    /**
+     * Register Read/Write on the Debug Core Register Selector register is available
+     */
+    S_REGRDY = (1 << 16),
+    /**
+     * The core is in debug state
+     */
+    S_HALT = (1 << 17),
+    /**
+     * Indicates that the core is sleeping
+     */
+    S_SLEEP = (1 << 18),
+    /**
+     * Core is running (not halted) and a lockup condition is present
+     */
+    S_LOCKUP = (1 << 19),
+    /**
+     * An instruction has completed since last read
+     */
+    S_RETIRE_ST = (1 << 24),
+    /**
+     * The core has been reset
+     */
+    S_RESET_ST = (1 << 25),
+    /**
+     * Debug Key
+     */
+    DBGKEY = (0xA05F << 16)
+}
+
+/**
+ * Debug Fault Status Register Mask
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0413d/Cihdifbf.html
+ * @hidden
+ */
+export const enum DfsrMask {
+    /**
+     * Halt request flag
+     */
+    HALTED = (1 << 0),
+    /**
+     * BKPT instruction or hardware breakpoint match
+     */
+    BKPT = (1 << 1),
+    /**
+     * Data Watchpoint (DW) flag
+     */
+    DWTTRAP = (1 << 2),
+    /**
+     * Vector catch occurred
+     */
+    VCATCH = (1 << 3),
+    /**
+     * External debug request (EDBGRQ) has halted the core
+     */
+    EXTERNAL = (1 << 4)
+}
+
+/**
+ * Debug Core Register Selector Register Mask
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0337e/CEGIAJBH.html
+ * @hidden
+ */
+export const enum DcrsrMask {
+    /**
+     * Register write or read, write is 1
+     */
+    REGWnR = (1 << 16),
+    /**
+     * Register select - DebugReturnAddress & PSR/Flags, Execution Number, and state information
+     */
+    REGSEL = 0x1F,
+}
+
+/**
+ * Flash Patch and Breakpoint Registers
+ * http://infocenter.arm.com/help/topic/com.arm.doc.100165_0201_00_en/ric1417175949176.html
+ * @hidden
+ */
+export const enum FpbRegister {
+    /**
+     * FlashPatch Control Register
+     */
+    FP_CTRL = 0xE0002000,
+    /**
+     * FlashPatch Remap Register
+     */
+    FP_REMAP = 0xE0002004,
+    /**
+     * FlashPatch Comparator Register0
+     */
+    FP_COMP0 = 0xE0002008,
+    /**
+     * FlashPatch Comparator Register1
+     */
+    FP_COMP1 = 0xE000200C,
+    /**
+     * FlashPatch Comparator Register2
+     */
+    FP_COMP2 = 0xE0002010,
+    /**
+     * FlashPatch Comparator Register3
+     */
+    FP_COMP3 = 0xE0002014,
+    /**
+     * FlashPatch Comparator Register4
+     */
+    FP_COMP4 = 0xE0002018,
+    /**
+     * FlashPatch Comparator Register5
+     */
+    FP_COMP5 = 0xE000201C,
+    /**
+     * FlashPatch Comparator Register6
+     */
+    FP_COMP6 = 0xE0002020,
+    /**
+     * FlashPatch Comparator Register7
+     */
+    FP_COMP7 = 0xE0002024,
+}
+
+/**
+ * Flash Patch and Breakpoint Control Register Mask
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0337e/ch11s04s01.html#BABCAFAG
+ * @hidden
+ */
+export enum FpbCtrlMask {
+    /**
+     * Flash patch unit enable
+     */
+    ENABLE = (1 << 0),
+    /**
+     * Key field which enables writing to the Flash Patch Control Register
+     */
+    KEY = (1 << 1)
 }

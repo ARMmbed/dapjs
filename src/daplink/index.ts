@@ -33,6 +33,9 @@ const SERIAL_DELAY = 200;
  */
 const PAGE_SIZE = 62;
 
+/**
+ * DapLink Class
+ */
 export class DapLink extends CmsisDap {
 
     /**
@@ -42,7 +45,7 @@ export class DapLink extends CmsisDap {
     public static EVENT_PROGRESS: string = "progress";
 
     /**
-     * Progress event
+     * Serial read event
      * @event
      */
     public static EVENT_SERIAL_DATA: string = "serial";
@@ -83,10 +86,11 @@ export class DapLink extends CmsisDap {
         });
     }
 
-    public reset(): Promise<any> {
-        return this.execute(DaplinkFlash.RESET);
-    }
-
+    /**
+     * Flash the target
+     * @param buffer The iamge to flash
+     * @returns Promise
+     */
     public flash(buffer: BufferSource): Promise<any> {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
@@ -108,11 +112,15 @@ export class DapLink extends CmsisDap {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
             // this.emit(DapLink.EVENT_PROGRESS, 1.0);
-            return this.reset();
+            return this.execute(DaplinkFlash.RESET);
         })
         .then(() => this.emit(DapLink.EVENT_PROGRESS, 1.0));
     }
 
+    /**
+     * Get the serial baud rate setting
+     * @returns Promise of baud rate
+     */
     public getSerialBaudrate(): Promise<number> {
         return this.execute(DaplinkSerial.READ_SETTINGS)
         .then(result => {
@@ -120,10 +128,18 @@ export class DapLink extends CmsisDap {
         });
     }
 
+    /**
+     * Set the serial baud rate setting
+     * @param baudrate The baudrate to use (defaults to 9600)
+     * @returns Promise
+     */
     public setSerialBaudrate(baudrate: number = 9600): Promise<any> {
         return this.execute(DaplinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
     }
 
+    /**
+     * Start listening for serial data
+     */
     public startSerialRead() {
         this.timer = setInterval(() => {
             this.execute(DaplinkSerial.READ)
@@ -139,6 +155,9 @@ export class DapLink extends CmsisDap {
         }, SERIAL_DELAY);
     }
 
+    /**
+     * Stop listening for serial data
+     */
     public stopSerialRead() {
         if (this.timer) {
             clearInterval(this.timer);
@@ -146,6 +165,11 @@ export class DapLink extends CmsisDap {
         }
     }
 
+    /**
+     * Write serial data
+     * @param data The data to write
+     * @returns Promise
+     */
     public serialWrite(data: string): Promise<any> {
         const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);

@@ -25,6 +25,9 @@ import { platform } from "os";
 import { HID as nodeHID, Device } from "node-hid";
 import { Transport } from "./";
 
+/**
+ * @hidden
+ */
 const PACKET_SIZE = 64;
 
 /**

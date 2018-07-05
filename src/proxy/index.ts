@@ -21,7 +21,29 @@
 * SOFTWARE.
 */
 
-import { DapPort, TransferOperation, TransferMode } from "./enums";
+import { DapPort, DapTransferMode } from "./enums";
+
+/**
+ * CMSIS-DAP Transfer Operation
+ */
+export interface DapOperation {
+    /**
+     * The register to use
+     */
+    register: number;
+    /**
+     * The read/write mode to use
+     */
+    mode: DapTransferMode;
+    /**
+     * The port to use (Debug/Access)
+     */
+    port: DapPort;
+    /**
+     * The (optional) value to write
+     */
+    value?: number;
+}
 
 /**
  * CMSIS Proxy interface
@@ -59,14 +81,14 @@ export interface Proxy {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    transfer(port: DapPort, mode: TransferMode, register: number, value?: number): Promise<number>;
+    transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
 
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    transfer(operations: TransferOperation[]): Promise<Uint32Array>;
+    transfer(operations: DapOperation[]): Promise<Uint32Array>;
 
     /**
      * Read a block of data from a single register
