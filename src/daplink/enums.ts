@@ -25,7 +25,7 @@
  * Vendor-specific commands for DapLink serial access
  * @hidden
  */
-export const enum DaplinkSerial {
+export const enum DAPLinkSerial {
     /**
      * Read serial settings
      */
@@ -48,7 +48,7 @@ export const enum DaplinkSerial {
  * Vendor-specific commands for DapLink mass-storage device flashing
  * @hidden
  */
-export const enum DaplinkFlash {
+export const enum DAPLinkFlash {
     /**
      * Reset the target
      */

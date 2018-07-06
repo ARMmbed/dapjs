@@ -207,7 +207,7 @@ export const enum CtrlStatMask {
  * http://infocenter.arm.com/help/topic/com.arm.doc.100165_0201_00_en/Chunk2061626261.html#ric1417175948266
  * @hidden
  */
-export const enum CswMask {
+export const enum CSWMask {
     /**
      * 8 bits
      */

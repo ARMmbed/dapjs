@@ -22,10 +22,10 @@
 */
 
 import { Transport } from "../transport";
-import { Proxy, CmsisDap, DapOperation } from "../proxy";
-import { DPRegister, APRegister, CswMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
+import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
+import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
 import { DAP } from "./";
-import { DapTransferMode, DapPort, DapConnectPort } from "../proxy/enums";
+import { DAPTransferMode, DAPPort, DAPConnectPort } from "../proxy/enums";
 
 /**
  * Arm Debug Interface class
@@ -42,29 +42,29 @@ export class ADI implements DAP {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use
      */
-    constructor(transport: Transport, mode: DapConnectPort, clockFrequency: number);
+    constructor(transport: Transport, mode: DAPConnectPort, clockFrequency: number);
     /**
      * ADI constructor
      * @param proxy Proxy to use
      */
     constructor(proxy: Proxy);
-    constructor(transportOrDap: Transport | Proxy, mode: DapConnectPort = DapConnectPort.DEFAULT, clockFrequency: number = 10000000) {
+    constructor(transportOrDap: Transport | Proxy, mode: DAPConnectPort = DAPConnectPort.DEFAULT, clockFrequency: number = 10000000) {
         function isTransport(test: Transport | Proxy): test is Transport {
             return (test as Transport).open !== undefined;
         }
 
-        this.proxy = isTransport(transportOrDap) ? new CmsisDap(transportOrDap, mode, clockFrequency) : transportOrDap;
+        this.proxy = isTransport(transportOrDap) ? new CmsisDAP(transportOrDap, mode, clockFrequency) : transportOrDap;
     }
 
-    protected readDPCommand(register: number): DapOperation[] {
+    protected readDPCommand(register: number): DAPOperation[] {
         return [{
-            mode: DapTransferMode.READ,
-            port: DapPort.DEBUG,
+            mode: DAPTransferMode.READ,
+            port: DAPPort.DEBUG,
             register
         }];
     }
 
-    protected writeDPCommand(register: number, value: number): DapOperation[] {
+    protected writeDPCommand(register: number, value: number): DAPOperation[] {
         if (register === DPRegister.SELECT) {
             if (value === this.selectedAddress) {
                 return [];
@@ -73,24 +73,24 @@ export class ADI implements DAP {
         }
 
         return [{
-            mode: DapTransferMode.WRITE,
-            port: DapPort.DEBUG,
+            mode: DAPTransferMode.WRITE,
+            port: DAPPort.DEBUG,
             register,
             value
         }];
     }
 
-    protected readAPCommand(register: number): DapOperation[] {
+    protected readAPCommand(register: number): DAPOperation[] {
         const address = (register & BankSelectMask.APSEL) | (register & BankSelectMask.APBANKSEL);
 
         return this.writeDPCommand(DPRegister.SELECT, address).concat({
-            mode: DapTransferMode.READ,
-            port: DapPort.ACCESS,
+            mode: DAPTransferMode.READ,
+            port: DAPPort.ACCESS,
             register
         });
     }
 
-    protected writeAPCommand(register: number, value: number): DapOperation[] {
+    protected writeAPCommand(register: number, value: number): DAPOperation[] {
         if (register === APRegister.CSW) {
             if (value === this.cswValue) {
                 return [];
@@ -101,38 +101,38 @@ export class ADI implements DAP {
         const address = (register & BankSelectMask.APSEL) | (register & BankSelectMask.APBANKSEL);
 
         return this.writeDPCommand(DPRegister.SELECT, address).concat({
-            mode: DapTransferMode.WRITE,
-            port: DapPort.ACCESS,
+            mode: DAPTransferMode.WRITE,
+            port: DAPPort.ACCESS,
             register,
             value
         });
     }
 
-    protected readMem16Command(register: number): DapOperation[] {
-        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_16)
+    protected readMem16Command(register: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_16)
         .concat(this.writeAPCommand(APRegister.TAR, register))
         .concat(this.readAPCommand(APRegister.DRW));
     }
 
-    protected writeMem16Command(register: number, value: number): DapOperation[] {
-        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_16)
+    protected writeMem16Command(register: number, value: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_16)
         .concat(this.writeAPCommand(APRegister.TAR, register))
         .concat(this.writeAPCommand(APRegister.DRW, value));
     }
 
-    protected readMem32Command(register: number): DapOperation[] {
-        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32)
+    protected readMem32Command(register: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32)
         .concat(this.writeAPCommand(APRegister.TAR, register))
         .concat(this.readAPCommand(APRegister.DRW));
     }
 
-    protected writeMem32Command(register: number, value: number): DapOperation[] {
-        return this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32)
+    protected writeMem32Command(register: number, value: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32)
         .concat(this.writeAPCommand(APRegister.TAR, register))
         .concat(this.writeAPCommand(APRegister.DRW, value as number));
     }
 
-    protected transferSequence(operations: DapOperation[][]): Promise<Uint32Array> {
+    protected transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
         const merged = [].concat(...operations);
         return this.proxy.transfer(merged);
     }
@@ -191,14 +191,14 @@ export class ADI implements DAP {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
+    public transfer(port: DAPPort, mode: DAPTransferMode, register: number, value?: number): Promise<number>;
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    public transfer(operations: DapOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DapPort | DapOperation[], mode?: DapTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
+    public transfer(operations: DAPOperation[]): Promise<Uint32Array>;
+    public transfer(portOrOps: DAPPort | DAPOperation[], mode?: DAPTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
         return (typeof portOrOps === "number") ? this.proxy.transfer(portOrOps, mode, register, value) : this.proxy.transfer(portOrOps);
     }
 
@@ -208,7 +208,7 @@ export class ADI implements DAP {
      * @param register The register to use
      * @returns Promise of values read
      */
-    public transferBlock(port: DapPort, register: number, count: number): Promise<Uint32Array>;
+    public transferBlock(port: DAPPort, register: number, count: number): Promise<Uint32Array>;
     /**
      * Write a block of data to a single register
      * @param port Port type (debug port or access port)
@@ -216,8 +216,8 @@ export class ADI implements DAP {
      * @param values The values to write
      * @returns Promise
      */
-    public transferBlock(port: DapPort, register: number, values: Uint32Array): Promise<void>;
-    public transferBlock(port: DapPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
+    public transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
+    public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
         return (typeof countOrValues === "number") ? this.proxy.transferBlock(port, register, countOrValues) : this.proxy.transferBlock(port, register, countOrValues);
     }
 
@@ -315,10 +315,10 @@ export class ADI implements DAP {
      */
     public readBlock(register: number, count: number): Promise<Uint32Array> {
         return this.transferSequence([
-            this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32),
+            this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DapPort.ACCESS, APRegister.DRW, count))
+        .then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, count))
         .then(() => undefined);
     }
 
@@ -330,10 +330,10 @@ export class ADI implements DAP {
      */
     public writeBlock(register: number, values: Uint32Array): Promise<void> {
         return this.transferSequence([
-            this.writeAPCommand(APRegister.CSW, CswMask.VALUE | CswMask.SIZE_32),
+            this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DapPort.ACCESS, APRegister.DRW, values))
+        .then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, values))
         .then(() => undefined);
     }
 }

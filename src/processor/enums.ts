@@ -244,7 +244,7 @@ export const enum DcrsrMask {
  * http://infocenter.arm.com/help/topic/com.arm.doc.100165_0201_00_en/ric1417175949176.html
  * @hidden
  */
-export const enum FpbRegister {
+export const enum FPBRegister {
     /**
      * FlashPatch Control Register
      */
@@ -292,7 +292,7 @@ export const enum FpbRegister {
  * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0337e/ch11s04s01.html#BABCAFAG
  * @hidden
  */
-export enum FpbCtrlMask {
+export enum FPBCtrlMask {
     /**
      * Flash patch unit enable
      */

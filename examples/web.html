@@ -141,9 +141,9 @@
             if (!buffer) return;
 
             const transport = new DAPjs.WebUSB(device);
-            const target = new DAPjs.DapLink(transport);
+            const target = new DAPjs.DAPLink(transport);
 
-            target.on(DAPjs.DapLink.EVENT_PROGRESS, progress => {
+            target.on(DAPjs.DAPLink.EVENT_PROGRESS, progress => {
                 setTransfer(progress);
             });
 

@@ -24,23 +24,23 @@
 import { EventEmitter } from "events";
 import { Transport } from "../transport";
 import {
-    DapPort,
-    DapTransferMode,
-    DapConnectPort,
-    DapCommand,
-    DapConnectResponse,
-    DapResponse,
-    DapInfoRequest,
-    DapResetTargeResponse,
-    DapTransferResponse
+    DAPPort,
+    DAPTransferMode,
+    DAPConnectPort,
+    DAPCommand,
+    DAPConnectResponse,
+    DAPResponse,
+    DAPInfoRequest,
+    DAPResetTargeResponse,
+    DAPTransferResponse
 } from "./enums";
-import { Proxy, DapOperation } from "./";
+import { Proxy, DAPOperation } from "./";
 
 /**
  * CMSIS-DAP class
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
  */
-export class CmsisDap extends EventEmitter implements Proxy {
+export class CmsisDAP extends EventEmitter implements Proxy {
 
     /**
      * CMSIS-DAP constructor
@@ -48,7 +48,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use
      */
-    constructor(private transport: Transport, private mode: DapConnectPort = DapConnectPort.DEFAULT, private clockFrequency: number = 10000000) {
+    constructor(private transport: Transport, private mode: DAPConnectPort = DAPConnectPort.DEFAULT, private clockFrequency: number = 10000000) {
         super();
     }
 
@@ -87,7 +87,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
 
         return commands.reduce((chain, command) => {
             return chain
-            .then(() => this.execute(DapCommand.DAP_SWJ_SEQUENCE, command));
+            .then(() => this.execute(DAPCommand.DAP_SWJ_SEQUENCE, command));
         }, Promise.resolve(null));
     }
 
@@ -109,21 +109,21 @@ export class CmsisDap extends EventEmitter implements Proxy {
             }
 
             switch (command) {
-                case DapCommand.DAP_DISCONNECT:
-                case DapCommand.DAP_WRITE_ABORT:
-                case DapCommand.DAP_DELAY:
-                case DapCommand.DAP_RESET_TARGET:
-                case DapCommand.DAP_SWJ_CLOCK:
-                case DapCommand.DAP_SWJ_SEQUENCE:
-                case DapCommand.DAP_SWD_CONFIGURE:
-                case DapCommand.DAP_SWD_SEQUENCE:
-                case DapCommand.DAP_SWO_TRANSPORT:
-                case DapCommand.DAP_SWO_MODE:
-                case DapCommand.DAP_SWO_CONTROL:
-                case DapCommand.DAP_JTAG_CONFIGURE:
-                case DapCommand.DAP_JTAG_ID_CODE:
-                case DapCommand.DAP_TRANSFER_CONFIGURE:
-                    if (response.getUint8(1) !== DapResponse.DAP_OK) {
+                case DAPCommand.DAP_DISCONNECT:
+                case DAPCommand.DAP_WRITE_ABORT:
+                case DAPCommand.DAP_DELAY:
+                case DAPCommand.DAP_RESET_TARGET:
+                case DAPCommand.DAP_SWJ_CLOCK:
+                case DAPCommand.DAP_SWJ_SEQUENCE:
+                case DAPCommand.DAP_SWD_CONFIGURE:
+                case DAPCommand.DAP_SWD_SEQUENCE:
+                case DAPCommand.DAP_SWO_TRANSPORT:
+                case DAPCommand.DAP_SWO_MODE:
+                case DAPCommand.DAP_SWO_CONTROL:
+                case DAPCommand.DAP_JTAG_CONFIGURE:
+                case DAPCommand.DAP_JTAG_ID_CODE:
+                case DAPCommand.DAP_TRANSFER_CONFIGURE:
+                    if (response.getUint8(1) !== DAPResponse.DAP_OK) {
                         throw new Error(`Bad status for ${command} -> ${response.getUint8(1)}`);
                     }
             }
@@ -138,15 +138,15 @@ export class CmsisDap extends EventEmitter implements Proxy {
      */
     public connect(): Promise<void> {
         return this.transport.open()
-        .then(() => this.execute(DapCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
-        .then(() => this.execute(DapCommand.DAP_CONNECT, new Uint8Array([this.mode])))
+        .then(() => this.execute(DAPCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
+        .then(() => this.execute(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode])))
         .then(result => {
-            if (result.getUint8(1) === DapConnectResponse.FAILED || this.mode !== DapConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
+            if (result.getUint8(1) === DAPConnectResponse.FAILED || this.mode !== DAPConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
                 throw new Error("Mode not enabled.");
             }
         })
-        .then(() => this.execute(DapCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
-        .then(() => this.execute(DapCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
+        .then(() => this.execute(DAPCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
+        .then(() => this.execute(DAPCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
         .then(() => this.jtagToSwd());
     }
 
@@ -155,7 +155,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @returns Promise
      */
     public disconnect(): Promise<void> {
-        return this.execute(DapCommand.DAP_DISCONNECT)
+        return this.execute(DAPCommand.DAP_DISCONNECT)
         .then(() => {
             return this.transport.close();
         });
@@ -176,8 +176,8 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @returns Promise of whether a device specific reset sequence is implemented
      */
     public reset(): Promise<boolean> {
-        return this.execute(DapCommand.DAP_RESET_TARGET)
-        .then(response => response.getUint8(2) === DapResetTargeResponse.RESET_SEQUENCE);
+        return this.execute(DAPCommand.DAP_RESET_TARGET)
+        .then(response => response.getUint8(2) === DAPResetTargeResponse.RESET_SEQUENCE);
     }
 
     /**
@@ -185,8 +185,8 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param request Type of information to get
      * @returns Promise of DataView
      */
-    public dapInfo(request: DapInfoRequest): Promise<number | string> {
-        return this.execute(DapCommand.DAP_INFO, new Uint8Array([request]))
+    public dapInfo(request: DAPInfoRequest): Promise<number | string> {
+        return this.execute(DAPCommand.DAP_INFO, new Uint8Array([request]))
         .then(result => {
             const length = result.getUint8(1);
 
@@ -195,10 +195,10 @@ export class CmsisDap extends EventEmitter implements Proxy {
             }
 
             switch (request) {
-                case DapInfoRequest.CAPABILITIES:
-                case DapInfoRequest.PACKET_COUNT:
-                case DapInfoRequest.PACKET_SIZE:
-                case DapInfoRequest.SWO_TRACE_BUFFER_SIZE:
+                case DAPInfoRequest.CAPABILITIES:
+                case DAPInfoRequest.PACKET_COUNT:
+                case DAPInfoRequest.PACKET_SIZE:
+                case DAPInfoRequest.SWO_TRACE_BUFFER_SIZE:
                     // Byte
                     if (length === 1) return result.getUint8(2);
 
@@ -222,16 +222,16 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    public transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
+    public transfer(port: DAPPort, mode: DAPTransferMode, register: number, value?: number): Promise<number>;
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    public transfer(operations: DapOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DapPort | DapOperation[], mode?: DapTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
+    public transfer(operations: DAPOperation[]): Promise<Uint32Array>;
+    public transfer(portOrOps: DAPPort | DAPOperation[], mode?: DAPTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
 
-        let operations: DapOperation[];
+        let operations: DAPOperation[];
 
         if (typeof portOrOps === "number") {
             operations = [{
@@ -263,7 +263,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
             view.setUint32(offset + 1, operation.value, true);
         });
 
-        return this.execute(DapCommand.DAP_TRANSFER, data)
+        return this.execute(DAPCommand.DAP_TRANSFER, data)
         .then(result => {
 
             // Transfer count
@@ -273,19 +273,19 @@ export class CmsisDap extends EventEmitter implements Proxy {
 
             // Transfer response
             const response = result.getUint8(2);
-            if (response === DapTransferResponse.WAIT) {
+            if (response === DAPTransferResponse.WAIT) {
                 throw new Error("Transfer response WAIT");
             }
-            if (response === DapTransferResponse.FAULT) {
+            if (response === DAPTransferResponse.FAULT) {
                 throw new Error("Transfer response FAULT");
             }
-            if (response === DapTransferResponse.PROTOCOL_ERROR) {
+            if (response === DAPTransferResponse.PROTOCOL_ERROR) {
                 throw new Error("Transfer response PROTOCOL_ERROR");
             }
-            if (response === DapTransferResponse.VALUE_MISMATCH) {
+            if (response === DAPTransferResponse.VALUE_MISMATCH) {
                 throw new Error("Transfer response VALUE_MISMATCH");
             }
-            if (response === DapTransferResponse.NO_ACK) {
+            if (response === DAPTransferResponse.NO_ACK) {
                 throw new Error("Transfer response NO_ACK");
             }
 
@@ -304,7 +304,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param register The register to use
      * @returns Promise of values read
      */
-    public transferBlock(port: DapPort, register: number, count: number): Promise<Uint32Array>;
+    public transferBlock(port: DAPPort, register: number, count: number): Promise<Uint32Array>;
     /**
      * Write a block of data to a single register
      * @param port Port type (debug port or access port)
@@ -312,19 +312,19 @@ export class CmsisDap extends EventEmitter implements Proxy {
      * @param values The values to write
      * @returns Promise
      */
-    public transferBlock(port: DapPort, register: number, values: Uint32Array): Promise<void>;
-    public transferBlock(port: DapPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
+    public transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
+    public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
 
         let operationCount: number;
         let headerSize = 4;
-        let mode: DapTransferMode;
+        let mode: DAPTransferMode;
 
         if (typeof countOrValues === "number") {
             operationCount = countOrValues;
-            mode = DapTransferMode.READ;
+            mode = DAPTransferMode.READ;
         } else {
             operationCount = countOrValues.length;
-            mode = DapTransferMode.WRITE;
+            mode = DAPTransferMode.WRITE;
             headerSize += countOrValues.byteLength;
         }
 
@@ -343,7 +343,7 @@ export class CmsisDap extends EventEmitter implements Proxy {
             data.set(countOrValues, 4);
         }
 
-        return this.execute(DapCommand.DAP_TRANSFER_BLOCK, view)
+        return this.execute(DAPCommand.DAP_TRANSFER_BLOCK, view)
         .then(result => {
 
             // Transfer count
@@ -353,16 +353,16 @@ export class CmsisDap extends EventEmitter implements Proxy {
 
             // Transfer response
             const response = result.getUint8(3);
-            if (response & DapTransferResponse.WAIT) {
+            if (response & DAPTransferResponse.WAIT) {
                 throw new Error("Transfer response WAIT");
             }
-            if (response & DapTransferResponse.FAULT) {
+            if (response & DAPTransferResponse.FAULT) {
                 throw new Error("Transfer response FAULT");
             }
-            if (response & DapTransferResponse.PROTOCOL_ERROR) {
+            if (response & DAPTransferResponse.PROTOCOL_ERROR) {
                 throw new Error("Transfer response PROTOCOL_ERROR");
             }
-            if (response & DapTransferResponse.NO_ACK) {
+            if (response & DAPTransferResponse.NO_ACK) {
                 throw new Error("Transfer response NO_ACK");
             }
 

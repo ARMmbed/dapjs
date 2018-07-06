@@ -24,7 +24,7 @@
 /**
  * DAP Ports
  */
-export const enum DapPort {
+export const enum DAPPort {
     /**
      * Debug Port (DP)
      */
@@ -38,7 +38,7 @@ export const enum DapPort {
 /**
  * DAP Register Transfer Modes
  */
-export const enum DapTransferMode {
+export const enum DAPTransferMode {
     /**
      * Write
      */
@@ -53,7 +53,7 @@ export const enum DapTransferMode {
  * CMSIS-DAP Commands
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__genCommands__gr.html
  */
-export const enum DapCommand {
+export const enum DAPCommand {
     /**
      * Get Information about CMSIS-DAP Debug Unit
      */
@@ -172,7 +172,7 @@ export const enum DapCommand {
  * CMSIS-DAP Command Response
  * @hidden
  */
-export const enum DapResponse {
+export const enum DAPResponse {
     /**
      * This is fine
      */
@@ -187,7 +187,7 @@ export const enum DapResponse {
  * Get Information about CMSIS-DAP Debug Unit
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Info.html
  */
-export const enum DapInfoRequest {
+export const enum DAPInfoRequest {
     /**
      * Get the Vendor ID (string)
      */
@@ -239,7 +239,7 @@ export const enum DapInfoRequest {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__HostStatus.html
  * @hidden
  */
-export const enum DapHostStatusType {
+export const enum DAPHostStatusType {
     /**
      *  Connect: Status indicates that the debugger is connected to the Debug Unit
      */
@@ -255,7 +255,7 @@ export const enum DapHostStatusType {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__HostStatus.html
  * @hidden
  */
-export const enum DapHostStatusResponse {
+export const enum DAPHostStatusResponse {
     /**
      * False: may be used to turn off a status LED (Connect or Running) on the Debug Unit
      */
@@ -270,7 +270,7 @@ export const enum DapHostStatusResponse {
  * CMSIS-DAP Connect Port
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Connect.html
  */
-export const enum DapConnectPort {
+export const enum DAPConnectPort {
     /**
      * Default mode: configuration of the DAP port mode is derived from DAP_DEFAULT_PORT
      */
@@ -290,7 +290,7 @@ export const enum DapConnectPort {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Connect.html
  * @hidden
  */
-export const enum DapConnectResponse {
+export const enum DAPConnectResponse {
     /**
      * Initialization failed; no mode pre-configured
      */
@@ -310,7 +310,7 @@ export const enum DapConnectResponse {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__ResetTarget.html
  * @hidden
  */
-export const enum DapResetTargeResponse {
+export const enum DAPResetTargeResponse {
     /**
      * No device specific reset sequence is implemented
      */
@@ -326,7 +326,7 @@ export const enum DapResetTargeResponse {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWO__Transport.html
  * @hidden
  */
-export const enum DapSwoTransport {
+export const enum DAPSWOTransport {
     /**
      * None (default)
      */
@@ -346,7 +346,7 @@ export const enum DapSwoTransport {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWO__Mode.html
  * @hidden
  */
-export const enum DapSwoMode {
+export const enum DAPSWOMode {
     /**
      * Off (default)
      */
@@ -366,7 +366,7 @@ export const enum DapSwoMode {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWO__Control.html
  * @hidden
  */
-export const enum DapSwoControl {
+export const enum DAPSWOControl {
     /**
      * Stop
      */
@@ -382,7 +382,7 @@ export const enum DapSwoControl {
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Transfer.html
  * @hidden
  */
-export const enum DapTransferResponse {
+export const enum DAPTransferResponse {
     /**
      * OK (for SWD protocol), OK or FAULT (for JTAG protocol)
      */

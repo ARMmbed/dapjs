@@ -21,8 +21,8 @@
 * SOFTWARE.
 */
 
-import { CmsisDap } from "../proxy";
-import { DaplinkFlash, DaplinkSerial } from "./enums";
+import { CmsisDAP } from "../proxy";
+import { DAPLinkFlash, DAPLinkSerial } from "./enums";
 
 /**
  * @hidden
@@ -34,9 +34,9 @@ const SERIAL_DELAY = 200;
 const PAGE_SIZE = 62;
 
 /**
- * DapLink Class
+ * DAPLink Class
  */
-export class DapLink extends CmsisDap {
+export class DAPLink extends CmsisDAP {
 
     /**
      * Progress event
@@ -77,9 +77,9 @@ export class DapLink extends CmsisDap {
         data.set([page.byteLength]);
         data.set(new Uint8Array(page), 1);
 
-        return this.execute(DaplinkFlash.WRITE, data)
+        return this.execute(DAPLinkFlash.WRITE, data)
         .then(() => {
-            this.emit(DapLink.EVENT_PROGRESS, offset / buffer.byteLength);
+            this.emit(DAPLink.EVENT_PROGRESS, offset / buffer.byteLength);
             if (end < buffer.byteLength) {
                 return this.writeBuffer(buffer, end);
             }
@@ -99,22 +99,22 @@ export class DapLink extends CmsisDap {
         const arrayBuffer = isView(buffer) ? buffer.buffer : buffer;
         const streamType = this.isBufferBinary(arrayBuffer) ? 0 : 1;
 
-        return this.execute(DaplinkFlash.OPEN, new Uint32Array([streamType]))
+        return this.execute(DAPLinkFlash.OPEN, new Uint32Array([streamType]))
         .then(result => {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
             return this.writeBuffer(arrayBuffer);
         })
         .then(() => {
-            return this.execute(DaplinkFlash.CLOSE);
+            return this.execute(DAPLinkFlash.CLOSE);
         })
         .then(result => {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
             // this.emit(DapLink.EVENT_PROGRESS, 1.0);
-            return this.execute(DaplinkFlash.RESET);
+            return this.execute(DAPLinkFlash.RESET);
         })
-        .then(() => this.emit(DapLink.EVENT_PROGRESS, 1.0));
+        .then(() => this.emit(DAPLink.EVENT_PROGRESS, 1.0));
     }
 
     /**
@@ -122,7 +122,7 @@ export class DapLink extends CmsisDap {
      * @returns Promise of baud rate
      */
     public getSerialBaudrate(): Promise<number> {
-        return this.execute(DaplinkSerial.READ_SETTINGS)
+        return this.execute(DAPLinkSerial.READ_SETTINGS)
         .then(result => {
             return result.getUint32(1, true);
         });
@@ -134,7 +134,7 @@ export class DapLink extends CmsisDap {
      * @returns Promise
      */
     public setSerialBaudrate(baudrate: number = 9600): Promise<any> {
-        return this.execute(DaplinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
+        return this.execute(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
     }
 
     /**
@@ -142,13 +142,13 @@ export class DapLink extends CmsisDap {
      */
     public startSerialRead() {
         this.timer = setInterval(() => {
-            return this.execute(DaplinkSerial.READ)
+            return this.execute(DAPLinkSerial.READ)
             .then(serialData => {
                 if (serialData.byteLength > 0) {
                     // check if there is any data returned from the device
                     if (serialData.getUint8(1) !== 0) {
                         const data = String.fromCharCode.apply(null, new Uint8Array(serialData.buffer.slice(1)));
-                        this.emit(DapLink.EVENT_SERIAL_DATA, data);
+                        this.emit(DAPLink.EVENT_SERIAL_DATA, data);
                     }
                 }
             });
@@ -173,6 +173,6 @@ export class DapLink extends CmsisDap {
     public serialWrite(data: string): Promise<any> {
         const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);
-        return this.execute(DaplinkSerial.WRITE, new Uint16Array(arrayData).buffer);
+        return this.execute(DAPLinkSerial.WRITE, new Uint16Array(arrayData).buffer);
     }
 }

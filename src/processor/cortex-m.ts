@@ -28,8 +28,8 @@ import {
     DhcsrMask,
     DfsrMask,
     DcrsrMask,
-    FpbRegister,
-    FpbCtrlMask
+    FPBRegister,
+    FPBCtrlMask
 } from "./enums";
 import { Processor } from "./";
 
@@ -74,7 +74,7 @@ export class CortexM extends ADI implements Processor {
      * @returns Promise
      */
     public enableFPB() {
-        return this.writeMem32(FpbRegister.FP_CTRL, FpbCtrlMask.KEY | FpbCtrlMask.ENABLE);
+        return this.writeMem32(FPBRegister.FP_CTRL, FPBCtrlMask.KEY | FPBCtrlMask.ENABLE);
     }
 
     /**
@@ -82,7 +82,7 @@ export class CortexM extends ADI implements Processor {
      * @returns Promise
      */
     public disableFPB() {
-        return this.writeMem32(FpbRegister.FP_CTRL, FpbCtrlMask.KEY | 0);
+        return this.writeMem32(FPBRegister.FP_CTRL, FPBCtrlMask.KEY | 0);
     }
 
     /**

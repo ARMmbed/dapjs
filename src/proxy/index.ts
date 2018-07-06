@@ -21,12 +21,12 @@
 * SOFTWARE.
 */
 
-import { DapPort, DapTransferMode } from "./enums";
+import { DAPPort, DAPTransferMode } from "./enums";
 
 /**
  * CMSIS-DAP Transfer Operation
  */
-export interface DapOperation {
+export interface DAPOperation {
     /**
      * The register to use
      */
@@ -34,11 +34,11 @@ export interface DapOperation {
     /**
      * The read/write mode to use
      */
-    mode: DapTransferMode;
+    mode: DAPTransferMode;
     /**
      * The port to use (Debug/Access)
      */
-    port: DapPort;
+    port: DAPPort;
     /**
      * The (optional) value to write
      */
@@ -81,14 +81,14 @@ export interface Proxy {
      * @param value Any value to write
      * @returns Promise of any value read
      */
-    transfer(port: DapPort, mode: DapTransferMode, register: number, value?: number): Promise<number>;
+    transfer(port: DAPPort, mode: DAPTransferMode, register: number, value?: number): Promise<number>;
 
     /**
      * Transfer data with multiple read or write operations
      * @param operations The operations to use
      * @returns Promise of any values read
      */
-    transfer(operations: DapOperation[]): Promise<Uint32Array>;
+    transfer(operations: DAPOperation[]): Promise<Uint32Array>;
 
     /**
      * Read a block of data from a single register
@@ -96,7 +96,7 @@ export interface Proxy {
      * @param register The register to use
      * @returns Promise of values read
      */
-    transferBlock(port: DapPort, register: number, count: number): Promise<Uint32Array>;
+    transferBlock(port: DAPPort, register: number, count: number): Promise<Uint32Array>;
 
     /**
      * Write a block of data to a single register
@@ -105,7 +105,7 @@ export interface Proxy {
      * @param values The values to write
      * @returns Promise
      */
-    transferBlock(port: DapPort, register: number, values: Uint32Array): Promise<void>;
+    transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
 }
 
-export { CmsisDap } from "./cmsis-dap";
+export { CmsisDAP } from "./cmsis-dap";
