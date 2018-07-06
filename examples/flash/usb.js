@@ -76,7 +76,7 @@ function selectDevice(vendorID) {
 
 common.getFile()
 .then(program => {
-    return selectDevice(0x0d28)
+    return selectDevice(0xD28)
     .then(device => {
         const transport = new DAPjs.USB(device);
         return common.flash(transport, program);

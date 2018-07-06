@@ -74,7 +74,7 @@ function selectDevice(vendorID) {
     });
 }
 
-selectDevice(0x0d28)
+selectDevice(0xD28)
 .then(device => {
     const transport = new DAPjs.USB(device);
     return common.listen(transport);

@@ -52,7 +52,7 @@ let usb = new USB({
 });
 
 usb.requestDevice({
-    filters: [{vendorId: 0x0d28}]
+    filters: [{vendorId: 0xD28}]
 })
 .then(device => {
     const transport = new DAPjs.WebUSB(device);

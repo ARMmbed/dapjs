@@ -127,7 +127,7 @@
             setTransfer();
 
             navigator.usb.requestDevice({
-                filters: [{vendorId: 0x0d28}]
+                filters: [{vendorId: 0xD28}]
             })
             .then(device => update(device))
             .catch(error => {

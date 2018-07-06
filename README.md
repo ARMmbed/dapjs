@@ -58,7 +58,7 @@ https://armmbed.github.io/dapjs/
 
 ```javascript
 device = await navigator.usb.requestDevice({
-    filters: [{vendorId: 0x0d28}]
+    filters: [{vendorId: 0xD28}]
 });
 
 this.deviceCode = device.serialNumber.slice(0, 4);
