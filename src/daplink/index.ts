@@ -92,7 +92,7 @@ export class DAPLink extends CmsisDAP {
 
     /**
      * Flash the target
-     * @param buffer The iamge to flash
+     * @param buffer The image to flash
      * @returns Promise
      */
     public flash(buffer: BufferSource): Promise<any> {
