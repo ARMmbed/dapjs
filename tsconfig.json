@@ -11,7 +11,7 @@
         "noEmitOnError": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        // "noImplicitAny": true,
+        "noImplicitAny": true,
         "sourceMap": true,
         "declaration": true
     }

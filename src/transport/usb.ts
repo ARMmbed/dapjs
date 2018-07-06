@@ -117,7 +117,7 @@ export class USB implements Transport {
                 }
 
                 // tslint:disable-next-line:no-string-literal
-                this.interfaceNumber = interfaces[0]["interfaceNumber"];
+                this.interfaceNumber = interfaces[0].interfaceNumber;
                 resolve();
             });
         });
