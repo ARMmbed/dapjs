@@ -37,6 +37,11 @@ import {
 import { Proxy, DAPOperation } from "./";
 
 /**
+ * @hidden
+ */
+export const DEFAULT_CLOCK_FREQUENCY = 10000000;
+
+/**
  * CMSIS-DAP class
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
  */
@@ -46,9 +51,9 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * CMSIS-DAP constructor
      * @param transport Debug transport to use
      * @param mode Debug mode to use
-     * @param clockFrequency Communication clock frequency to use
+     * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
-    constructor(private transport: Transport, private mode: DAPConnectPort = DAPConnectPort.DEFAULT, private clockFrequency: number = 10000000) {
+    constructor(private transport: Transport, private mode: DAPConnectPort = DAPConnectPort.DEFAULT, private clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super();
     }
 

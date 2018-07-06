@@ -26,6 +26,7 @@ import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
 import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
 import { DAP } from "./";
 import { DAPTransferMode, DAPPort, DAPConnectPort } from "../proxy/enums";
+import { DEFAULT_CLOCK_FREQUENCY } from "../proxy/cmsis-dap";
 
 /**
  * Arm Debug Interface class
@@ -40,7 +41,7 @@ export class ADI implements DAP {
      * ADI constructor
      * @param transport Debug transport to use
      * @param mode Debug mode to use
-     * @param clockFrequency Communication clock frequency to use
+     * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
     constructor(transport: Transport, mode: DAPConnectPort, clockFrequency: number);
     /**
@@ -48,7 +49,7 @@ export class ADI implements DAP {
      * @param proxy Proxy to use
      */
     constructor(proxy: Proxy);
-    constructor(transportOrDap: Transport | Proxy, mode: DAPConnectPort = DAPConnectPort.DEFAULT, clockFrequency: number = 10000000) {
+    constructor(transportOrDap: Transport | Proxy, mode: DAPConnectPort = DAPConnectPort.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         function isTransport(test: Transport | Proxy): test is Transport {
             return (test as Transport).open !== undefined;
         }
