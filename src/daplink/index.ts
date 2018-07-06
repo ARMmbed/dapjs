@@ -27,6 +27,10 @@ import { DAPLinkFlash, DAPLinkSerial } from "./enums";
 /**
  * @hidden
  */
+const DEFAULT_BAUDRATE = 9600;
+/**
+ * @hidden
+ */
 const SERIAL_DELAY = 200;
 /**
  * @hidden
@@ -133,7 +137,7 @@ export class DAPLink extends CmsisDAP {
      * @param baudrate The baudrate to use (defaults to 9600)
      * @returns Promise
      */
-    public setSerialBaudrate(baudrate: number = 9600): Promise<any> {
+    public setSerialBaudrate(baudrate: number = DEFAULT_BAUDRATE): Promise<any> {
         return this.execute(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
     }
 
