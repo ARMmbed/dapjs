@@ -33,6 +33,10 @@ import { Transport } from "./";
 /**
  * @hidden
  */
+const DEFAULT_CONFIGURATION = 1;
+/**
+ * @hidden
+ */
 const DEFAULT_CLASS = 0xFF;
 /**
  * @hidden
@@ -68,7 +72,7 @@ export class USB implements Transport {
      * @param device USB device to use
      * @param interfaceClass Optional interface class to use
      */
-    constructor(private device: Device, private interfaceClass = DEFAULT_CLASS) {
+    constructor(private device: Device, private configuration = DEFAULT_CONFIGURATION, private interfaceClass = DEFAULT_CLASS) {
     }
 
     private bufferToDataView(buffer: Buffer): DataView {
@@ -106,7 +110,7 @@ export class USB implements Transport {
     public open(): Promise<void> {
         return new Promise((resolve, reject) => {
             this.device.open();
-            this.device.setConfiguration(1, error => {
+            this.device.setConfiguration(this.configuration, error => {
                 if (error) return reject(error);
                 const interfaces = this.device.interfaces.filter(iface => {
                     return iface.descriptor.bInterfaceClass === this.interfaceClass;
@@ -116,7 +120,6 @@ export class USB implements Transport {
                     throw new Error("No HID interfaces found.");
                 }
 
-                // tslint:disable-next-line:no-string-literal
                 this.interfaceNumber = interfaces[0].interfaceNumber;
                 resolve();
             });
