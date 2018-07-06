@@ -92,17 +92,17 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
         return commands.reduce((chain, command) => {
             return chain
-            .then(() => this.execute(DAPCommand.DAP_SWJ_SEQUENCE, command));
+            .then(() => this.send(DAPCommand.DAP_SWJ_SEQUENCE, command));
         }, Promise.resolve(null));
     }
 
     /**
-     * Execute a command
-     * @param command Command to execute
+     * Send a command
+     * @param command Command to send
      * @param data Data to use
      * @returns Promise of DataView
      */
-    protected execute(command: number, data?: BufferSource): Promise<DataView> {
+    protected send(command: number, data?: BufferSource): Promise<DataView> {
 
         const array = this.bufferSourceToUint8Array(command, data);
 
@@ -143,15 +143,15 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     public connect(): Promise<void> {
         return this.transport.open()
-        .then(() => this.execute(DAPCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
-        .then(() => this.execute(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode])))
+        .then(() => this.send(DAPCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
+        .then(() => this.send(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode])))
         .then(result => {
             if (result.getUint8(1) === DAPConnectResponse.FAILED || this.mode !== DAPConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
                 throw new Error("Mode not enabled.");
             }
         })
-        .then(() => this.execute(DAPCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
-        .then(() => this.execute(DAPCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
+        .then(() => this.send(DAPCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
+        .then(() => this.send(DAPCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
         .then(() => this.jtagToSwd());
     }
 
@@ -160,7 +160,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise
      */
     public disconnect(): Promise<void> {
-        return this.execute(DAPCommand.DAP_DISCONNECT)
+        return this.send(DAPCommand.DAP_DISCONNECT)
         .then(() => {
             return this.transport.close();
         });
@@ -181,7 +181,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise of whether a device specific reset sequence is implemented
      */
     public reset(): Promise<boolean> {
-        return this.execute(DAPCommand.DAP_RESET_TARGET)
+        return this.send(DAPCommand.DAP_RESET_TARGET)
         .then(response => response.getUint8(2) === DAPResetTargeResponse.RESET_SEQUENCE);
     }
 
@@ -191,7 +191,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise of DataView
      */
     public dapInfo(request: DAPInfoRequest): Promise<number | string> {
-        return this.execute(DAPCommand.DAP_INFO, new Uint8Array([request]))
+        return this.send(DAPCommand.DAP_INFO, new Uint8Array([request]))
         .then(result => {
             const length = result.getUint8(1);
 
@@ -268,7 +268,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             view.setUint32(offset + 1, operation.value, true);
         });
 
-        return this.execute(DAPCommand.DAP_TRANSFER, data)
+        return this.send(DAPCommand.DAP_TRANSFER, data)
         .then(result => {
 
             // Transfer count
@@ -348,7 +348,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             data.set(countOrValues, 4);
         }
 
-        return this.execute(DAPCommand.DAP_TRANSFER_BLOCK, view)
+        return this.send(DAPCommand.DAP_TRANSFER_BLOCK, view)
         .then(result => {
 
             // Transfer count
