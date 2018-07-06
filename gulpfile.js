@@ -1,14 +1,15 @@
-const path        = require("path");
-const browserify  = require("browserify");
-const del         = require("del");
-const merge       = require("merge2");
-const buffer      = require("vinyl-buffer");
-const source      = require("vinyl-source-stream");
-const gulp        = require("gulp");
-const sourcemaps  = require("gulp-sourcemaps");
-const typedoc     = require("gulp-typedoc");
-const typescript  = require("gulp-typescript");
-const tslint      = require("gulp-tslint");
+const path              = require("path");
+const browserify        = require("browserify");
+const del               = require("del");
+const merge             = require("merge2");
+const buffer            = require("vinyl-buffer");
+const source            = require("vinyl-source-stream");
+const tslint            = require("tslint");
+const gulp              = require("gulp");
+const gulpSourcemaps    = require("gulp-sourcemaps");
+const gulpTypedoc       = require("gulp-typedoc");
+const gulpTypescript    = require("gulp-typescript");
+const gulpTslint        = require("gulp-tslint");
 
 // Source
 let srcDir = "src";
@@ -50,10 +51,11 @@ gulp.task("clean", () => {
 // Lint the source
 gulp.task("lint", () => {
     return gulp.src(srcFiles)
-    .pipe(tslint({
+    .pipe(gulpTslint({
+        program: tslint.Linter.createProgram("./tsconfig.json"),
         formatter: "stylish"
     }))
-    .pipe(tslint.report({
+    .pipe(gulpTslint.report({
         emitError: !watching
     }))
 });
@@ -61,7 +63,7 @@ gulp.task("lint", () => {
 // Create documentation
 gulp.task("doc", () => {
     return gulp.src(srcFiles)
-    .pipe(typedoc({
+    .pipe(gulpTypedoc({
         name: name,
         readme: srcDocs + "/index.md",
         theme: srcDocs + "/theme",
@@ -79,12 +81,12 @@ gulp.task("doc", () => {
 // Build TypeScript source into CommonJS Node modules
 gulp.task("compile", ["clean"], () => {
     let tsResult = gulp.src(srcFiles)
-    .pipe(sourcemaps.init())
-    .pipe(typescript.createProject("tsconfig.json")())
+    .pipe(gulpSourcemaps.init())
+    .pipe(gulpTypescript.createProject("tsconfig.json")())
     .on("error", handleError);
 
     return merge([
-        tsResult.js.pipe(sourcemaps.write(".", {
+        tsResult.js.pipe(gulpSourcemaps.write(".", {
             sourceRoot: path.relative(nodeDir, srcDir)
         })).pipe(gulp.dest(nodeDir)),
         tsResult.dts.pipe(gulp.dest(typesDir))
@@ -103,10 +105,10 @@ gulp.task("bundle", ["compile"], () => {
     .on("error", handleError)
     .pipe(source(bundleFile))
     .pipe(buffer())
-    .pipe(sourcemaps.init({
+    .pipe(gulpSourcemaps.init({
         loadMaps: true
     }))
-    .pipe(sourcemaps.write(".", {
+    .pipe(gulpSourcemaps.write(".", {
         sourceRoot: path.relative(bundleDir, nodeDir)
     }))
     .pipe(gulp.dest(bundleDir));

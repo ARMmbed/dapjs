@@ -142,7 +142,7 @@ export class DapLink extends CmsisDap {
      */
     public startSerialRead() {
         this.timer = setInterval(() => {
-            this.execute(DaplinkSerial.READ)
+            return this.execute(DaplinkSerial.READ)
             .then(serialData => {
                 if (serialData.byteLength > 0) {
                     // check if there is any data returned from the device

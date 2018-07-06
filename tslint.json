@@ -24,7 +24,6 @@
         "object-literal-sort-keys": false,
         "ordered-imports": [true, { "import-sources-order": "any", "named-imports-order": "any" }],
         "prefer-const": true,
-        "promise-function-async": true,
         "semicolon": [true, "always"],
         "ter-indent": [true, 4, { "SwitchCase": true }],
         "ter-no-irregular-whitespace": [true],
