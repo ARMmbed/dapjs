@@ -141,6 +141,7 @@ export class DAPLink extends CmsisDAP {
      * Start listening for serial data
      */
     public startSerialRead() {
+        this.stopSerialRead();
         this.timer = setInterval(() => {
             return this.execute(DAPLinkSerial.READ)
             .then(serialData => {
