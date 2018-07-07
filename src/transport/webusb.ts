@@ -26,6 +26,10 @@ import { Transport } from "./";
 /**
  * @hidden
  */
+const DEFAULT_CONFIGURATION = 1;
+/**
+ * @hidden
+ */
 const DEFAULT_CLASS = 0xFF;
 /**
  * @hidden
@@ -62,7 +66,7 @@ export class WebUSB implements Transport {
      * @param device WebUSB device to use
      * @param interfaceClass Optional interface class to use
      */
-    constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS) {
+    constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
     }
 
     private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
@@ -85,7 +89,7 @@ export class WebUSB implements Transport {
      */
     public open(): Promise<void> {
         return this.device.open()
-        .then(() => this.device.selectConfiguration(1))
+        .then(() => this.device.selectConfiguration(this.configuration))
         .then(() => {
             const interfaces = this.device.configuration.interfaces.filter(iface => {
                 return iface.alternates[0].interfaceClass === this.interfaceClass;
@@ -131,7 +135,7 @@ export class WebUSB implements Transport {
      * @param data Data to write
      * @returns Promise
      */
-    public write(data: BufferSource): Promise<any> {
+    public write(data: BufferSource): Promise<void> {
         const buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return this.device.controlTransferOut(
@@ -143,6 +147,7 @@ export class WebUSB implements Transport {
                 index: this.interfaceNumber
             },
             buffer
-        );
+        )
+        .then(() => undefined);
     }
 }

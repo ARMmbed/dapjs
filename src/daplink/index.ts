@@ -95,7 +95,7 @@ export class DAPLink extends CmsisDAP {
      * @param buffer The image to flash
      * @returns Promise
      */
-    public flash(buffer: BufferSource): Promise<any> {
+    public flash(buffer: BufferSource): Promise<void> {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
         }
@@ -117,7 +117,8 @@ export class DAPLink extends CmsisDAP {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
             return this.send(DAPLinkFlash.RESET);
-        });
+        })
+        .then(() => undefined);
     }
 
     /**
@@ -136,8 +137,9 @@ export class DAPLink extends CmsisDAP {
      * @param baudrate The baudrate to use (defaults to 9600)
      * @returns Promise
      */
-    public setSerialBaudrate(baudrate: number = DEFAULT_BAUDRATE): Promise<any> {
-        return this.send(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
+    public setSerialBaudrate(baudrate: number = DEFAULT_BAUDRATE): Promise<void> {
+        return this.send(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]))
+        .then(() => undefined);
     }
 
     /**
@@ -174,9 +176,10 @@ export class DAPLink extends CmsisDAP {
      * @param data The data to write
      * @returns Promise
      */
-    public serialWrite(data: string): Promise<any> {
+    public serialWrite(data: string): Promise<void> {
         const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);
-        return this.send(DAPLinkSerial.WRITE, new Uint16Array(arrayData).buffer);
+        return this.send(DAPLinkSerial.WRITE, new Uint16Array(arrayData).buffer)
+        .then(() => undefined);
     }
 }

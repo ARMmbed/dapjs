@@ -72,7 +72,7 @@ export class USB implements Transport {
      * @param device USB device to use
      * @param interfaceClass Optional interface class to use
      */
-    constructor(private device: Device, private configuration = DEFAULT_CONFIGURATION, private interfaceClass = DEFAULT_CLASS) {
+    constructor(private device: Device, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
     }
 
     private bufferToDataView(buffer: Buffer): DataView {
@@ -162,7 +162,7 @@ export class USB implements Transport {
      * @param data Data to write
      * @returns Promise
      */
-    public write(data: BufferSource): Promise<any> {
+    public write(data: BufferSource): Promise<void> {
         const buffer = this.extendBuffer(data, PACKET_SIZE);
 
         return new Promise((resolve, reject) => {
