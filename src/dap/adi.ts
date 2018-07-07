@@ -70,7 +70,7 @@ export class ADI implements DAP {
      * @param timeout Optional timeout to wait before giving up and rejecting
      * @returns Promise
      */
-    protected waitDelay(fn: () => Promise<boolean>, timer: number, timeout: number = 0): Promise<void> {
+    protected waitDelay(fn: () => Promise<boolean>, timer: number = 100, timeout: number = 0): Promise<void> {
         let running: boolean = true;
 
         const chain = (condition: boolean): Promise<void> => {
@@ -195,7 +195,7 @@ export class ADI implements DAP {
         .then(() => this.waitDelay(() => {
             return this.readDP(DPRegister.CTRL_STAT)
             .then(status => ((status & mask) === mask));
-        }, 100));
+        }));
     }
 
     /**
