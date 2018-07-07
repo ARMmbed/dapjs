@@ -33,6 +33,20 @@ import {
     CoreState
 } from "./enums";
 import { Processor } from "./";
+import { DAPOperation } from "../proxy";
+
+/**
+ * @hidden
+ */
+const BKPT_INSTRUCTION = 0xBE2A;
+/**
+ * @hidden
+ */
+const GENERAL_REGISTER_COUNT = 12;
+/**
+ * @hidden
+ */
+const EXECUTE_TIMEOUT = 10000;
 
 /**
  * Cortex M class
@@ -80,6 +94,16 @@ export class CortexM extends ADI implements Processor {
 
     private enableDebug() {
         return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN);
+    }
+
+    protected readCoreRegisterCommand(register: number): DAPOperation[] {
+        return this.writeMem32Command(DebugRegister.DCRSR, register)
+        .concat(this.readMem32Command(DebugRegister.DCRDR));
+    }
+
+    protected writeCoreRegisterCommand(register: number, value: number): DAPOperation[] {
+        return this.writeMem32Command(DebugRegister.DCRDR, value)
+        .concat(this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR));
     }
 
     /**
@@ -227,5 +251,44 @@ export class CortexM extends ADI implements Processor {
                 throw new Error("Register not ready");
             }
         });
+    }
+
+    /**
+     * Exucute code at a specified memory address
+     * @param address The address to put the code
+     * @param code The code to use
+     * @param stackPointer The stack pointer to use
+     * @param programCounter The program counter to use
+     * @param linkRegister The link register to use (defaults to address + 1)
+     * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
+     */
+    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<number> {
+
+        // Ensure a breakpoint exists at the end of the code
+        if (code[code.length - 1] !== BKPT_INSTRUCTION) {
+            const newCode = new Uint32Array(code.length + 1);
+            newCode.set(code);
+            newCode.set([BKPT_INSTRUCTION], code.length - 1);
+            code = newCode;
+        }
+
+        // Create sequence of core register writes
+        const sequence = [
+            this.writeCoreRegisterCommand(CoreRegister.SP, stackPointer),
+            this.writeCoreRegisterCommand(CoreRegister.PC, programCounter),
+            this.writeCoreRegisterCommand(CoreRegister.LR, linkRegister)
+        ];
+
+        // Add in register values R0, R1, R2, etc.
+        for (let i = 0; i < Math.max(registers.length, GENERAL_REGISTER_COUNT + 1); i++) {
+            sequence.push(this.writeCoreRegisterCommand(i, registers[i]));
+        }
+
+        return this.halt() // Halt the target
+        .then(() => this.transferSequence(sequence)) // Write the registers
+        .then(() => this.writeBlock(address, code)) // Write the code to the address
+        .then(() => this.resume(false)) // Resume the target, without waiting
+        .then(() => this.waitDelay(() => this.isHalted(), 100, EXECUTE_TIMEOUT)) // Wait for the target to halt on the breakpoint
+        .then(() => undefined); // Return
     }
 }

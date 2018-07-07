@@ -82,6 +82,17 @@ export interface Processor extends DAP {
      * @returns Promise
      */
     writeCoreRegister(register: CoreRegister, value: number): Promise<void>;
+
+    /**
+     * Exucute code at a specified memory address
+     * @param address The address to put the code
+     * @param code The code to use
+     * @param stackPointer The stack pointer to use
+     * @param programCounter The program counter to use
+     * @param linkRegister The link register to use (defaults to address + 1)
+     * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
+     */
+    execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister?: number, ...registers: number[]): Promise<number>;
 }
 
 export { CortexM } from "./cortex-m";
