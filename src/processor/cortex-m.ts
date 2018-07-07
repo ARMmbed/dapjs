@@ -29,7 +29,8 @@ import {
     DfsrMask,
     DcrsrMask,
     FPBRegister,
-    FPBCtrlMask
+    FPBCtrlMask,
+    CoreState
 } from "./enums";
 import { Processor } from "./";
 
@@ -44,16 +45,37 @@ export class CortexM extends ADI implements Processor {
         });
     }
 
-    private waitDelay(fn: () => Promise<boolean>, timeout: number): Promise<void> {
+    /**
+     * Continually run a function until it returns true
+     * @param fn The function to run
+     * @param timer The millisecoinds to wait between each run
+     * @param timeout Optional timeout to wait before giving up and rejecting
+     * @returns Promise
+     */
+    private waitDelay(fn: () => Promise<boolean>, timer: number, timeout: number = 0): Promise<void> {
+        let running: boolean = true;
+
         const chain = (condition: boolean): Promise<void> => {
-            return condition
-                ? Promise.resolve()
-                : this.delay(timeout)
-                .then(fn)
-                .then(chain);
+            if (running) {
+                return condition
+                    ? Promise.resolve()
+                    : this.delay(timer)
+                    .then(fn)
+                    .then(chain);
+            }
         };
 
-        return chain(false);
+        return new Promise((resolve, reject) => {
+            if (timeout > 0) {
+                setTimeout(() => {
+                    running = false;
+                    reject("Wait timed out");
+                }, timeout);
+            }
+
+            return chain(false)
+            .then(() => resolve());
+        });
     }
 
     private enableDebug() {
@@ -67,6 +89,36 @@ export class CortexM extends ADI implements Processor {
     public connect() {
         return super.connect()
         .then(() => this.disableFPB());
+    }
+
+    /**
+     * Get the state of the processor core
+     * @returns Promise of CoreState
+     */
+    public getState(): Promise<CoreState> {
+        return this.readMem32(DebugRegister.DHCSR)
+        .then(dhcsr => {
+            let state: CoreState;
+
+            if (dhcsr & DhcsrMask.S_LOCKUP) state = CoreState.LOCKUP;
+            else if (dhcsr & DhcsrMask.S_SLEEP) state = CoreState.SLEEPING;
+            else if (dhcsr & DhcsrMask.S_HALT) state = CoreState.DEBUG;
+            else state = CoreState.RUNNING;
+
+            if (dhcsr & DhcsrMask.S_RESET_ST) {
+                // The core has been reset, check if an instruction has run
+                return this.readMem32(DebugRegister.DHCSR)
+                .then(newDhcsr => {
+                    if (newDhcsr & DhcsrMask.S_RESET_ST && !(newDhcsr & DhcsrMask.S_RETIRE_ST)) {
+                        return CoreState.RESET;
+                    } else {
+                        return state;
+                    }
+                });
+            } else {
+                return state;
+            }
+        });
     }
 
     /**
@@ -99,9 +151,10 @@ export class CortexM extends ADI implements Processor {
     /**
      * Halt the target
      * @param wait Wait until halted before returning
+     * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    public halt(wait: boolean = true): Promise<void> {
+    public halt(wait: boolean = true, timeout: number = 0): Promise<void> {
         return this.isHalted()
         .then(halted => {
             if (halted) return;
@@ -110,7 +163,7 @@ export class CortexM extends ADI implements Processor {
             .then(() => {
                 if (!wait) return;
 
-                return this.waitDelay(() => this.isHalted(), 100);
+                return this.waitDelay(() => this.isHalted(), 100, timeout);
             });
         });
     }
@@ -118,9 +171,10 @@ export class CortexM extends ADI implements Processor {
     /**
      * Resume a target
      * @param wait Wait until resumed before returning
+     * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    public resume(wait: boolean = true) {
+    public resume(wait: boolean = true, timeout: number = 0) {
         return this.isHalted()
         .then(halted => {
             if (!halted) return;
@@ -130,7 +184,7 @@ export class CortexM extends ADI implements Processor {
             .then(() => {
                 if (!wait) return;
 
-                return this.waitDelay(() => this.isHalted().then(result => !result), 100);
+                return this.waitDelay(() => this.isHalted().then(result => !result), 100, timeout);
             });
         });
     }

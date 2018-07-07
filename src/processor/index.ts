@@ -22,12 +22,18 @@
 */
 
 import { DAP } from "../dap";
-import { CoreRegister } from "./enums";
+import { CoreRegister, CoreState } from "./enums";
 
 /**
  * Processor interface
  */
 export interface Processor extends DAP {
+    /**
+     * Get the state of the processor core
+     * @returns Promise of CoreState
+     */
+    getState(): Promise<CoreState>;
+
     /**
      * Enable flash patch breakpoints
      * @returns Promise
@@ -41,24 +47,26 @@ export interface Processor extends DAP {
     disableFPB(): Promise<void>;
 
     /**
-     * Halt the target
-     * @param wait Wait until halted before returning
-     * @returns Promise
-     */
-    halt(wait?: boolean): Promise<void>;
-
-    /**
      * Whether the target is halted
      * @returns Promise of halted state
      */
     isHalted(): Promise<boolean>;
 
     /**
-     * Resume a target
-     * @param wait Wait until resumed before returning
+     * Halt the target
+     * @param wait Wait until halted before returning
+     * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    resume(wait?: boolean): Promise<void>;
+    halt(wait?: boolean, timeout?: number): Promise<void>;
+
+    /**
+     * Resume a target
+     * @param wait Wait until resumed before returning
+     * @param timeout Milliseconds to wait before aborting wait
+     * @returns Promise
+     */
+    resume(wait?: boolean, timeout?: number): Promise<void>;
 
     /**
      * Read from a core register

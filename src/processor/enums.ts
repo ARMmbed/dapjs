@@ -22,6 +22,32 @@
 */
 
 /**
+ * Processor Core States
+ */
+export const enum CoreState {
+    /**
+     * The core has been reset
+     */
+    RESET,
+    /**
+     * Core is running with a lockup condition
+     */
+    LOCKUP,
+    /**
+     * The core is sleeping
+     */
+    SLEEPING,
+    /**
+     * The core is in debug state
+     */
+    DEBUG,
+    /**
+     * The core is running
+     */
+    RUNNING
+}
+
+/**
  * Processor Core Registers
  * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.100230_0004_00_en/way1435345987733.html
  */
