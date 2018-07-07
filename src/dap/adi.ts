@@ -211,7 +211,9 @@ export class ADI implements DAP {
      * @returns Promise
      */
     public reconnect(): Promise<void> {
-        return this.proxy.reconnect();
+        return this.disconnect()
+        .then(() => this.delay(100))
+        .then(() => this.connect());
     }
 
     /**
