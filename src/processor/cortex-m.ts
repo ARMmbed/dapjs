@@ -53,45 +53,6 @@ const EXECUTE_TIMEOUT = 10000;
  */
 export class CortexM extends ADI implements Processor {
 
-    private delay(timeout: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            setTimeout(resolve, timeout);
-        });
-    }
-
-    /**
-     * Continually run a function until it returns true
-     * @param fn The function to run
-     * @param timer The millisecoinds to wait between each run
-     * @param timeout Optional timeout to wait before giving up and rejecting
-     * @returns Promise
-     */
-    private waitDelay(fn: () => Promise<boolean>, timer: number, timeout: number = 0): Promise<void> {
-        let running: boolean = true;
-
-        const chain = (condition: boolean): Promise<void> => {
-            if (running) {
-                return condition
-                    ? Promise.resolve()
-                    : this.delay(timer)
-                    .then(fn)
-                    .then(chain);
-            }
-        };
-
-        return new Promise((resolve, reject) => {
-            if (timeout > 0) {
-                setTimeout(() => {
-                    running = false;
-                    reject("Wait timed out");
-                }, timeout);
-            }
-
-            return chain(false)
-            .then(() => resolve());
-        });
-    }
-
     private enableDebug() {
         return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN);
     }

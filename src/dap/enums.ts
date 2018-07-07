@@ -248,6 +248,10 @@ export const enum CSWMask {
      * Set to 1 for master type debug
      */
     MASTERTYPE = (1 << 29),
+    /**
+     * Common mask value
+     * @hidden
+     */
     VALUE = ( ADDRINC_SINGLE | DBGSTATUS | RESERVED | HPROT1 | MASTERTYPE ),
 }
 

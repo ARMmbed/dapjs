@@ -26,7 +26,7 @@ import { Transport } from "../transport";
 import {
     DAPPort,
     DAPTransferMode,
-    DAPConnectPort,
+    DAPProtocol,
     DAPCommand,
     DAPConnectResponse,
     DAPResponse,
@@ -40,6 +40,14 @@ import { Proxy, DAPOperation } from "./";
  * @hidden
  */
 export const DEFAULT_CLOCK_FREQUENCY = 10000000;
+/**
+ * @hidden
+ */
+const SWD_SEQUENCE = 0xE79E;
+/**
+ * @hidden
+ */
+const JTAG_SEQUENCE = 0xE73C;
 
 /**
  * CMSIS-DAP class
@@ -53,7 +61,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
-    constructor(private transport: Transport, private mode: DAPConnectPort = DAPConnectPort.DEFAULT, private clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
+    constructor(private transport: Transport, private mode: DAPProtocol = DAPProtocol.DEFAULT, private clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super();
     }
 
@@ -82,18 +90,51 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         return result;
     }
 
-    private jtagToSwd(): Promise<void> {
-        const commands = [
-            new Uint8Array([56, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]),
-            new Uint8Array([16, 0x9e, 0xe7]),
-            new Uint8Array([56, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]),
-            new Uint8Array([8, 0x00]),
-        ];
+    /**
+     * Switches the CMSIS-DAP unit to use SWD
+     * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0316d/Chdhfbhc.html
+     */
+    protected selectProtocol(protocol: DAPProtocol): Promise<void> {
+        const sequence = protocol === DAPProtocol.JTAG ? JTAG_SEQUENCE : SWD_SEQUENCE;
 
-        return commands.reduce((chain, command) => {
-            return chain
-            .then(() => this.send(DAPCommand.DAP_SWJ_SEQUENCE, command));
-        }, Promise.resolve(null));
+        return this.swjSequence(new Uint8Array([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])) // Sequence of 1's
+        .then(() => this.swjSequence(new Uint16Array([sequence]))) // Send protocol sequence
+        .then(() => this.swjSequence(new Uint8Array([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]))) // Sequence of 1's
+        .then(() => this.swjSequence(new Uint8Array([0x00])));
+    }
+
+    /**
+     * Send an SWJ Sequence
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Sequence.html
+     * @param sequence The sequence to send
+     * @returns Promise
+     */
+    protected swjSequence(sequence: BufferSource): Promise<void> {
+        const bitLength = sequence.byteLength * 8;
+        const data = this.bufferSourceToUint8Array(bitLength, sequence);
+
+        return this.send(DAPCommand.DAP_SWJ_SEQUENCE, data)
+        .then(() => undefined);
+    }
+
+    /**
+     * Configure Transfer
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__TransferConfigure.html
+     * @param idleCycles Number of extra idle cycles after each transfer
+     * @param waitRetry Number of transfer retries after WAIT response
+     * @param matchRetry Number of retries on reads with Value Match in DAP_Transfer
+     * @returns Promise
+     */
+    protected configureTransfer(idleCycles: number, waitRetry: number, matchRetry: number): Promise<void> {
+        const data = new Uint8Array(5);
+        const view = new DataView(data.buffer);
+
+        view.setUint8(0, idleCycles);
+        view.setUint16(1, waitRetry, true);
+        view.setUint16(3, matchRetry, true);
+
+        return this.send(DAPCommand.DAP_TRANSFER_CONFIGURE, data)
+        .then(() => undefined);
     }
 
     /**
@@ -103,7 +144,6 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise of DataView
      */
     protected send(command: number, data?: BufferSource): Promise<DataView> {
-
         const array = this.bufferSourceToUint8Array(command, data);
 
         return this.transport.write(array)
@@ -146,13 +186,12 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         .then(() => this.send(DAPCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
         .then(() => this.send(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode])))
         .then(result => {
-            if (result.getUint8(1) === DAPConnectResponse.FAILED || this.mode !== DAPConnectPort.DEFAULT && result.getUint8(1) !== this.mode) {
+            if (result.getUint8(1) === DAPConnectResponse.FAILED || this.mode !== DAPProtocol.DEFAULT && result.getUint8(1) !== this.mode) {
                 throw new Error("Mode not enabled.");
             }
         })
-        .then(() => this.send(DAPCommand.DAP_TRANSFER_CONFIGURE, new Uint8Array([0, 0x50, 0, 0, 0])))
-        .then(() => this.send(DAPCommand.DAP_SWD_CONFIGURE, new Uint8Array([0])))
-        .then(() => this.jtagToSwd());
+        .then(() => this.configureTransfer(0, 100, 0))
+        .then(() => this.selectProtocol(DAPProtocol.SWD));
     }
 
     /**
@@ -173,7 +212,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     public reconnect(): Promise<void> {
         return this.disconnect()
         .then(() => this.delay(100))
-        .then(this.connect);
+        .then(() => this.connect());
     }
 
     /**

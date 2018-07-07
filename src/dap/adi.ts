@@ -25,7 +25,7 @@ import { Transport } from "../transport";
 import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
 import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
 import { DAP } from "./";
-import { DAPTransferMode, DAPPort, DAPConnectPort } from "../proxy/enums";
+import { DAPTransferMode, DAPPort, DAPProtocol } from "../proxy/enums";
 import { DEFAULT_CLOCK_FREQUENCY } from "../proxy/cmsis-dap";
 
 /**
@@ -43,18 +43,57 @@ export class ADI implements DAP {
      * @param mode Debug mode to use
      * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
-    constructor(transport: Transport, mode: DAPConnectPort, clockFrequency: number);
+    constructor(transport: Transport, mode: DAPProtocol, clockFrequency: number);
     /**
      * ADI constructor
      * @param proxy Proxy to use
      */
     constructor(proxy: Proxy);
-    constructor(transportOrDap: Transport | Proxy, mode: DAPConnectPort = DAPConnectPort.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
+    constructor(transportOrDap: Transport | Proxy, mode: DAPProtocol = DAPProtocol.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         function isTransport(test: Transport | Proxy): test is Transport {
             return (test as Transport).open !== undefined;
         }
 
         this.proxy = isTransport(transportOrDap) ? new CmsisDAP(transportOrDap, mode, clockFrequency) : transportOrDap;
+    }
+
+    protected delay(timeout: number): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            setTimeout(resolve, timeout);
+        });
+    }
+
+    /**
+     * Continually run a function until it returns true
+     * @param fn The function to run
+     * @param timer The millisecoinds to wait between each run
+     * @param timeout Optional timeout to wait before giving up and rejecting
+     * @returns Promise
+     */
+    protected waitDelay(fn: () => Promise<boolean>, timer: number, timeout: number = 0): Promise<void> {
+        let running: boolean = true;
+
+        const chain = (condition: boolean): Promise<void> => {
+            if (running) {
+                return condition
+                    ? Promise.resolve()
+                    : this.delay(timer)
+                    .then(fn)
+                    .then(chain);
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            if (timeout > 0) {
+                setTimeout(() => {
+                    running = false;
+                    reject("Wait timed out");
+                }, timeout);
+            }
+
+            return chain(false)
+            .then(() => resolve());
+        });
     }
 
     protected readDPCommand(register: number): DAPOperation[] {
@@ -143,21 +182,20 @@ export class ADI implements DAP {
      * @returns Promise
      */
     public connect() {
+        const mask = CtrlStatMask.CDBGPWRUPACK | CtrlStatMask.CSYSPWRUPACK;
+
         return this.proxy.connect()
         .then(() => this.readDP(DPRegister.DPIDR))
         .then(() => this.transferSequence([
             this.writeDPCommand(DPRegister.ABORT, AbortMask.STKERRCLR), // clear sticky error
             this.writeDPCommand(DPRegister.SELECT, APRegister.CSW), // select CTRL_STAT
-            this.writeDPCommand(DPRegister.CTRL_STAT, CtrlStatMask.CSYSPWRUPREQ | CtrlStatMask.CDBGPWRUPREQ),
-            this.readDPCommand(DPRegister.CTRL_STAT),
+            this.writeDPCommand(DPRegister.CTRL_STAT, CtrlStatMask.CSYSPWRUPREQ | CtrlStatMask.CDBGPWRUPREQ)
         ]))
-        .then(result => {
-            const status = result[0];
-            const mask = CtrlStatMask.CDBGPWRUPACK | CtrlStatMask.CSYSPWRUPACK;
-            while ((status & mask) !== mask) {
-                // this.readDp(Register.CTRL_STAT);
-            }
-        });
+        // Wait until system and debug have powered up
+        .then(() => this.waitDelay(() => {
+            return this.readDP(DPRegister.CTRL_STAT)
+            .then(status => ((status & mask) === mask));
+        }, 100));
     }
 
     /**

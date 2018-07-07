@@ -22,6 +22,25 @@
 */
 
 /**
+ * CMSIS-DAP Protocol
+ * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Connect.html
+ */
+export const enum DAPProtocol {
+    /**
+     * Default mode: configuration of the DAP port mode is derived from DAP_DEFAULT_PORT
+     */
+    DEFAULT = 0,
+    /**
+     * SWD mode: connect with Serial Wire Debug mode
+     */
+    SWD = 1,
+    /**
+     * JTAG mode: connect with 4/5-pin JTAG mode
+     */
+    JTAG = 2
+}
+
+/**
  * DAP Ports
  */
 export const enum DAPPort {
@@ -264,25 +283,6 @@ export const enum DAPHostStatusResponse {
      * True: may be used to turn on a status LED (Connect or Running) on the Debug Unit
      */
     TRUE = 1
-}
-
-/**
- * CMSIS-DAP Connect Port
- * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Connect.html
- */
-export const enum DAPConnectPort {
-    /**
-     * Default mode: configuration of the DAP port mode is derived from DAP_DEFAULT_PORT
-     */
-    DEFAULT = 0,
-    /**
-     * SWD mode: connect with Serial Wire Debug mode
-     */
-    SWD = 1,
-    /**
-     * JTAG mode: connect with 4/5-pin JTAG mode
-     */
-    JTAG = 2
 }
 
 /**
