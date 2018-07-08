@@ -53,7 +53,6 @@ export class ADI implements DAP {
         function isTransport(test: Transport | Proxy): test is Transport {
             return (test as Transport).open !== undefined;
         }
-
         this.proxy = isTransport(transportOrDap) ? new CmsisDAP(transportOrDap, mode, clockFrequency) : transportOrDap;
     }
 
@@ -173,8 +172,38 @@ export class ADI implements DAP {
     }
 
     protected transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
+        // Flatten operations into single array
         const merged = [].concat(...operations);
-        return this.proxy.transfer(merged);
+
+        let chain = Promise.resolve([]);
+
+        // Split operations into sequences no longer than operation count
+        while (merged.length) {
+            const sequence = merged.splice(0, this.proxy.operationCount);
+            chain = chain.then(results => this.proxy.transfer(sequence).then(result => [...results, result]));
+        }
+
+        return chain
+        .then((arrays: Uint32Array[]) => {
+
+            // Only one sequence ran
+            if (arrays.length === 1) return arrays[0];
+
+            // Determine array length
+            let arrayLength: number = 0;
+            for (const array of arrays) {
+                arrayLength += array.length;
+            }
+
+            // Concat the arrays
+            const result = new Uint32Array(arrayLength);
+            for (let i = 0, j = 0; i < arrays.length; i++) {
+                result.set(arrays[i], j);
+                j += arrays[i].length;
+            }
+
+            return result;
+        });
     }
 
     /**
@@ -222,44 +251,6 @@ export class ADI implements DAP {
      */
     public reset(): Promise<boolean> {
         return this.proxy.reset();
-    }
-
-    /**
-     * Transfer data with a single read or write operation
-     * @param port Port type (debug port or access port)
-     * @param mode Whether to read or write
-     * @param register The register to use
-     * @param value Any value to write
-     * @returns Promise of any value read
-     */
-    public transfer(port: DAPPort, mode: DAPTransferMode, register: number, value?: number): Promise<number>;
-    /**
-     * Transfer data with multiple read or write operations
-     * @param operations The operations to use
-     * @returns Promise of any values read
-     */
-    public transfer(operations: DAPOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DAPPort | DAPOperation[], mode?: DAPTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
-        return (typeof portOrOps === "number") ? this.proxy.transfer(portOrOps, mode, register, value) : this.proxy.transfer(portOrOps);
-    }
-
-    /**
-     * Read a block of data from a single register
-     * @param port Port type (debug port or access port)
-     * @param register The register to use
-     * @returns Promise of values read
-     */
-    public transferBlock(port: DAPPort, register: number, count: number): Promise<Uint32Array>;
-    /**
-     * Write a block of data to a single register
-     * @param port Port type (debug port or access port)
-     * @param register The register to use
-     * @param values The values to write
-     * @returns Promise
-     */
-    public transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
-    public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
-        return (typeof countOrValues === "number") ? this.proxy.transferBlock(port, register, countOrValues) : this.proxy.transferBlock(port, register, countOrValues);
     }
 
     /**

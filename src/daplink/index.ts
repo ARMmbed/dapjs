@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { CmsisDAP } from "../proxy";
+import { CmsisDAP, Proxy } from "../proxy";
 import { DAPLinkFlash, DAPLinkSerial } from "./enums";
 
 /**
@@ -40,7 +40,7 @@ const PAGE_SIZE = 62;
 /**
  * DAPLink Class
  */
-export class DAPLink extends CmsisDAP {
+export class DAPLink extends CmsisDAP implements Proxy {
 
     /**
      * Progress event

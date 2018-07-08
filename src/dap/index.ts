@@ -21,12 +21,34 @@
 * SOFTWARE.
 */
 
-import { Proxy } from "../proxy";
-
 /**
  * DAP interface
  */
-export interface DAP extends Proxy {
+export interface DAP {
+    /**
+     * Connect to target device
+     * @returns Promise
+     */
+    connect(): Promise<void>;
+
+    /**
+     * Disconnect from target device
+     * @returns Promise
+     */
+    disconnect(): Promise<void>;
+
+    /**
+     * Reconnect to target device
+     * @returns Promise
+     */
+    reconnect(): Promise<void>;
+
+    /**
+     * Reset target device
+     * @returns Promise
+     */
+    reset(): Promise<boolean>;
+
     /**
      * Read from a debug port register
      * @param register ID of register to read
