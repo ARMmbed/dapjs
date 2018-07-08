@@ -52,6 +52,10 @@ const JTAG_SEQUENCE = 0xE73C;
 /**
  * @hidden
  */
+const BLOCK_HEADER_SIZE = 4;
+/**
+ * @hidden
+ */
 const TRANSFER_HEADER_SIZE = 2;
 /**
  * @hidden
@@ -70,6 +74,11 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     public operationCount: number;
 
     /**
+     * The maximum block size which can be transferred
+     */
+    public blockSize: number;
+
+    /**
      * CMSIS-DAP constructor
      * @param transport Debug transport to use
      * @param mode Debug mode to use
@@ -77,6 +86,9 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     constructor(private transport: Transport, private mode: DAPProtocol = DAPProtocol.DEFAULT, private clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super();
+
+        // Determine the block size
+        this.blockSize = this.transport.packetSize - BLOCK_HEADER_SIZE - 1; // -1 for the DAP_TRANSFER_BLOCK command
 
         // Determine the operation count possible
         const operationSpace = this.transport.packetSize - TRANSFER_HEADER_SIZE - 1; // -1 for the DAP_TRANSFER command
@@ -376,8 +388,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
 
         let operationCount: number;
-        let headerSize = 4;
         let mode: DAPTransferMode;
+        let dataSize = BLOCK_HEADER_SIZE;
 
         if (typeof countOrValues === "number") {
             operationCount = countOrValues;
@@ -385,10 +397,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         } else {
             operationCount = countOrValues.length;
             mode = DAPTransferMode.WRITE;
-            headerSize += countOrValues.byteLength;
+            dataSize += countOrValues.byteLength;
         }
 
-        const data = new Uint8Array(headerSize);
+        const data = new Uint8Array(dataSize);
         const view = new DataView(data.buffer);
 
         // DAP Index, ignored for SWD
@@ -400,7 +412,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
         if (typeof countOrValues !== "number") {
             // Transfer data
-            data.set(countOrValues, 4);
+            data.set(countOrValues, BLOCK_HEADER_SIZE);
         }
 
         return this.send(DAPCommand.DAP_TRANSFER_BLOCK, view)

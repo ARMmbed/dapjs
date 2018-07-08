@@ -95,6 +95,26 @@ export class ADI implements DAP {
         });
     }
 
+    protected concatTypedArray(arrays: Uint32Array[]): Uint32Array {
+        // Only one array exists
+        if (arrays.length === 1) return arrays[0];
+
+        // Determine array length
+        let length: number = 0;
+        for (const array of arrays) {
+            length += array.length;
+        }
+
+        // Concat the arrays
+        const result = new Uint32Array(length);
+        for (let i = 0, j = 0; i < arrays.length; i++) {
+            result.set(arrays[i], j);
+            j += arrays[i].length;
+        }
+
+        return result;
+    }
+
     protected readDPCommand(register: number): DAPOperation[] {
         return [{
             mode: DAPTransferMode.READ,
@@ -184,26 +204,7 @@ export class ADI implements DAP {
         }
 
         return chain
-        .then((arrays: Uint32Array[]) => {
-
-            // Only one sequence ran
-            if (arrays.length === 1) return arrays[0];
-
-            // Determine array length
-            let arrayLength: number = 0;
-            for (const array of arrays) {
-                arrayLength += array.length;
-            }
-
-            // Concat the arrays
-            const result = new Uint32Array(arrayLength);
-            for (let i = 0, j = 0; i < arrays.length; i++) {
-                result.set(arrays[i], j);
-                j += arrays[i].length;
-            }
-
-            return result;
-        });
+        .then(arrays => this.concatTypedArray(arrays));
     }
 
     /**
@@ -313,7 +314,6 @@ export class ADI implements DAP {
      */
     public writeMem16(register: number, value: number): Promise<void> {
         value = value as number << ((register & 0x02) << 3);
-
         return this.proxy.transfer(this.writeMem16Command(register, value))
         .then(() => undefined);
     }
@@ -346,12 +346,23 @@ export class ADI implements DAP {
      * @returns Promise of register data
      */
     public readBlock(register: number, count: number): Promise<Uint32Array> {
-        return this.transferSequence([
+        let chain = this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, count))
-        .then(() => undefined);
+        .then(() => []);
+
+        // Split into requests no longer than block size
+        let remainder = count;
+        while (remainder > 0) {
+            const chunkSize = Math.min(remainder, this.proxy.blockSize);
+            chain = chain.then(results => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunkSize)
+            .then(result => [...results, result]));
+            remainder -= chunkSize;
+        }
+
+        return chain
+        .then(arrays => this.concatTypedArray(arrays));
     }
 
     /**
@@ -361,11 +372,20 @@ export class ADI implements DAP {
      * @returns Promise
      */
     public writeBlock(register: number, values: Uint32Array): Promise<void> {
-        return this.transferSequence([
+        let chain = this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])
-        .then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, values))
         .then(() => undefined);
+
+        // Split values into chunks no longer than block size
+        let index = 0;
+        while (index < values.length) {
+            const chunk = values.slice(index, index + this.proxy.blockSize);
+            chain = chain.then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunk));
+            index += this.proxy.blockSize;
+        }
+
+        return chain;
     }
 }

@@ -55,6 +55,11 @@ export interface Proxy {
     operationCount: number;
 
     /**
+     * The maximum block size which can be transferred
+     */
+    blockSize: number;
+
+    /**
      * Connect to target device
      * @returns Promise
      */
