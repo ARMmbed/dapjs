@@ -120,7 +120,7 @@ export class USB implements Transport {
                 });
 
                 if (!interfaces.length) {
-                    throw new Error("No HID interfaces found.");
+                    throw new Error("No valid interfaces found.");
                 }
 
                 const selectedInterface = interfaces[0];

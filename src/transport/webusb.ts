@@ -94,7 +94,7 @@ export class WebUSB implements Transport {
             });
 
             if (!interfaces.length) {
-                throw new Error("No HID interfaces found.");
+                throw new Error("No valid interfaces found.");
             }
 
             this.interfaceNumber = interfaces[0].interfaceNumber;
