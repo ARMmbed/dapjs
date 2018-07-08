@@ -50,10 +50,24 @@ const SWD_SEQUENCE = 0xE79E;
 const JTAG_SEQUENCE = 0xE73C;
 
 /**
+ * @hidden
+ */
+const TRANSFER_HEADER_SIZE = 2;
+/**
+ * @hidden
+ */
+const TRANSFER_OPERATION_SIZE = 5;
+
+/**
  * CMSIS-DAP class
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
  */
 export class CmsisDAP extends EventEmitter implements Proxy {
+
+    /**
+     * The maximum DAPOperations which can be transferred
+     */
+    public operationCount: number;
 
     /**
      * CMSIS-DAP constructor
@@ -63,6 +77,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     constructor(private transport: Transport, private mode: DAPProtocol = DAPProtocol.DEFAULT, private clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super();
+
+        // Determine the operation count possible
+        const operationSpace = this.transport.packetSize - TRANSFER_HEADER_SIZE - 1; // -1 for the DAP_TRANSFER command
+        this.operationCount = Math.floor(operationSpace / TRANSFER_OPERATION_SIZE);
     }
 
     private delay(timeout: number): Promise<void> {
@@ -288,9 +306,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             operations = portOrOps;
         }
 
-        const headLength = 2;
-        const opLength = 5;
-        const data = new Uint8Array(headLength + (operations.length * opLength));
+        const data = new Uint8Array(TRANSFER_HEADER_SIZE + (operations.length * TRANSFER_OPERATION_SIZE));
         const view = new DataView(data.buffer);
 
         // DAP Index, ignored for SWD
@@ -299,7 +315,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         view.setUint8(1, operations.length);
 
         operations.forEach((operation, index) => {
-            const offset = headLength + (index * opLength);
+            const offset = TRANSFER_HEADER_SIZE + (index * TRANSFER_OPERATION_SIZE);
 
             // Transfer request
             view.setUint8(offset, operation.port | operation.mode | operation.register);

@@ -50,6 +50,11 @@ export interface DAPOperation {
  */
 export interface Proxy {
     /**
+     * The maximum DAPOperations which can be transferred
+     */
+    operationCount: number;
+
+    /**
      * Connect to target device
      * @returns Promise
      */
