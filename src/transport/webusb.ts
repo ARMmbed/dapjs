@@ -31,10 +31,6 @@ const DEFAULT_CONFIGURATION = 1;
  * @hidden
  */
 const DEFAULT_CLASS = 0xFF;
-/**
- * @hidden
- */
-const PACKET_SIZE = 64;
 
 /**
  * @hidden
@@ -60,6 +56,7 @@ const IN_REPORT = 0x100;
 export class WebUSB implements Transport {
 
     private interfaceNumber: number;
+    public readonly packetSize = 64;
 
     /**
      * WebUSB constructor
@@ -126,7 +123,7 @@ export class WebUSB implements Transport {
                 value: IN_REPORT,
                 index: this.interfaceNumber
             },
-            PACKET_SIZE
+            this.packetSize
         )
         .then(result => result.data);
     }
@@ -137,7 +134,7 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        const buffer = this.extendBuffer(data, PACKET_SIZE);
+        const buffer = this.extendBuffer(data, this.packetSize);
 
         return this.device.controlTransferOut(
             {

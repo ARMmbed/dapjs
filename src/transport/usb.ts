@@ -40,10 +40,6 @@ const DEFAULT_CONFIGURATION = 1;
  * @hidden
  */
 const DEFAULT_CLASS = 0xFF;
-/**
- * @hidden
- */
-const PACKET_SIZE = 64;
 
 /**
  * @hidden
@@ -70,6 +66,7 @@ export class USB implements Transport {
     private interfaceNumber: number;
     private endpointIn: InEndpoint;
     private endpointOut: OutEndpoint;
+    public readonly packetSize = 64;
 
     /**
      * USB constructor
@@ -168,7 +165,7 @@ export class USB implements Transport {
         return new Promise((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointIn) {
-                return this.endpointIn.transfer(PACKET_SIZE, (error, buffer) => {
+                return this.endpointIn.transfer(this.packetSize, (error, buffer) => {
                     if (error) return reject(error);
                     resolve(this.bufferToDataView(buffer));
                 });
@@ -180,7 +177,7 @@ export class USB implements Transport {
                 GET_REPORT,
                 IN_REPORT,
                 this.interfaceNumber,
-                PACKET_SIZE,
+                this.packetSize,
                 (error, buffer) => {
                     if (error) return reject(error);
                     resolve(this.bufferToDataView(buffer));
@@ -195,7 +192,7 @@ export class USB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        const extended = this.extendBuffer(data, PACKET_SIZE);
+        const extended = this.extendBuffer(data, this.packetSize);
         const buffer = this.bufferSourceToBuffer(extended);
 
         return new Promise((resolve, reject) => {

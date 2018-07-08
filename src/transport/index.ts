@@ -26,6 +26,11 @@
  */
 export interface Transport {
     /**
+     * Packet size
+     */
+    packetSize: number;
+
+    /**
      * Open device
      * @returns Promise
      */
