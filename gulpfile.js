@@ -13,11 +13,10 @@ const gulpTslint        = require("gulp-tslint");
 
 // Source
 let srcDir = "src";
-let srcDocs = srcDir + "/documentation";
 let srcFiles = srcDir + "/**/*.ts";
 
 // Docs
-let name = "DAPjs";
+let name = "DAPjs API Documentation";
 let docsDir = "docs";
 
 // Node
@@ -65,8 +64,8 @@ gulp.task("doc", () => {
     return gulp.src(srcFiles)
     .pipe(gulpTypedoc({
         name: name,
-        readme: srcDocs + "/index.md",
-        theme: srcDocs + "/theme",
+        readme: "./README.md",
+        theme: "./docs-theme",
         module: "commonjs",
         target: "es6",
         mode: "file",
