@@ -64,7 +64,8 @@ export class WebUSB implements Transport {
     /**
      * WebUSB constructor
      * @param device WebUSB device to use
-     * @param interfaceClass Optional interface class to use
+     * @param interfaceClass Optional interface class to use (default: 0xFF)
+     * @param configuration Optional Configuration to use (default: 1)
      */
     constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
     }

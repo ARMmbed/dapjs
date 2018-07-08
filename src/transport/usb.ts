@@ -26,7 +26,9 @@ import {
     LIBUSB_RECIPIENT_INTERFACE,
     LIBUSB_ENDPOINT_IN,
     LIBUSB_ENDPOINT_OUT,
-    Device
+    Device,
+    InEndpoint,
+    OutEndpoint
 } from "usb";
 import { Transport } from "./";
 
@@ -66,13 +68,17 @@ const IN_REPORT = 0x100;
 export class USB implements Transport {
 
     private interfaceNumber: number;
+    private endpointIn: InEndpoint;
+    private endpointOut: OutEndpoint;
 
     /**
      * USB constructor
      * @param device USB device to use
-     * @param interfaceClass Optional interface class to use
+     * @param interfaceClass Optional interface class to use (default: 0xFF)
+     * @param configuration Optional Configuration to use (default: 1)
+     * @param alwaysControlTransfer Whether to always use control transfer instead of endpoints (default: false)
      */
-    constructor(private device: Device, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
+    constructor(private device: Device, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION, private alwaysControlTransfer: boolean = false) {
     }
 
     private bufferToDataView(buffer: Buffer): DataView {
@@ -120,7 +126,24 @@ export class USB implements Transport {
                     throw new Error("No HID interfaces found.");
                 }
 
-                this.interfaceNumber = interfaces[0].interfaceNumber;
+                const selectedInterface = interfaces[0];
+                this.interfaceNumber = selectedInterface.interfaceNumber;
+
+                // If we always want to use control transfer, don't find/set endpoints and claim interface
+                if (!this.alwaysControlTransfer) {
+                    const endpoints = selectedInterface.endpoints;
+
+                    this.endpointIn = null;
+                    this.endpointOut = null;
+
+                    for (const endpoint of endpoints) {
+                        if (endpoint.direction === "in") this.endpointIn = (endpoint as InEndpoint);
+                        else this.endpointOut = (endpoint as OutEndpoint);
+                    }
+
+                    selectedInterface.claim();
+                }
+
                 resolve();
             });
         });
@@ -143,6 +166,15 @@ export class USB implements Transport {
      */
     public read(): Promise<DataView> {
         return new Promise((resolve, reject) => {
+            // Use endpoint if it exists
+            if (this.endpointIn) {
+                return this.endpointIn.transfer(PACKET_SIZE, (error, buffer) => {
+                    if (error) return reject(error);
+                    resolve(this.bufferToDataView(buffer));
+                });
+            }
+
+            // Fallback to using control transfer
             this.device.controlTransfer(
                 LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 GET_REPORT,
@@ -163,16 +195,26 @@ export class USB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        const buffer = this.extendBuffer(data, PACKET_SIZE);
+        const extended = this.extendBuffer(data, PACKET_SIZE);
+        const buffer = this.bufferSourceToBuffer(extended);
 
         return new Promise((resolve, reject) => {
+            // Use endpoint if it exists
+            if (this.endpointOut) {
+                return this.endpointOut.transfer(buffer, error => {
+                    if (error) return reject(error);
+                    resolve();
+                });
+            }
+
+            // Fallback to using control transfer
             this.device.controlTransfer(
                 LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 SET_REPORT,
                 OUT_REPORT,
                 this.interfaceNumber,
-                this.bufferSourceToBuffer(buffer),
-                (error: string) => {
+                buffer,
+                error => {
                     if (error) return reject(error);
                     resolve();
                 }
