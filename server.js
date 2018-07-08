@@ -5,7 +5,7 @@ var app = express();
 var port = "3000";
 
 app.use(express.static("./", {
-    index: "examples/web.html"
+    index: "examples/daplink-flash/web.html"
 }));
 
 app.listen(port, () => {
