@@ -73,6 +73,7 @@ Then in either environment:
     return daplink.connect()
     .then(() => daplink.disconnect())
     .then(() => process.exit());
+})
 .catch(error => {
     console.log(error.message || error);
     process.exit();
