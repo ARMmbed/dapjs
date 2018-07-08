@@ -38,15 +38,15 @@ import { DAPOperation } from "../proxy";
 /**
  * @hidden
  */
+const EXECUTE_TIMEOUT = 10000;
+/**
+ * @hidden
+ */
 const BKPT_INSTRUCTION = 0xBE2A;
 /**
  * @hidden
  */
 const GENERAL_REGISTER_COUNT = 12;
-/**
- * @hidden
- */
-const EXECUTE_TIMEOUT = 10000;
 
 /**
  * Cortex M class
@@ -59,12 +59,14 @@ export class CortexM extends ADI implements Processor {
 
     protected readCoreRegisterCommand(register: number): DAPOperation[] {
         return this.writeMem32Command(DebugRegister.DCRSR, register)
+        .concat(this.readMem32Command(DebugRegister.DHCSR))
         .concat(this.readMem32Command(DebugRegister.DCRDR));
     }
 
     protected writeCoreRegisterCommand(register: number, value: number): DAPOperation[] {
         return this.writeMem32Command(DebugRegister.DCRDR, value)
-        .concat(this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR));
+        .concat(this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR))
+        .concat(this.readMem32Command(DebugRegister.DHCSR));
     }
 
     /**
@@ -192,6 +194,21 @@ export class CortexM extends ADI implements Processor {
 
             return this.readMem32(DebugRegister.DCRDR);
         });
+    }
+
+    /**
+     * Read an array of core registers
+     * @param registers The registers to read
+     * @returns Promise of register values in an array
+     */
+    public readCoreRegisters(registers: CoreRegister[]): Promise<number[]> {
+        let chain = Promise.resolve([]);
+
+        registers.forEach(register => {
+            chain = chain.then(results => this.readCoreRegister(register).then(result => [...results, result]));
+        });
+
+        return chain;
     }
 
     /**

@@ -76,6 +76,13 @@ export interface Processor extends DAP {
     readCoreRegister(register: CoreRegister): Promise<number>;
 
     /**
+     * Read an array of core registers
+     * @param registers The registers to read
+     * @returns Promise of register values in an array
+     */
+    readCoreRegisters(registers: CoreRegister[]): Promise<number[]>;
+
+    /**
      * Write to a core register
      * @param register The register to write to
      * @param value The value to write
