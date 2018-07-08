@@ -24,7 +24,7 @@ const DAPjs = require("../../");
 
 // Listen to serial output from the device
 function listen(transport) {
-    let target = new DAPjs.DAPLink(transport);
+    const target = new DAPjs.DAPLink(transport);
 
     target.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
         console.log(data);

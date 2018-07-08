@@ -81,10 +81,10 @@ function downloadFile(url, isJson=false) {
 // Update device using image buffer
 function flash(transport, program) {
     console.log(`Using binary file ${program.byteLength} words long`);
-    let target = new DAPjs.DAPLink(transport);
+    const target = new DAPjs.DAPLink(transport);
 
     // Set up progressbar
-    let progressBar = new progress("Updating firmware [:bar] :percent :etas", {
+    const progressBar = new progress("Updating firmware [:bar] :percent :etas", {
         complete: "=",
         incomplete: " ",
         width: 20,
