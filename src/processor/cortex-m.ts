@@ -257,7 +257,7 @@ export class CortexM extends ADI implements Processor {
         ];
 
         // Add in register values R0, R1, R2, etc.
-        for (let i = 0; i < Math.max(registers.length, GENERAL_REGISTER_COUNT + 1); i++) {
+        for (let i = 0; i < Math.min(registers.length, GENERAL_REGISTER_COUNT); i++) {
             sequence.push(this.writeCoreRegisterCommand(i, registers[i]));
         }
 
