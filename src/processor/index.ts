@@ -35,18 +35,6 @@ export interface Processor extends DAP {
     getState(): Promise<CoreState>;
 
     /**
-     * Enable flash patch breakpoints
-     * @returns Promise
-     */
-    enableFPB(): Promise<void>;
-
-    /**
-     * Disable flash patch breakpoints
-     * @returns Promise
-     */
-    disableFPB(): Promise<void>;
-
-    /**
      * Whether the target is halted
      * @returns Promise of halted state
      */

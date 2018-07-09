@@ -28,8 +28,6 @@ import {
     DhcsrMask,
     DfsrMask,
     DcrsrMask,
-    FPBRegister,
-    FPBCtrlMask,
     CoreState
 } from "./enums";
 import { Processor } from "./";
@@ -69,15 +67,6 @@ export class CortexM extends ADI implements Processor {
     }
 
     /**
-     * Connect to target device
-     * @returns Promise
-     */
-    public connect() {
-        return super.connect()
-        .then(() => this.disableFPB());
-    }
-
-    /**
      * Get the state of the processor core
      * @returns Promise of CoreState
      */
@@ -105,22 +94,6 @@ export class CortexM extends ADI implements Processor {
                 return state;
             }
         });
-    }
-
-    /**
-     * Enable flash patch breakpoints
-     * @returns Promise
-     */
-    public enableFPB() {
-        return this.writeMem32(FPBRegister.FP_CTRL, FPBCtrlMask.KEY | FPBCtrlMask.ENABLE);
-    }
-
-    /**
-     * Disable flash patch breakpoints
-     * @returns Promise
-     */
-    public disableFPB() {
-        return this.writeMem32(FPBRegister.FP_CTRL, FPBCtrlMask.KEY | 0);
     }
 
     /**
