@@ -83,6 +83,6 @@ selectDevice(0xD28)
     process.exit();
 })
 .catch(error => {
-    console.log(error.message || error);
+    console.error(error.message || error);
     process.exit();
 });

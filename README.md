@@ -75,7 +75,7 @@ Then in either environment:
     .then(() => process.exit());
 })
 .catch(error => {
-    console.log(error.message || error);
+    console.error(error.message || error);
     process.exit();
 });
 ```
@@ -111,7 +111,7 @@ daplink.connect()
 .then(() => daplink.disconnect())
 .then(() => process.exit())
 .catch(error => {
-    console.log(error.message || error);
+    console.error(error.message || error);
     process.exit();
 });
 ```
@@ -147,7 +147,7 @@ daplink.connect()
 .then(() => daplink.disconnect())
 .then(() => process.exit())
 .catch(error => {
-    console.log(error.message || error);
+    console.error(error.message || error);
     process.exit();
 });
 ```

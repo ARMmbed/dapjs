@@ -59,6 +59,6 @@ usb.requestDevice({
     return common.listen(transport);
 })
 .catch(error => {
-    console.log(error.message || error);
+    console.error(error.message || error);
     process.exit();
 });
