@@ -85,7 +85,7 @@ Then in either environment:
 - Programs are portable to Node.js environments
 
 #### Cons
-- Requires a recent version of [DapLink](https://armmbed.github.io/DAPLink/) to be installed on your target device.
+- Requires a recent version of [DAPLink](https://armmbed.github.io/DAPLink/) to be installed on your target device.
 
 ### HID
 
@@ -156,7 +156,7 @@ daplink.connect()
 - Doesn't require HID access to JavaScript in your OS.
 
 #### Cons
-- Requires a recent version of [DapLink](https://armmbed.github.io/DAPLink/) to be installed on your target device.
+- Requires a recent version of [DAPLink](https://armmbed.github.io/DAPLink/) to be installed on your target device.
 
 ## Architecture
 
