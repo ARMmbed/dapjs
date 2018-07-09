@@ -36,7 +36,7 @@ function readRegisters(transport) {
     })
     .then(registers => {
         registers.forEach((register, index) => {
-            console.log(`R${index}: ${("00000000" + (register >>> 0).toString(16)).slice(-8)}`);
+            console.log(`R${index}: ${("00000000" + register.toString(16)).slice(-8)}`);
         });
         return processor.reconnect();
     })
