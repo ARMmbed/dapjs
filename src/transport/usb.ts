@@ -138,7 +138,17 @@ export class USB implements Transport {
                         else this.endpointOut = (endpoint as OutEndpoint);
                     }
 
-                    selectedInterface.claim();
+                    // If endpoints are found, claim the interface
+                    if (this.endpointIn || this.endpointOut) {
+
+                        // If the interface can't be claimed, use control transfer
+                        try {
+                            selectedInterface.claim();
+                        } catch (_e) {
+                            this.endpointIn = null;
+                            this.endpointOut = null;
+                        }
+                    }
                 }
 
                 resolve();
