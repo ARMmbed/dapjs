@@ -122,7 +122,7 @@ export class HID implements Transport {
             }
 
             const bytesWritten = this.device.write(array);
-            if (bytesWritten !== this.packetSize) return reject("Incorrect bytecount written");
+            if (bytesWritten !== array.length) return reject("Incorrect bytecount written");
 
             resolve();
         });
