@@ -1,35 +1,34 @@
-var path        = require("path");
-var browserify  = require("browserify");
-var del         = require("del");
-var merge       = require("merge2");
-var buffer      = require("vinyl-buffer");
-var source      = require("vinyl-source-stream");
-var gulp        = require("gulp");
-var sourcemaps  = require("gulp-sourcemaps");
-var typedoc     = require("gulp-typedoc");
-var typescript  = require("gulp-typescript");
-var tslint      = require("gulp-tslint");
-var uglify      = require("gulp-uglify");
+const path              = require("path");
+const browserify        = require("browserify");
+const del               = require("del");
+const merge             = require("merge2");
+const buffer            = require("vinyl-buffer");
+const source            = require("vinyl-source-stream");
+const tslint            = require("tslint");
+const gulp              = require("gulp");
+const gulpSourcemaps    = require("gulp-sourcemaps");
+const gulpTypedoc       = require("gulp-typedoc");
+const gulpTypescript    = require("gulp-typescript");
+const gulpTslint        = require("gulp-tslint");
 
 // Source
-var srcDir = "src";
-var srcFiles = srcDir + "/**/*.ts";
+let srcDir = "src";
+let srcFiles = srcDir + "/**/*.ts";
 
 // Docs
-var name = "Mbed Cloud SDK for JavaScript";
-var docsDir = "docs";
+let name = "DAPjs API Documentation";
+let docsDir = "docs";
 
 // Node
-var nodeDir = "lib";
-var typesDir = "types";
+let nodeDir = "lib";
+let typesDir = "types";
 
 // Browser bundles
-var bundleDir = "bundles";
-var bundleFile =  "dap.bundle.js";
-var bundleGlobal = "DAPjs";
-var bundleIgnore = "webusb";
+let bundleDir = "bundles";
+let bundleFile =  "dap.bundle.js";
+let bundleGlobal = "DAPjs";
 
-var watching = false;
+let watching = false;
 
 // Error handler suppresses exists during watch
 function handleError(error) {
@@ -51,21 +50,22 @@ gulp.task("clean", () => {
 // Lint the source
 gulp.task("lint", () => {
     return gulp.src(srcFiles)
-    .pipe(tslint({
+    .pipe(gulpTslint({
+        program: tslint.Linter.createProgram("./tsconfig.json"),
         formatter: "stylish"
     }))
-    .pipe(tslint.report({
+    .pipe(gulpTslint.report({
         emitError: !watching
     }))
 });
 
 // Create documentation
-gulp.task("doc", function() {
+gulp.task("doc", () => {
     return gulp.src(srcFiles)
-    .pipe(typedoc({
+    .pipe(gulpTypedoc({
         name: name,
-        readme: srcDir + "/documentation.md",
-        theme: srcDir + "/theme",
+        readme: "./README.md",
+        theme: "./docs-theme",
         module: "commonjs",
         target: "es6",
         mode: "file",
@@ -79,13 +79,13 @@ gulp.task("doc", function() {
 
 // Build TypeScript source into CommonJS Node modules
 gulp.task("compile", ["clean"], () => {
-    var tsResult = gulp.src(srcFiles)
-    .pipe(sourcemaps.init())
-    .pipe(typescript.createProject("tsconfig.json")())
+    let tsResult = gulp.src(srcFiles)
+    .pipe(gulpSourcemaps.init())
+    .pipe(gulpTypescript.createProject("tsconfig.json")())
     .on("error", handleError);
 
     return merge([
-        tsResult.js.pipe(sourcemaps.write(".", {
+        tsResult.js.pipe(gulpSourcemaps.write(".", {
             sourceRoot: path.relative(nodeDir, srcDir)
         })).pipe(gulp.dest(nodeDir)),
         tsResult.dts.pipe(gulp.dest(typesDir))
@@ -97,16 +97,17 @@ gulp.task("bundle", ["compile"], () => {
     return browserify(nodeDir, {
         standalone: bundleGlobal
     })
-    .ignore(bundleIgnore)
+    .ignore("webusb")
+    .ignore("usb")
+    .ignore("node-hid")
     .bundle()
     .on("error", handleError)
     .pipe(source(bundleFile))
     .pipe(buffer())
-    .pipe(sourcemaps.init({
+    .pipe(gulpSourcemaps.init({
         loadMaps: true
     }))
-    //.pipe(uglify())
-    .pipe(sourcemaps.write(".", {
+    .pipe(gulpSourcemaps.write(".", {
         sourceRoot: path.relative(bundleDir, nodeDir)
     }))
     .pipe(gulp.dest(bundleDir));

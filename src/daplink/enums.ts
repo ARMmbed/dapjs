@@ -21,8 +21,48 @@
 * SOFTWARE.
 */
 
-export { HID, USB, WebUSB } from "./transport";
-export { CmsisDAP } from "./proxy";
-export { DAPLink } from "./daplink";
-export { ADI } from "./dap";
-export { CortexM } from "./processor";
+/**
+ * Vendor-specific commands for DapLink serial access
+ * @hidden
+ */
+export const enum DAPLinkSerial {
+    /**
+     * Read serial settings
+     */
+    READ_SETTINGS = 0x81,
+    /**
+     * Write serial settings
+     */
+    WRITE_SETTINGS = 0x82,
+    /**
+     * Read from serial
+     */
+    READ = 0x83,
+    /**
+     * Write to serial
+     */
+    WRITE = 0x84
+}
+
+/**
+ * Vendor-specific commands for DapLink mass-storage device flashing
+ * @hidden
+ */
+export const enum DAPLinkFlash {
+    /**
+     * Reset the target
+     */
+    RESET = 0x89,
+    /**
+     * Open the MSD
+     */
+    OPEN = 0x8A,
+    /**
+     * Close the MSD
+     */
+    CLOSE = 0x8B,
+    /**
+     * Write the image
+     */
+    WRITE = 0x8C
+}

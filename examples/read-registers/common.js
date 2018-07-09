@@ -1,6 +1,5 @@
 /*
-* DAPjs
-* Copyright Arm Limited 2018
+* The MIT License (MIT)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +20,34 @@
 * SOFTWARE.
 */
 
-export { HID, USB, WebUSB } from "./transport";
-export { CmsisDAP } from "./proxy";
-export { DAPLink } from "./daplink";
-export { ADI } from "./dap";
-export { CortexM } from "./processor";
+const DAPjs = require("../../");
+
+// Read device registers
+function readRegisters(transport) {
+    const processor = new DAPjs.CortexM(transport);
+
+    return processor.connect()
+    .then(() => {
+        return processor.halt();
+    })
+    .then(() => {
+        const registers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        return processor.readCoreRegisters(registers);
+    })
+    .then(registers => {
+        registers.forEach((register, index) => {
+            console.log(`R${index}: ${("00000000" + register.toString(16)).slice(-8)}`);
+        });
+        return processor.reconnect();
+    })
+    .then(() => {
+        return processor.resume();
+    })
+    .then(() => {
+        return processor.disconnect();
+    });
+}
+
+module.exports = {
+    readRegisters: readRegisters
+};

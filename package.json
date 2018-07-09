@@ -1,6 +1,6 @@
 {
   "name": "dapjs",
-  "version": "0.5.1",
+  "version": "1.0.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "homepage": "https://github.com/ARMmbed/dapjs",
   "license": "MIT",
@@ -44,6 +44,8 @@
   },
   "devDependencies": {
     "@types/node": "^9.3.0",
+    "@types/node-hid": "^0.7.0",
+    "@types/usb": "^1.1.6",
     "@types/w3c-web-usb": "^1.0.0",
     "browserify": "^14.0.0",
     "del": "^3.0.0",
@@ -53,17 +55,16 @@
     "gulp-tslint": "^8.1.3",
     "gulp-typedoc": "^2.1.2",
     "gulp-typescript": "^3.2.3",
-    "gulp-uglify": "^3.0.0",
     "merge2": "^1.2.0",
-    "nrf-intel-hex": "^1.3.0",
+    "node-hid": "^0.7.2",
     "progress": "^2.0.0",
-    "ts-node": "^3.2.1",
     "tslint": "^5.9.1",
     "tslint-eslint-rules": "^4.1.1",
     "typedoc": "^0.9.0",
     "typescript": "~2.6.2",
+    "usb": "^1.3.1",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
-    "webusb": "^1.0.3"
+    "webusb": "^1.0.10"
   }
 }
