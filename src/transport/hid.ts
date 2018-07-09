@@ -26,11 +26,6 @@ import { HID as nodeHID, Device } from "node-hid";
 import { Transport } from "./";
 
 /**
- * @hidden
- */
-const PACKET_SIZE = 64;
-
-/**
  * HID Transport class
  */
 export class HID implements Transport {
@@ -38,6 +33,7 @@ export class HID implements Transport {
     private os: string = platform();
     private path: string = null;
     private device: nodeHID = null;
+    public readonly packetSize = 64;
 
     /**
      * HID constructor
@@ -117,7 +113,7 @@ export class HID implements Transport {
             const array = Array.prototype.slice.call(new Uint8Array(arrayBuffer));
 
             // Pad to packet size
-            while (array.length < PACKET_SIZE) array.push(0);
+            while (array.length < this.packetSize) array.push(0);
 
             // Windows requires the prepend of an extra byte
             // https://github.com/node-hid/node-hid/blob/master/README.md#prepend-byte-to-hid_write
@@ -126,7 +122,7 @@ export class HID implements Transport {
             }
 
             const bytesWritten = this.device.write(array);
-            if (bytesWritten !== PACKET_SIZE) return reject("Incorrect bytecount written");
+            if (bytesWritten !== this.packetSize) return reject("Incorrect bytecount written");
 
             resolve();
         });

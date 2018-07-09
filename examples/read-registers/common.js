@@ -1,6 +1,5 @@
 /*
-* DAPjs
-* Copyright Arm Limited 2018
+* The MIT License (MIT)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -21,41 +20,34 @@
 * SOFTWARE.
 */
 
-/**
- * USB transport
- */
-export interface Transport {
-    /**
-     * Packet size
-     */
-    packetSize: number;
+const DAPjs = require("../../");
 
-    /**
-     * Open device
-     * @returns Promise
-     */
-    open(): Promise<void>;
+// Read device registers
+function readRegisters(transport) {
+    const processor = new DAPjs.CortexM(transport);
 
-    /**
-     * Close device
-     * @returns Promise
-     */
-    close(): Promise<void>;
-
-    /**
-     * Read from device
-     * @returns Promise of DataView
-     */
-    read(): Promise<DataView>;
-
-    /**
-     * Write to device
-     * @param data Data to write
-     * @returns Promise
-     */
-    write(data: BufferSource): Promise<void>;
+    return processor.connect()
+    .then(() => {
+        return processor.halt();
+    })
+    .then(() => {
+        const registers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        return processor.readCoreRegisters(registers);
+    })
+    .then(registers => {
+        registers.forEach((register, index) => {
+            console.log(`R${index}: ${("00000000" + (register >>> 0).toString(16)).slice(-8)}`);
+        });
+        return processor.reconnect();
+    })
+    .then(() => {
+        return processor.resume();
+    })
+    .then(() => {
+        return processor.disconnect();
+    });
 }
 
-export { HID } from "./hid";
-export { USB } from "./usb";
-export { WebUSB } from "./webusb";
+module.exports = {
+    readRegisters: readRegisters
+};

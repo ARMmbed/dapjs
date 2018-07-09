@@ -31,10 +31,6 @@ const DEFAULT_CONFIGURATION = 1;
  * @hidden
  */
 const DEFAULT_CLASS = 0xFF;
-/**
- * @hidden
- */
-const PACKET_SIZE = 64;
 
 /**
  * @hidden
@@ -60,11 +56,13 @@ const IN_REPORT = 0x100;
 export class WebUSB implements Transport {
 
     private interfaceNumber: number;
+    public readonly packetSize = 64;
 
     /**
      * WebUSB constructor
      * @param device WebUSB device to use
-     * @param interfaceClass Optional interface class to use
+     * @param interfaceClass Optional interface class to use (default: 0xFF)
+     * @param configuration Optional Configuration to use (default: 1)
      */
     constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
     }
@@ -96,7 +94,7 @@ export class WebUSB implements Transport {
             });
 
             if (!interfaces.length) {
-                throw new Error("No HID interfaces found.");
+                throw new Error("No valid interfaces found.");
             }
 
             this.interfaceNumber = interfaces[0].interfaceNumber;
@@ -125,7 +123,7 @@ export class WebUSB implements Transport {
                 value: IN_REPORT,
                 index: this.interfaceNumber
             },
-            PACKET_SIZE
+            this.packetSize
         )
         .then(result => result.data);
     }
@@ -136,7 +134,7 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        const buffer = this.extendBuffer(data, PACKET_SIZE);
+        const buffer = this.extendBuffer(data, this.packetSize);
 
         return this.device.controlTransferOut(
             {
