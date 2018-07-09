@@ -1,6 +1,5 @@
 /*
-* DAPjs
-* Copyright Arm Limited 2018
+* The MIT License (MIT)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +20,37 @@
 * SOFTWARE.
 */
 
-export { HID, USB, WebUSB } from "./transport";
-export { CmsisDAP } from "./proxy";
-export { DAPLink } from "./daplink";
-export { ADI } from "./dap";
-export { CortexM } from "./processor";
+const DAPjs = require("../../");
+
+// Listen to serial output from the device
+function listen(transport) {
+    const target = new DAPjs.DAPLink(transport);
+
+    target.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
+        console.log(data);
+    });
+
+    return target.connect()
+    .then(() => {
+        return target.getSerialBaudrate();
+    })
+    .then(baud => {
+        target.startSerialRead();
+        console.log(`Listening at ${baud} baud, press a key to stop...`);
+    
+        process.stdin.setRawMode(true);
+        process.stdin.on("data", () => {
+            process.stdin.setRawMode(false);
+            target.stopSerialRead()
+
+            return target.disconnect()
+            .then(() => {
+                process.exit();
+            })
+        });
+    });
+}
+
+module.exports = {
+    listen: listen
+};
