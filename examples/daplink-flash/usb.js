@@ -55,12 +55,12 @@ function selectDevice(vendorID) {
             let input = process.stdin.read();
             if (input === "\u0003") {
                 process.exit();
-            } else {
-                let index = parseInt(input);
-                if (index && index <= devices.length) {
-                    process.stdin.setRawMode(false);
-                    resolve(devices[index - 1]);
-                }
+            }
+
+            let index = parseInt(input);
+            if (index && index <= devices.length) {
+                process.stdin.setRawMode(false);
+                resolve(devices[index - 1]);
             }
         });
 

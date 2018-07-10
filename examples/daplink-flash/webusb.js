@@ -32,12 +32,12 @@ function handleDevicesFound(devices, selectFn) {
         let input = process.stdin.read();
         if (input === "\u0003") {
             process.exit();
-        } else {
-            let index = parseInt(input);
-            if (index && index <= devices.length) {
-                process.stdin.setRawMode(false);
-                selectFn(devices[index - 1]);
-            }
+        }
+
+        let index = parseInt(input);
+        if (index && index <= devices.length) {
+            process.stdin.setRawMode(false);
+            selectFn(devices[index - 1]);
         }
     });
 
