@@ -47,6 +47,7 @@ function selectDevice(vendorID) {
 
 common.getFile()
 .then(program => {
+    common.setupEmitter();
     return selectDevice(0xD28)
     .then(device => {
         const transport = new DAPjs.HID(device);

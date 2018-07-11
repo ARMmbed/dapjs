@@ -42,6 +42,7 @@ let usb = new USB({
 
 common.getFile()
 .then(program => {
+    common.setupEmitter();
     return usb.requestDevice({
         filters: [{vendorId: 0xD28}]
     })
