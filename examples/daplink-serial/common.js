@@ -49,7 +49,7 @@ function listen(transport) {
     })
     .then(baud => {
         target.startSerialRead();
-        console.log(`Listening at ${baud} baud, press a key to stop...`);
+        console.log(`Listening at ${baud} baud...`);
 
         inputEmitter.addListener("input", input => {
             if (input === "\u0003") {
