@@ -179,7 +179,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
     public serialWrite(data: string): Promise<void> {
         const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);
-        return this.send(DAPLinkSerial.WRITE, new Uint16Array(arrayData).buffer)
+        return this.send(DAPLinkSerial.WRITE, new Uint8Array(arrayData).buffer)
         .then(() => undefined);
     }
 }

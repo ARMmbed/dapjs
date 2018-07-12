@@ -34,19 +34,8 @@ function selectDevice(vendorID) {
             return reject("No devices found");
         }
 
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding("utf8");
-        process.stdin.on("readable", () => {
-            let input = process.stdin.read();
-            if (input === "\u0003") {
-                process.exit();
-            } else {
-                let index = parseInt(input);
-                if (index && index <= devices.length) {
-                    process.stdin.setRawMode(false);
-                    resolve(devices[index - 1]);
-                }
-            }
+        common.inputEmitter.addListener("input", index => {
+            if (index <= devices.length) resolve(devices[index - 1]);
         });
 
         console.log("Select a device to read registers:");

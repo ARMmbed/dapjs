@@ -25,7 +25,26 @@ const http = require("http");
 const https = require("https");
 const readline = require("readline");
 const progress = require("progress");
+const EventEmitter = require("events");
 const DAPjs = require("../../");
+
+// Emit keyboard input
+const inputEmitter = new EventEmitter();
+function setupEmitter() {
+    process.stdin.setRawMode(true);
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("readable", () => {
+        let input;
+        while (input = process.stdin.read()) {
+            if (input === "\u0003") {
+                process.exit();
+            } else if (input !== null) {
+                let index = parseInt(input);
+                inputEmitter.emit("input", index);
+            }
+        }
+    });
+}
 
 // Determine package URL or file path
 function getFileName() {
@@ -106,6 +125,9 @@ function flash(transport, program) {
 }
 
 module.exports = {
+    inputEmitter: inputEmitter,
+    setupEmitter: setupEmitter,
+    flash: flash,
     getFile: () => {
         return getFileName()
         .then(fileName => {
@@ -113,6 +135,5 @@ module.exports = {
             if (fileName.indexOf("http") === 0) return downloadFile(fileName);
             return loadFile(fileName);
         });
-    },
-    flash: flash
+    }
 };

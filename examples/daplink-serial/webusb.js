@@ -26,20 +26,18 @@ const DAPjs = require("../../");
 
 // Allow user to select a device
 function handleDevicesFound(devices, selectFn) {
-    process.stdin.setRawMode(true);
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("readable", () => {
-        let input = process.stdin.read();
+    function inputHandler(input) {
         if (input === "\u0003") {
             process.exit();
-        } else {
-            let index = parseInt(input);
-            if (index && index <= devices.length) {
-                process.stdin.setRawMode(false);
-                selectFn(devices[index - 1]);
-            }
         }
-    });
+
+        let index = parseInt(input);
+        if (index && index <= devices.length) {
+            common.inputEmitter.removeListener("input", inputHandler);
+            selectFn(devices[index - 1]);
+        }
+    }
+    common.inputEmitter.addListener("input", inputHandler);
 
     console.log("Select a device to listen to serial output:");
     devices.forEach((device, index) => {

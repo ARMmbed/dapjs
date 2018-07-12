@@ -20,7 +20,20 @@
 * SOFTWARE.
 */
 
+const EventEmitter = require("events");
 const DAPjs = require("../../");
+
+const inputEmitter = new EventEmitter();
+process.stdin.setRawMode(true);
+process.stdin.setEncoding("utf8");
+process.stdin.on("readable", () => {
+    let input;
+    while (input = process.stdin.read()) {
+        if (input !== null) {
+            inputEmitter.emit("input", input);
+        }
+    }
+});
 
 // Listen to serial output from the device
 function listen(transport) {
@@ -36,21 +49,27 @@ function listen(transport) {
     })
     .then(baud => {
         target.startSerialRead();
-        console.log(`Listening at ${baud} baud, press a key to stop...`);
-    
-        process.stdin.setRawMode(true);
-        process.stdin.on("data", () => {
-            process.stdin.setRawMode(false);
-            target.stopSerialRead()
+        console.log(`Listening at ${baud} baud...`);
 
-            return target.disconnect()
-            .then(() => {
-                process.exit();
-            })
+        inputEmitter.addListener("input", input => {
+            if (input === "\u0003") {
+                process.stdin.setRawMode(false);
+                target.stopSerialRead()
+
+                return target.disconnect()
+                .then(() => {
+                    process.exit();
+                })
+            }
+
+            if (input !== null) {
+                target.serialWrite(input);
+            }
         });
     });
 }
 
 module.exports = {
+    inputEmitter: inputEmitter,
     listen: listen
 };

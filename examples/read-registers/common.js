@@ -20,7 +20,24 @@
 * SOFTWARE.
 */
 
+const EventEmitter = require("events");
 const DAPjs = require("../../");
+
+// Emit keyboard input
+const inputEmitter = new EventEmitter();
+process.stdin.setRawMode(true);
+process.stdin.setEncoding("utf8");
+process.stdin.on("readable", () => {
+    let input;
+    while (input = process.stdin.read()) {
+        if (input === "\u0003") {
+            process.exit();
+        } else if (input !== null) {
+            let index = parseInt(input);
+            inputEmitter.emit("input", index);
+        }
+    }
+});
 
 // Read device registers
 function readRegisters(transport) {
@@ -49,5 +66,6 @@ function readRegisters(transport) {
 }
 
 module.exports = {
+    inputEmitter: inputEmitter,
     readRegisters: readRegisters
 };
