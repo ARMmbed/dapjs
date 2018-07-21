@@ -157,6 +157,7 @@ daplink.connect()
 
 #### Cons
 - Requires a recent version of [DAPLink](https://armmbed.github.io/DAPLink/) to be installed on your target device.
+- Can have issues on Windows machines
 
 ## Architecture
 
@@ -166,23 +167,108 @@ The architecture of this project is built up in layers as follows:
 
 The `Transport` layer offers access to the USB device plugged into the host. Different transports are available based on user needs (see above).
 
+#### Implementation Status
+
+- [x] packetSize
+- [x] open()
+- [x] close()
+- [x] read()
+- [x] write()
+
 ### Proxy
 
 The `Proxy` layer uses the transport layer to expose low-level `CMSIS-DAP` commands to the next layer. A common use for the proxy is as a debug chip attached to the main processor accessed over USB.
 
 A CMSIS-DAP implementation is included, however a network proxy or similar could be introduced at this layer in order to remote commands.
 
+#### Implementation Status
+
+- [x] operationCount
+- [x] blockSize
+- [x] dapInfo()
+- [x] swjSequence()
+- [x] swjClock()
+- [x] transferConfigure()
+- [x] connect()
+- [x] disconnect()
+- [x] reconnect()
+- [x] reset()
+- [x] transfer()
+- [x] transferBlock()
+- [ ] hostStatus()
+- [ ] delay()
+- [ ] writeAbort()
+- [ ] swjPins()
+- [ ] swdSequence()
+- [ ] swdConfigure()
+- [ ] swoTransport()
+- [ ] swoMode()
+- [ ] swoBaudrate()
+- [ ] swoControl()
+- [ ] swoStatus()
+- [ ] swoExtendedStatus()
+- [ ] swoData()
+- [ ] jtagSequence()
+- [ ] jtagConfigure()
+- [ ] jtagIDCode()
+- [ ] transferAbort()
+- [ ] executeCommands()
+- [ ] queueCommands()
+
 ### DAPLink
 
 The `DAPLink` layer is a special derived implementation of the `CMSIS-DAP` proxy implementation. It adds DAPLink vendor specific functionality such as Mass Storage Device `firmware flashing` and `serial control`.
+
+#### Implementation Status
+
+- [x] flash()
+- [x] getSerialBaudrate()
+- [x] setSerialBaudrate()
+- [x] startSerialRead()
+- [x] stopSerialRead()
+- [x] serialWrite()
+
+#### Events
+
+- [x] flash_progress
+- [x] serial_data
 
 ### DAP
 
 The `DAP` (Debug Access Port) layer exposes low-level access to ports, registers and memory. An implementation exists for `ADI` (Arm Debug Interface).
 
+#### Implementation Status
+
+- [x] connect()
+- [x] disconnect()
+- [x] reconnect()
+- [x] reset()
+- [x] readDP()
+- [x] writeDP()
+- [x] readAP()
+- [x] writeAP()
+- [x] readMem16()
+- [x] writeMem16()
+- [x] readMem32()
+- [x] writeMem32()
+- [x] readBlock()
+- [x] writeBlock()
+
 ### Processor
 
 The `Processor` layer exposes access to the core processor registers.
+
+#### Implementation Status
+
+- [x] getState()
+- [x] isHalted()
+- [x] halt()
+- [x] resume()
+- [x] readCoreRegister()
+- [x] readCoreRegisters()
+- [x] writeCoreRegister()
+- [x] execute()
+- [ ] step()
 
 ## Development
 

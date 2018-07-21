@@ -134,40 +134,6 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     }
 
     /**
-     * Send an SWJ Sequence
-     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Sequence.html
-     * @param sequence The sequence to send
-     * @returns Promise
-     */
-    protected swjSequence(sequence: BufferSource): Promise<void> {
-        const bitLength = sequence.byteLength * 8;
-        const data = this.bufferSourceToUint8Array(bitLength, sequence);
-
-        return this.send(DAPCommand.DAP_SWJ_SEQUENCE, data)
-        .then(() => undefined);
-    }
-
-    /**
-     * Configure Transfer
-     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__TransferConfigure.html
-     * @param idleCycles Number of extra idle cycles after each transfer
-     * @param waitRetry Number of transfer retries after WAIT response
-     * @param matchRetry Number of retries on reads with Value Match in DAP_Transfer
-     * @returns Promise
-     */
-    protected configureTransfer(idleCycles: number, waitRetry: number, matchRetry: number): Promise<void> {
-        const data = new Uint8Array(5);
-        const view = new DataView(data.buffer);
-
-        view.setUint8(0, idleCycles);
-        view.setUint16(1, waitRetry, true);
-        view.setUint16(3, matchRetry, true);
-
-        return this.send(DAPCommand.DAP_TRANSFER_CONFIGURE, data)
-        .then(() => undefined);
-    }
-
-    /**
      * Send a command
      * @param command Command to send
      * @param data Data to use
@@ -205,6 +171,74 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
             return response;
         });
+    }
+
+    /**
+     * Get DAP information
+     * @param request Type of information to get
+     * @returns Promise of DataView
+     */
+    public dapInfo(request: DAPInfoRequest): Promise<number | string> {
+        return this.send(DAPCommand.DAP_INFO, new Uint8Array([request]))
+        .then(result => {
+            const length = result.getUint8(1);
+
+            if (length === 0) {
+                return null;
+            }
+
+            switch (request) {
+                case DAPInfoRequest.CAPABILITIES:
+                case DAPInfoRequest.PACKET_COUNT:
+                case DAPInfoRequest.PACKET_SIZE:
+                case DAPInfoRequest.SWO_TRACE_BUFFER_SIZE:
+                    // Byte
+                    if (length === 1) return result.getUint8(2);
+
+                    // Short
+                    if (length === 2) return result.getUint16(2);
+
+                    // Word
+                    if (length === 4) return result.getUint32(2);
+            }
+
+            const ascii = new Uint8Array(result.buffer, 2, length);
+            return String.fromCharCode.apply(null, ascii);
+        });
+    }
+
+    /**
+     * Send an SWJ Sequence
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Sequence.html
+     * @param sequence The sequence to send
+     * @returns Promise
+     */
+    public swjSequence(sequence: BufferSource): Promise<void> {
+        const bitLength = sequence.byteLength * 8;
+        const data = this.bufferSourceToUint8Array(bitLength, sequence);
+
+        return this.send(DAPCommand.DAP_SWJ_SEQUENCE, data)
+        .then(() => undefined);
+    }
+
+    /**
+     * Configure Transfer
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__TransferConfigure.html
+     * @param idleCycles Number of extra idle cycles after each transfer
+     * @param waitRetry Number of transfer retries after WAIT response
+     * @param matchRetry Number of retries on reads with Value Match in DAP_Transfer
+     * @returns Promise
+     */
+    public configureTransfer(idleCycles: number, waitRetry: number, matchRetry: number): Promise<void> {
+        const data = new Uint8Array(5);
+        const view = new DataView(data.buffer);
+
+        view.setUint8(0, idleCycles);
+        view.setUint16(1, waitRetry, true);
+        view.setUint16(3, matchRetry, true);
+
+        return this.send(DAPCommand.DAP_TRANSFER_CONFIGURE, data)
+        .then(() => undefined);
     }
 
     /**
@@ -252,40 +286,6 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     public reset(): Promise<boolean> {
         return this.send(DAPCommand.DAP_RESET_TARGET)
         .then(response => response.getUint8(2) === DAPResetTargeResponse.RESET_SEQUENCE);
-    }
-
-    /**
-     * Get DAP information
-     * @param request Type of information to get
-     * @returns Promise of DataView
-     */
-    public dapInfo(request: DAPInfoRequest): Promise<number | string> {
-        return this.send(DAPCommand.DAP_INFO, new Uint8Array([request]))
-        .then(result => {
-            const length = result.getUint8(1);
-
-            if (length === 0) {
-                return null;
-            }
-
-            switch (request) {
-                case DAPInfoRequest.CAPABILITIES:
-                case DAPInfoRequest.PACKET_COUNT:
-                case DAPInfoRequest.PACKET_SIZE:
-                case DAPInfoRequest.SWO_TRACE_BUFFER_SIZE:
-                    // Byte
-                    if (length === 1) return result.getUint8(2);
-
-                    // Short
-                    if (length === 2) return result.getUint16(2);
-
-                    // Word
-                    if (length === 4) return result.getUint32(2);
-            }
-
-            const ascii = new Uint8Array(result.buffer, 2, length);
-            return String.fromCharCode.apply(null, ascii);
-        });
     }
 
     /**
