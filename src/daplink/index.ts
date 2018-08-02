@@ -152,8 +152,10 @@ export class DAPLink extends CmsisDAP implements Proxy {
             .then(serialData => {
                 if (serialData.byteLength > 0) {
                     // check if there is any data returned from the device
-                    if (serialData.getUint8(1) !== 0) {
-                        const data = String.fromCharCode.apply(null, new Uint8Array(serialData.buffer.slice(1)));
+                    // first byte contains the length of data read from the device
+                    const dataLength = serialData.getUint8(1);
+                    if (dataLength !== 0) {
+                        const data = String.fromCharCode.apply(null, new Uint8Array(serialData.buffer.slice(1, dataLength + 2)));
                         this.emit(DAPLink.EVENT_SERIAL_DATA, data);
                     }
                 }
