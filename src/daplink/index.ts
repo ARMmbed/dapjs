@@ -38,6 +38,11 @@ const SERIAL_DELAY = 200;
 const PAGE_SIZE = 62;
 
 /**
+ * @hidden
+ */
+const SERIAL_DATA_OFFSET = 2;
+
+/**
  * DAPLink Class
  */
 export class DAPLink extends CmsisDAP implements Proxy {
@@ -152,10 +157,12 @@ export class DAPLink extends CmsisDAP implements Proxy {
             .then(serialData => {
                 if (serialData.byteLength > 0) {
                     // check if there is any data returned from the device
-                    // first byte contains the length of data read from the device
+                    // first byte contains the vendor code
+                    // second byte contains the actual length of data read from the device
                     const dataLength = serialData.getUint8(1);
                     if (dataLength !== 0) {
-                        const data = String.fromCharCode.apply(null, new Uint8Array(serialData.buffer.slice(1, dataLength + 2)));
+                        const dataArray = serialData.buffer.slice(SERIAL_DATA_OFFSET, dataLength + SERIAL_DATA_OFFSET);
+                        const data = String.fromCharCode.apply(null, new Uint8Array(dataArray));
                         this.emit(DAPLink.EVENT_SERIAL_DATA, data);
                     }
                 }
