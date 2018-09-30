@@ -13,6 +13,8 @@
         "noUnusedParameters": true,
         "noImplicitAny": true,
         "sourceMap": true,
-        "declaration": true
+        "declaration": true,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
     }
 }

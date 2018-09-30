@@ -64,8 +64,8 @@ const IN_REPORT = 0x100;
 export class USB implements Transport {
 
     private interfaceNumber: number;
-    private endpointIn: InEndpoint;
-    private endpointOut: OutEndpoint;
+    private endpointIn?: InEndpoint;
+    private endpointOut?: OutEndpoint;
     public readonly packetSize = 64;
 
     /**
@@ -130,8 +130,8 @@ export class USB implements Transport {
                 if (!this.alwaysControlTransfer) {
                     const endpoints = selectedInterface.endpoints;
 
-                    this.endpointIn = null;
-                    this.endpointOut = null;
+                    this.endpointIn = undefined;
+                    this.endpointOut = undefined;
 
                     for (const endpoint of endpoints) {
                         if (endpoint.direction === "in") this.endpointIn = (endpoint as InEndpoint);
@@ -145,8 +145,8 @@ export class USB implements Transport {
                         try {
                             selectedInterface.claim();
                         } catch (_e) {
-                            this.endpointIn = null;
-                            this.endpointOut = null;
+                            this.endpointIn = undefined;
+                            this.endpointOut = undefined;
                         }
                     }
                 }
@@ -175,10 +175,11 @@ export class USB implements Transport {
         return new Promise((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointIn) {
-                return this.endpointIn.transfer(this.packetSize, (error, buffer) => {
+                this.endpointIn.transfer(this.packetSize, (error, buffer) => {
                     if (error) return reject(error);
                     resolve(this.bufferToDataView(buffer));
                 });
+                return;
             }
 
             // Fallback to using control transfer
@@ -190,6 +191,7 @@ export class USB implements Transport {
                 this.packetSize,
                 (error, buffer) => {
                     if (error) return reject(error);
+                    if (!buffer) return reject("no buffer");
                     resolve(this.bufferToDataView(buffer));
                 }
             );
@@ -208,10 +210,11 @@ export class USB implements Transport {
         return new Promise((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointOut) {
-                return this.endpointOut.transfer(buffer, error => {
+                this.endpointOut.transfer(buffer, error => {
                     if (error) return reject(error);
                     resolve();
                 });
+                return;
             }
 
             // Fallback to using control transfer

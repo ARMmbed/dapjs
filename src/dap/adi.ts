@@ -22,7 +22,7 @@
 */
 
 import { Transport } from "../transport";
-import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
+import { CmsisDAP, DAPOperation, Proxy } from "../proxy";
 import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
 import { DAP } from "./";
 import { DAPTransferMode, DAPPort, DAPProtocol } from "../proxy/enums";
@@ -33,8 +33,8 @@ import { DEFAULT_CLOCK_FREQUENCY } from "../proxy/cmsis-dap";
  */
 export class ADI implements DAP {
 
-    private selectedAddress: number = null;
-    private cswValue: number = null;
+    private selectedAddress?: number = undefined;
+    private cswValue?: number = undefined;
     private proxy: Proxy;
 
     /**
@@ -76,9 +76,9 @@ export class ADI implements DAP {
             if (running) {
                 return condition
                     ? Promise.resolve()
-                    : this.delay(timer)
-                    .then(fn)
-                    .then(chain);
+                    : this.delay(timer).then(fn).then(chain);
+            } else {
+                return Promise.resolve();
             }
         };
 
@@ -193,9 +193,9 @@ export class ADI implements DAP {
 
     protected transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
         // Flatten operations into single array
-        const merged = [].concat(...operations);
+        const merged = [].concat.apply([], operations);
 
-        let chain = Promise.resolve([]);
+        let chain: Promise<Uint32Array[]> = Promise.resolve([]);
 
         // Split operations into sequences no longer than operation count
         while (merged.length) {
@@ -346,7 +346,7 @@ export class ADI implements DAP {
      * @returns Promise of register data
      */
     public readBlock(register: number, count: number): Promise<Uint32Array> {
-        let chain = this.transferSequence([
+        let chain: Promise<Uint32Array[]> = this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])
@@ -372,7 +372,7 @@ export class ADI implements DAP {
      * @returns Promise
      */
     public writeBlock(register: number, values: Uint32Array): Promise<void> {
-        let chain = this.transferSequence([
+        let chain: Promise<void> = this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
         ])

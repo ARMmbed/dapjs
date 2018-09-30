@@ -87,19 +87,23 @@ export class WebUSB implements Transport {
      */
     public open(): Promise<void> {
         return this.device.open()
-        .then(() => this.device.selectConfiguration(this.configuration))
-        .then(() => {
-            const interfaces = this.device.configuration.interfaces.filter(iface => {
-                return iface.alternates[0].interfaceClass === this.interfaceClass;
+            .then(() => this.device.selectConfiguration(this.configuration))
+            .then(() => {
+                if (!this.device.configuration) {
+                    throw new Error("No configuration selected.");
+                }
+
+                const interfaces = this.device.configuration.interfaces.filter(iface => {
+                    return iface.alternates[0].interfaceClass === this.interfaceClass;
+                });
+
+                if (!interfaces.length) {
+                    throw new Error("No valid interfaces found.");
+                }
+
+                this.interfaceNumber = interfaces[0].interfaceNumber;
+                return this.device.claimInterface(this.interfaceNumber);
             });
-
-            if (!interfaces.length) {
-                throw new Error("No valid interfaces found.");
-            }
-
-            this.interfaceNumber = interfaces[0].interfaceNumber;
-            return this.device.claimInterface(this.interfaceNumber);
-        });
     }
 
     /**
@@ -125,7 +129,13 @@ export class WebUSB implements Transport {
             },
             this.packetSize
         )
-        .then(result => result.data);
+        .then(result => new Promise<DataView>((resolve, reject) => {
+            if (result.data) {
+                resolve(result.data);
+            } else {
+                reject();
+            }
+        }));
     }
 
     /**

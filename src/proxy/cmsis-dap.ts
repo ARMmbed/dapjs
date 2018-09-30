@@ -310,8 +310,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         if (typeof portOrOps === "number") {
             operations = [{
                 port: portOrOps,
-                mode,
-                register,
+                mode: mode ? mode : DAPTransferMode.WRITE,
+                register: register ? register : 0,
                 value
             }];
         } else {
@@ -332,7 +332,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             // Transfer request
             view.setUint8(offset, operation.port | operation.mode | operation.register);
             // Transfer data
-            view.setUint32(offset + 1, operation.value, true);
+            view.setUint32(offset + 1, operation.value ? operation.value : 0, true);
         });
 
         return this.send(DAPCommand.DAP_TRANSFER, data)
@@ -440,6 +440,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
             if (typeof countOrValues === "number") {
                 return new Uint32Array(result.buffer.slice(4));
+            } else {
+                return;
             }
         });
     }

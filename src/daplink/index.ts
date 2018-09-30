@@ -54,7 +54,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
      */
     public static EVENT_SERIAL_DATA: string = "serial";
 
-    private timer: NodeJS.Timer = null;
+    private timer: any = null;
 
     /**
      * Detect if buffer contains text or binary data
@@ -86,6 +86,8 @@ export class DAPLink extends CmsisDAP implements Proxy {
             this.emit(DAPLink.EVENT_PROGRESS, offset / buffer.byteLength);
             if (end < buffer.byteLength) {
                 return this.writeBuffer(buffer, pageSize, end);
+            } else {
+                return Promise.resolve();
             }
         });
     }
@@ -116,7 +118,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
         })
         .then(result => {
             // An error occurred
-            if (result.getUint8(1) !== 0) return;
+            if (result.getUint8(1) !== 0) return Promise.reject("Flash error");
             return this.send(DAPLinkFlash.RESET);
         })
         .then(() => undefined);

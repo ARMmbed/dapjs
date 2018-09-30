@@ -174,7 +174,7 @@ export class CortexM extends ADI implements Processor {
      * @returns Promise of register values in an array
      */
     public readCoreRegisters(registers: CoreRegister[]): Promise<number[]> {
-        let chain = Promise.resolve([]);
+        let chain: Promise<number[]> = Promise.resolve([]);
 
         registers.forEach(register => {
             chain = chain.then(results => this.readCoreRegister(register).then(result => [...results, result]));
@@ -212,7 +212,7 @@ export class CortexM extends ADI implements Processor {
      * @param linkRegister The link register to use (defaults to address + 1)
      * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
      */
-    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<number> {
+    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<void> {
 
         // Ensure a breakpoint exists at the end of the code
         if (code[code.length - 1] !== BKPT_INSTRUCTION) {
