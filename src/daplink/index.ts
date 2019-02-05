@@ -31,11 +31,11 @@ const DEFAULT_BAUDRATE = 9600;
 /**
  * @hidden
  */
-const SERIAL_DELAY = 200;
+const DEFAULT_SERIAL_DELAY = 200;
 /**
  * @hidden
  */
-const PAGE_SIZE = 62;
+const DEFAULT_PAGE_SIZE = 62;
 
 /**
  * DAPLink Class
@@ -73,8 +73,8 @@ export class DAPLink extends CmsisDAP implements Proxy {
         return false;
     }
 
-    private writeBuffer(buffer: ArrayBuffer, offset: number = 0): Promise<void> {
-        const end = Math.min(buffer.byteLength, offset + PAGE_SIZE);
+    private writeBuffer(buffer: ArrayBuffer, pageSize: number, offset: number = 0): Promise<void> {
+        const end = Math.min(buffer.byteLength, offset + pageSize);
         const page = buffer.slice(offset, end);
         const data = new Uint8Array(page.byteLength + 1);
 
@@ -85,7 +85,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
         .then(() => {
             this.emit(DAPLink.EVENT_PROGRESS, offset / buffer.byteLength);
             if (end < buffer.byteLength) {
-                return this.writeBuffer(buffer, end);
+                return this.writeBuffer(buffer, pageSize, end);
             }
         });
     }
@@ -95,7 +95,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
      * @param buffer The image to flash
      * @returns Promise
      */
-    public flash(buffer: BufferSource): Promise<void> {
+    public flash(buffer: BufferSource, pageSize: number = DEFAULT_PAGE_SIZE): Promise<void> {
         function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
             return (source as ArrayBufferView).buffer !== undefined;
         }
@@ -107,7 +107,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
         .then(result => {
             // An error occurred
             if (result.getUint8(1) !== 0) return;
-            return this.writeBuffer(arrayBuffer);
+            return this.writeBuffer(arrayBuffer, pageSize);
         })
         .then(() => {
             this.emit(DAPLink.EVENT_PROGRESS, 1.0);
@@ -145,7 +145,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
     /**
      * Start listening for serial data
      */
-    public startSerialRead() {
+    public startSerialRead(serialDelay: number = DEFAULT_SERIAL_DELAY) {
         this.stopSerialRead();
         this.timer = setInterval(() => {
             return this.send(DAPLinkSerial.READ)
@@ -163,7 +163,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
                     }
                 }
             });
-        }, SERIAL_DELAY);
+        }, serialDelay);
     }
 
     /**
