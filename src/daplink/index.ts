@@ -93,6 +93,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
     /**
      * Flash the target
      * @param buffer The image to flash
+     * @param pageSize The page size to use (defaults to 62)
      * @returns Promise
      */
     public flash(buffer: BufferSource, pageSize: number = DEFAULT_PAGE_SIZE): Promise<void> {
@@ -144,6 +145,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
 
     /**
      * Start listening for serial data
+     * @param serialDelay The serial delay to use (defaults to 200)
      */
     public startSerialRead(serialDelay: number = DEFAULT_SERIAL_DELAY) {
         this.stopSerialRead();
