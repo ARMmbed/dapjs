@@ -46,7 +46,7 @@
     "@types/node": "^8.10.40",
     "@types/node-hid": "^0.7.0",
     "@types/usb": "^1.5.1",
-    "@types/w3c-web-usb": "^1.0.1",
+    "@types/w3c-web-usb": "^1.0.2",
     "browserify": "^16.0.0",
     "del": "^3.0.0",
     "express": "^4.16.2",

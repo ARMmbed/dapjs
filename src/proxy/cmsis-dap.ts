@@ -176,7 +176,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     /**
      * Get DAP information
      * @param request Type of information to get
-     * @returns Promise of DataView
+     * @returns Promise of number or string
      */
     public dapInfo(request: DAPInfoRequest): Promise<number | string> {
         return this.send(DAPCommand.DAP_INFO, new Uint8Array([request]))
@@ -184,7 +184,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             const length = result.getUint8(1);
 
             if (length === 0) {
-                return null;
+                throw new Error("DAP Info Failure");
             }
 
             switch (request) {
@@ -202,7 +202,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
                     if (length === 4) return result.getUint32(2);
             }
 
-            const ascii = new Uint8Array(result.buffer, 2, length);
+            const ascii = Array.prototype.slice.call(new Uint8Array(result.buffer, 2, length));
             return String.fromCharCode.apply(null, ascii);
         });
     }
@@ -303,7 +303,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise of any values read
      */
     public transfer(operations: DAPOperation[]): Promise<Uint32Array>;
-    public transfer(portOrOps: DAPPort | DAPOperation[], mode?: DAPTransferMode, register?: number, value?: number): Promise<number | Uint32Array> {
+    public transfer(portOrOps: DAPPort | DAPOperation[], mode: DAPTransferMode = DAPTransferMode.READ, register: number = 0, value: number = 0): Promise<number | Uint32Array> {
 
         let operations: DAPOperation[];
 
@@ -332,7 +332,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             // Transfer request
             view.setUint8(offset, operation.port | operation.mode | operation.register);
             // Transfer data
-            view.setUint32(offset + 1, operation.value, true);
+            view.setUint32(offset + 1, operation.value || 0, true);
         });
 
         return this.send(DAPCommand.DAP_TRANSFER, data)
@@ -363,10 +363,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
             if (typeof portOrOps === "number") {
                 return result.getUint32(3, true);
-            } else {
-                const length = operations.length * 4;
-                return new Uint32Array(result.buffer.slice(3, 3 + length));
             }
+
+            const length = operations.length * 4;
+            return new Uint32Array(result.buffer.slice(3, 3 + length));
         });
     }
 
@@ -384,8 +384,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @param values The values to write
      * @returns Promise
      */
-    public transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
-    public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | void> {
+    public transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<undefined>;
+    public transferBlock(port: DAPPort, register: number, countOrValues: number | Uint32Array): Promise<Uint32Array | undefined> {
 
         let operationCount: number;
         let mode: DAPTransferMode;
@@ -441,6 +441,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             if (typeof countOrValues === "number") {
                 return new Uint32Array(result.buffer.slice(4));
             }
+
+            return undefined;
         });
     }
 }

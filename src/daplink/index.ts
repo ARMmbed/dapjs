@@ -54,13 +54,14 @@ export class DAPLink extends CmsisDAP implements Proxy {
      */
     public static EVENT_SERIAL_DATA: string = "serial";
 
-    private timer: NodeJS.Timer = null;
+    private timer?: NodeJS.Timer;
 
     /**
      * Detect if buffer contains text or binary data
      */
     private isBufferBinary(buffer: ArrayBuffer): boolean {
-        const bufferString: string = String.fromCharCode.apply(null, new Uint16Array(buffer, 0, 50));
+        const numberArray = Array.prototype.slice.call(new Uint16Array(buffer, 0, 50));
+        const bufferString: string = String.fromCharCode.apply(null, numberArray);
 
         for (let i = 0; i < bufferString.length; i++) {
             const charCode = bufferString.charCodeAt(i);
@@ -87,6 +88,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
             if (end < buffer.byteLength) {
                 return this.writeBuffer(buffer, pageSize, end);
             }
+            return Promise.resolve();
         });
     }
 
@@ -107,7 +109,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
         return this.send(DAPLinkFlash.OPEN, new Uint32Array([streamType]))
         .then(result => {
             // An error occurred
-            if (result.getUint8(1) !== 0) return;
+            if (result.getUint8(1) !== 0) return Promise.reject("Flash error");
             return this.writeBuffer(arrayBuffer, pageSize);
         })
         .then(() => {
@@ -116,7 +118,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
         })
         .then(result => {
             // An error occurred
-            if (result.getUint8(1) !== 0) return;
+            if (result.getUint8(1) !== 0) return Promise.reject("Flash error");
             return this.send(DAPLinkFlash.RESET);
         })
         .then(() => undefined);
@@ -160,7 +162,8 @@ export class DAPLink extends CmsisDAP implements Proxy {
                     if (dataLength !== 0) {
                         const offset = 2;
                         const dataArray = serialData.buffer.slice(offset, offset + dataLength);
-                        const data = String.fromCharCode.apply(null, new Uint8Array(dataArray));
+                        const numberArray = Array.prototype.slice.call(new Uint8Array(dataArray));
+                        const data = String.fromCharCode.apply(null, numberArray);
                         this.emit(DAPLink.EVENT_SERIAL_DATA, data);
                     }
                 }
@@ -174,7 +177,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
     public stopSerialRead() {
         if (this.timer) {
             clearInterval(this.timer);
-            this.timer = null;
+            this.timer = undefined;
         }
     }
 
