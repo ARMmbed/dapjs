@@ -54,7 +54,7 @@ export class DAPLink extends CmsisDAP implements Proxy {
      */
     public static EVENT_SERIAL_DATA: string = "serial";
 
-    private timer?: NodeJS.Timer;
+    private timer?: any;
 
     /**
      * Detect if buffer contains text or binary data

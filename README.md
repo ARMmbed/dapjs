@@ -7,7 +7,7 @@ DAP.js is a JavaScript interface to [CMSIS-DAP](https://www.keil.com/pack/doc/CM
 
 ## Prerequisites
 
-[Node.js > v6.10.0](https://nodejs.org), which includes `npm`
+[Node.js > v6.15.0](https://nodejs.org), which includes `npm`
 
 ## Installation
 

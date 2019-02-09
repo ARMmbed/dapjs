@@ -89,7 +89,7 @@ export class USB implements Transport {
         }
 
         const arrayBuffer = isView(bufferSource) ? bufferSource.buffer : bufferSource;
-        return new Buffer(arrayBuffer);
+        return Buffer.from(arrayBuffer);
     }
 
     private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
