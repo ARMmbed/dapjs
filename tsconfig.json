@@ -7,11 +7,12 @@
             "dom",
             "es2015.promise"
         ],
+        "noImplicitAny": true,
+        "noImplicitThis": true,
         "alwaysStrict": true,
         "noEmitOnError": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "noImplicitAny": true,
         "sourceMap": true,
         "declaration": true
     }

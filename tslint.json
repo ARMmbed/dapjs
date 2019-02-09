@@ -19,7 +19,6 @@
         "no-empty-interface": false,
         "no-floating-promises": true,
         "no-trailing-whitespace": [true],
-        "no-unused-variable": true,
         "object-literal-shorthand": false,
         "object-literal-sort-keys": false,
         "ordered-imports": [true, { "import-sources-order": "any", "named-imports-order": "any" }],
