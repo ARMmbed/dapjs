@@ -1,5 +1,6 @@
 /*
-* The MIT License (MIT)
+* DAPjs
+* Copyright Arm Limited 2018
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -20,4 +21,8 @@
 * SOFTWARE.
 */
 
-module.exports = require("./lib/");
+export { CmsisDAP } from "./proxy";
+export { DAPLink } from "./daplink";
+export { ADI } from "./dap";
+export { CortexM } from "./processor";
+export { WebUSB } from "./transport/webusb";

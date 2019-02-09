@@ -55,7 +55,3 @@ export interface Transport {
      */
     write(data: BufferSource): Promise<void>;
 }
-
-export { HID } from "./hid";
-export { USB } from "./usb";
-export { WebUSB } from "./webusb";

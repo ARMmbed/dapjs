@@ -99,9 +99,6 @@ function bundle() {
     return browserify(nodeDir, {
         standalone: bundleGlobal
     })
-    .ignore("webusb")
-    .ignore("usb")
-    .ignore("node-hid")
     .bundle()
     .on("error", handleError)
     .pipe(source(bundleFile))

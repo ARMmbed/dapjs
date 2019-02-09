@@ -4,11 +4,9 @@
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "homepage": "https://github.com/ARMmbed/dapjs",
   "license": "MIT",
-  "types": "./types/index.d.ts",
-  "main": "./index.js",
-  "browser": {
-    "./index.js": "./bundles/dap.bundle.js"
-  },
+  "main": "lib/index.js",
+  "browser": "lib/browser.js",
+  "types": "types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/ARMmbed/dapjs.git"
