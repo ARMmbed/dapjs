@@ -11,44 +11,46 @@ const gulpTypedoc       = require("gulp-typedoc");
 const gulpTypescript    = require("gulp-typescript");
 const gulpTslint        = require("gulp-tslint");
 
-// Source
-let srcDir = "src";
-let srcFiles = srcDir + "/**/*.ts";
-
 // Docs
-let name = "DAPjs API Documentation";
-let docsDir = "docs";
+const name = "DAPjs API Documentation";
+const docsDir = "docs";
+
+// Source
+const srcDir = "src";
+const srcFiles = srcDir + "/**/*.ts";
 
 // Node
-let nodeDir = "lib";
-let typesDir = "types";
+const nodeDir = "lib";
+const typesDir = "types";
 
 // Browser bundles
-let bundleDir = "bundles";
-let bundleFile =  "dap.bundle.js";
-let bundleGlobal = "DAPjs";
+const bundleDir = "bundles";
+const bundleFile =  "dap.bundle.js";
+const bundleGlobal = "DAPjs";
 
 let watching = false;
 
 // Error handler suppresses exists during watch
-function handleError(error) {
-    console.log(error.message);
+function handleError(cb) {
     if (watching) this.emit("end");
     else process.exit(1);
+    cb();
 }
 
 // Set watching
-gulp.task("setWatch", () => {
+function setWatch(cb) {
     watching = true;
-});
+    cb();
+}
 
 // Clear built directories
-gulp.task("clean", () => {
-    return del([nodeDir, typesDir, bundleDir]);
-});
+function clean(cb) {
+    if (!watching) del([nodeDir, typesDir]);
+    cb();
+}
 
 // Lint the source
-gulp.task("lint", () => {
+function lint() {
     return gulp.src(srcFiles)
     .pipe(gulpTslint({
         program: tslint.Linter.createProgram("./tsconfig.json"),
@@ -57,10 +59,10 @@ gulp.task("lint", () => {
     .pipe(gulpTslint.report({
         emitError: !watching
     }))
-});
+}
 
 // Create documentation
-gulp.task("doc", () => {
+function doc() {
     return gulp.src(srcFiles)
     .pipe(gulpTypedoc({
         name: name,
@@ -75,11 +77,11 @@ gulp.task("doc", () => {
         hideGenerator: true
     }))
     .on("error", handleError);
-});
+}
 
 // Build TypeScript source into CommonJS Node modules
-gulp.task("compile", ["clean"], () => {
-    let tsResult = gulp.src(srcFiles)
+function compile() {
+    var tsResult = gulp.src(srcFiles)
     .pipe(gulpSourcemaps.init())
     .pipe(gulpTypescript.createProject("tsconfig.json")())
     .on("error", handleError);
@@ -90,10 +92,10 @@ gulp.task("compile", ["clean"], () => {
         })).pipe(gulp.dest(nodeDir)),
         tsResult.dts.pipe(gulp.dest(typesDir))
     ]);
-});
+}
 
 // Build CommonJS modules into browser bundles
-gulp.task("bundle", ["compile"], () => {
+function bundle() {
     return browserify(nodeDir, {
         standalone: bundleGlobal
     })
@@ -111,10 +113,10 @@ gulp.task("bundle", ["compile"], () => {
         sourceRoot: path.relative(bundleDir, nodeDir)
     }))
     .pipe(gulp.dest(bundleDir));
-});
+}
 
-gulp.task("watch", ["setWatch", "default"], () => {
-    gulp.watch(srcFiles, ["default"]);
+exports.default = gulp.series(lint, doc, clean, compile, bundle);
+exports.watch = gulp.series(setWatch, exports.default, function(cb) {
+    gulp.watch(srcFiles, gulp.series(lint, clean, compile, bundle));
+    cb();
 });
-
-gulp.task("default", ["lint", "doc", "bundle"]);
