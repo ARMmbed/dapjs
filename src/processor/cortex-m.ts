@@ -116,11 +116,11 @@ export class CortexM extends ADI implements Processor {
     public halt(wait: boolean = true, timeout: number = 0): Promise<void> {
         return this.isHalted()
         .then(halted => {
-            if (halted) return;
+            if (halted) return Promise.resolve();
 
             return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN | DhcsrMask.C_HALT)
             .then(() => {
-                if (!wait) return;
+                if (!wait) return Promise.resolve();
 
                 return this.waitDelay(() => this.isHalted(), 100, timeout);
             });
@@ -136,12 +136,12 @@ export class CortexM extends ADI implements Processor {
     public resume(wait: boolean = true, timeout: number = 0) {
         return this.isHalted()
         .then(halted => {
-            if (!halted) return;
+            if (!halted) return Promise.resolve();
 
             return this.writeMem32(DebugRegister.DFSR, DfsrMask.DWTTRAP | DfsrMask.BKPT | DfsrMask.HALTED)
             .then(() => this.enableDebug())
             .then(() => {
-                if (!wait) return;
+                if (!wait) return Promise.resolve();
 
                 return this.waitDelay(() => this.isHalted().then(result => !result), 100, timeout);
             });
@@ -174,7 +174,7 @@ export class CortexM extends ADI implements Processor {
      * @returns Promise of register values in an array
      */
     public readCoreRegisters(registers: CoreRegister[]): Promise<number[]> {
-        let chain = Promise.resolve([]);
+        let chain: Promise<number[]> = Promise.resolve([]);
 
         registers.forEach(register => {
             chain = chain.then(results => this.readCoreRegister(register).then(result => [...results, result]));
@@ -212,7 +212,7 @@ export class CortexM extends ADI implements Processor {
      * @param linkRegister The link register to use (defaults to address + 1)
      * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
      */
-    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<number> {
+    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<void> {
 
         // Ensure a breakpoint exists at the end of the code
         if (code[code.length - 1] !== BKPT_INSTRUCTION) {
@@ -238,7 +238,6 @@ export class CortexM extends ADI implements Processor {
         .then(() => this.transferSequence(sequence)) // Write the registers
         .then(() => this.writeBlock(address, code)) // Write the code to the address
         .then(() => this.resume(false)) // Resume the target, without waiting
-        .then(() => this.waitDelay(() => this.isHalted(), 100, EXECUTE_TIMEOUT)) // Wait for the target to halt on the breakpoint
-        .then(() => undefined); // Return
+        .then(() => this.waitDelay(() => this.isHalted(), 100, EXECUTE_TIMEOUT)); // Wait for the target to halt on the breakpoint
     }
 }

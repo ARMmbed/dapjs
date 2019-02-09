@@ -31,8 +31,8 @@ import { Transport } from "./";
 export class HID implements Transport {
 
     private os: string = platform();
-    private path: string = null;
-    private device: nodeHID = null;
+    private path: string;
+    private device?: nodeHID;
     public readonly packetSize = 64;
 
     /**
@@ -44,7 +44,7 @@ export class HID implements Transport {
             return (source as Device).path !== undefined;
         }
 
-        this.path = isDevice(deviceOrPath) ? deviceOrPath.path : deviceOrPath;
+        this.path = isDevice(deviceOrPath) ? deviceOrPath.path! : deviceOrPath;
     }
 
     /**
@@ -74,7 +74,6 @@ export class HID implements Transport {
         return new Promise((resolve, _reject) => {
             if (this.device) {
                 this.device.close();
-                this.device = null;
             }
 
             resolve();
@@ -87,6 +86,8 @@ export class HID implements Transport {
      */
     public read(): Promise<DataView> {
         return new Promise((resolve, reject) => {
+            if (!this.device) return reject("No device opened");
+
             this.device.read((error: string, data: number[]) => {
                 if (error) {
                     return reject(error);
@@ -105,6 +106,8 @@ export class HID implements Transport {
      */
     public write(data: BufferSource): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (!this.device) return reject("No device opened");
+
             function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
                 return (source as ArrayBufferView).buffer !== undefined;
             }

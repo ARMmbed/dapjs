@@ -55,7 +55,7 @@ const IN_REPORT = 0x100;
  */
 export class WebUSB implements Transport {
 
-    private interfaceNumber: number;
+    private interfaceNumber?: number;
     public readonly packetSize = 64;
 
     /**
@@ -89,7 +89,7 @@ export class WebUSB implements Transport {
         return this.device.open()
         .then(() => this.device.selectConfiguration(this.configuration))
         .then(() => {
-            const interfaces = this.device.configuration.interfaces.filter(iface => {
+            const interfaces = this.device.configuration!.interfaces.filter(iface => {
                 return iface.alternates[0].interfaceClass === this.interfaceClass;
             });
 
@@ -115,6 +115,8 @@ export class WebUSB implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
+        if (!this.interfaceNumber) return Promise.reject("No device opened");
+
         return this.device.controlTransferIn(
             {
                 requestType: "class",
@@ -125,7 +127,7 @@ export class WebUSB implements Transport {
             },
             this.packetSize
         )
-        .then(result => result.data);
+        .then(result => result.data!);
     }
 
     /**
@@ -134,6 +136,8 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
+        if (!this.interfaceNumber) return Promise.reject("No device opened");
+
         const buffer = this.extendBuffer(data, this.packetSize);
 
         return this.device.controlTransferOut(
