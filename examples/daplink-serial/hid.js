@@ -22,7 +22,7 @@
 
 const hid = require("node-hid");
 const common = require("./common");
-const DAPjs = require("../../");
+const hidTransport = require("../../lib/transport/hid");
 
 // Allow user to select a device
 function selectDevice(vendorID) {
@@ -56,7 +56,7 @@ function selectDevice(vendorID) {
 
 selectDevice(0xD28)
 .then(device => {
-    const transport = new DAPjs.HID(device);
+    const transport = new hidTransport.HID(device);
     return common.listen(transport);
 })
 .catch(error => {

@@ -63,6 +63,7 @@
     "typescript": "~3.3.3",
     "usb": "^1.5.0",
     "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
+    "vinyl-source-stream": "^2.0.0",
+    "webusb": "^1.1.1"
   }
 }

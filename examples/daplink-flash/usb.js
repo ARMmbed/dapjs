@@ -22,7 +22,7 @@
 
 const usb = require("usb");
 const common = require("./common");
-const DAPjs = require("../../");
+const usbTransport = require("../../lib/transport/usb");
 
 // Read USB device descriptor
 function getStringDescriptor(device, index) {
@@ -69,7 +69,7 @@ common.getFile()
     common.setupEmitter();
     return selectDevice(0xD28)
     .then(device => {
-        const transport = new DAPjs.USB(device);
+        const transport = new usbTransport.USB(device);
         return common.flash(transport, program);
     });
 })
