@@ -40,10 +40,10 @@ export class ADI implements DAP {
     /**
      * ADI constructor
      * @param transport Debug transport to use
-     * @param mode Debug mode to use
+     * @param mode Debug mode to use (default 0)
      * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
-    constructor(transport: Transport, mode: DAPProtocol, clockFrequency: number);
+    constructor(transport: Transport, mode?: DAPProtocol, clockFrequency?: number);
     /**
      * ADI constructor
      * @param proxy Proxy to use
