@@ -193,3 +193,5 @@ export class DAPLink extends CmsisDAP implements Proxy {
         .then(() => undefined);
     }
 }
+
+export * from "./enums";

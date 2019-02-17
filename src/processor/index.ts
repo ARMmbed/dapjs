@@ -90,4 +90,5 @@ export interface Processor extends DAP {
     execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister?: number, ...registers: number[]): Promise<void>;
 }
 
-export { CortexM } from "./cortex-m";
+export * from "./cortex-m";
+export * from "./enums";
