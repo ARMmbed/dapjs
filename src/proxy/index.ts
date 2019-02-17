@@ -118,4 +118,5 @@ export interface Proxy {
     transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
 }
 
-export { CmsisDAP } from "./cmsis-dap";
+export * from "./cmsis-dap";
+export * from "./enums";

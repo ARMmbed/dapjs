@@ -55,3 +55,5 @@ export interface Transport {
      */
     write(data: BufferSource): Promise<void>;
 }
+
+export * from "./webusb";
