@@ -355,7 +355,7 @@ export class ADI implements DAP {
         // Split into requests no longer than block size
         let remainder = count;
         while (remainder > 0) {
-            const chunkSize = Math.min(remainder, this.proxy.blockSize);
+            const chunkSize = Math.min(remainder, Math.floor(this.proxy.blockSize / 4));
             chain = chain.then(results => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunkSize)
             .then(result => [...results, result]));
             remainder -= chunkSize;
@@ -381,9 +381,9 @@ export class ADI implements DAP {
         // Split values into chunks no longer than block size
         let index = 0;
         while (index < values.length) {
-            const chunk = values.slice(index, index + this.proxy.blockSize);
+            const chunk = values.slice(index, index + Math.floor(this.proxy.blockSize / 4));
             chain = chain.then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunk));
-            index += this.proxy.blockSize;
+            index += Math.floor(this.proxy.blockSize / 4);
         }
 
         return chain;

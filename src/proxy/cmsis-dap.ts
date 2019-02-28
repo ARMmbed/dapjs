@@ -444,7 +444,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             }
 
             if (typeof countOrValues === "number") {
-                return new Uint32Array(result.buffer.slice(4));
+                return new Uint32Array(result.buffer.slice(4, 4 + operationCount * 4));
             }
 
             return undefined;
