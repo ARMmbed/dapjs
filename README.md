@@ -82,7 +82,7 @@ $ npm install webusb
 In the browser, require the library:
 
 ```html
-<script type="text/javascript" src="bundles/dap.bundle.js"></script>
+<script type="text/javascript" src="dist/dap.umd.js"></script>
 ```
 
 In Node.js Require the libraries:

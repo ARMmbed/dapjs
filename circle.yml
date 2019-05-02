@@ -10,7 +10,7 @@ jobs:
       - run: sudo apt-get install libusb-1.0-0-dev
       - checkout
       - run: npm install
-      - run: npm run gulp
+      - run: npm run build
       - persist_to_workspace:
           root: ../
           paths:
@@ -28,7 +28,7 @@ jobs:
       - run: mkdir ~/.ssh/ && echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
       - run: git config --global user.name thegecko
       - run: git config --global user.email github@thegecko.org
-      - run: git add --force bundles lib types docs
+      - run: git add --force dist types docs
       - run: git stash save
       - run: git checkout gh-pages
       - run: git merge master --no-commit

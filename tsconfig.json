@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "commonjs",
         "lib": [
             "es5",
             "dom",
@@ -14,6 +13,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "sourceMap": true,
-        "declaration": true
+        "declaration": true,
+        "declarationDir": "types"
     }
 }

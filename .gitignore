@@ -1,8 +1,8 @@
 .DS_Store
 .vscode
+.rpt2_cache
 node_modules
-bundles
-lib
+dist
 types
 docs
 npm-debug.log
