@@ -1,0 +1,55 @@
+<!--
+ DAPjs
+ Copyright Arm Limited 2018
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html>
+<body>
+    <button id="connect">Connect</button>
+    <div id="results" style="white-space: pre;" />
+
+    <script type="text/javascript" src="../../dist/dap.umd.js"></script>
+    <script>
+
+        // Listen to serial output from the device
+        const listen = async (device, resultsEl) => {
+            const transport = new DAPjs.WebUSB(device);
+            const target = new DAPjs.DAPLink(transport);
+
+            target.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
+                resultsEl.innerHTML += `${data}`;
+            });
+
+            await target.connect();
+            const baud = await target.getSerialBaudrate();
+            target.startSerialRead();
+            resultsEl.innerHTML = `Listening at ${baud} baud...\n`;
+        };
+
+        document.getElementById("connect").onclick = async () => {
+            const resultsEl = document.getElementById("results");
+            const device = await navigator.usb.requestDevice({
+                filters: [{vendorId: 0xD28}]
+            });
+
+            listen(device, resultsEl);
+        };
+    </script>
+</body>
+</html>
