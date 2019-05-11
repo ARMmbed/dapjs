@@ -123,7 +123,14 @@ export class USB implements Transport {
                     throw new Error("No valid interfaces found.");
                 }
 
-                const selectedInterface = interfaces[0];
+                // Prefer interface with endpoints
+                let selectedInterface = interfaces.find(iface => iface.endpoints.length > 0);
+
+                // Otherwise use the first
+                if (!selectedInterface) {
+                    selectedInterface = interfaces[0];
+                }
+
                 this.interfaceNumber = selectedInterface.interfaceNumber;
 
                 // If we always want to use control transfer, don't find/set endpoints and claim interface
