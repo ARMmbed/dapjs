@@ -45,7 +45,6 @@ export class Registers {
             const registers = Array.from({ length: count }, (_, index) => index);
             const values = await processor.readCoreRegisters(registers);
 
-            await processor.reconnect();
             await processor.resume();
             await processor.disconnect();
 
