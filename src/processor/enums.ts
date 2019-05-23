@@ -166,6 +166,51 @@ export const enum DebugRegister {
 }
 
 /**
+ * NVIC Registers
+ */
+export const enum NvicRegister {
+    /**
+     * NVIC: Interrupt Controller Type Register
+     */
+    ICT = 0xE000E004,
+    /**
+     * NVIC: CPUID Base Register
+     */
+    CPUID = 0xE000ED00,
+    /**
+     * NVIC: Application Interrupt/Reset Control Register
+     */
+    AIRCR = 0xE000ED0C,
+    /**
+     * NVIC: Debug Fault Status Register
+     */
+    DFSR = 0xE000ED30
+}
+
+/**
+ * NVIC: Application Interrupt/Reset Control Register
+ * @hidden
+ */
+export const enum AircrMask {
+    /**
+     * Reset Cortex-M (except Debug)
+     */
+    VECTRESET = (1 << 0),
+    /**
+     * Clear Active Vector Bit
+     */
+    VECTCLRACTIVE = (1 << 1),
+    /**
+     * Reset System (except Debug)
+     */
+    SYSRESETREQ = (1 << 2),
+    /**
+     * Write Key
+     */
+    VECTKEY = 0x05FA0000
+}
+
+/**
  * Debug Halting Control and Status Register
  * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0337e/CEGCJAHJ.html
  * @hidden
@@ -263,6 +308,66 @@ export const enum DcrsrMask {
      * Register select - DebugReturnAddress & PSR/Flags, Execution Number, and state information
      */
     REGSEL = 0x1F,
+}
+
+/**
+ * Debug Exception and Monitor Control Register Mask
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0337e/CEGHJDCF.html
+ * @hidden
+ */
+export const enum DemcrMask {
+    /**
+     * Reset Vector Catch
+     */
+    CORERESET = (1 << 0),
+    /**
+     * Debug Trap on MMU Fault
+     */
+    MMERR = (1 << 4),
+    /**
+     * Debug Trap on No Coprocessor Fault
+     */
+    NOCPERR = (1 << 5),
+    /**
+     * Debug Trap on Checking Error Fault
+     */
+    CHKERR = (1 << 6),
+    /**
+     * Debug Trap on State Error Fault
+     */
+    STATERR = (1 << 7),
+    /**
+     * Debug Trap on Bus Error Fault
+     */
+    BUSERR = (1 << 8),
+    /**
+     * Debug Trap on Interrupt Error Fault
+     */
+    INTERR = (1 << 9),
+    /**
+     * Debug Trap on Hard Fault
+     */
+    HARDERR = (1 << 10),
+    /**
+     * Monitor Enable
+     */
+    MON_EN = (1 << 16),
+    /**
+     * Monitor Pend
+     */
+    MON_PEND = (1 << 17),
+    /**
+     * Monitor Step
+     */
+    MON_STEP = (1 << 18),
+    /**
+     * Monitor Request
+     */
+    MON_REQ = (1 << 19),
+    /**
+     * Trace Enable
+     */
+    TRCENA = (1 << 24)
 }
 
 /**
