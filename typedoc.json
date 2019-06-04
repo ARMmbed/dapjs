@@ -3,10 +3,11 @@
     "readme": "./README.md",
     "theme": "./docs-theme",
     "module": "commonjs",
-    "target": "es6",
     "mode": "file",
     "out": "docs",
     "excludeExternals": true,
+    "excludeNotExported": true,
+    "excludeProtected": true,
     "excludePrivate": true,
     "hideGenerator": true
 }

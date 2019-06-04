@@ -21,17 +21,25 @@
 * SOFTWARE.
 */
 
-import {
-    LIBUSB_REQUEST_TYPE_CLASS,
-    LIBUSB_RECIPIENT_INTERFACE,
-    LIBUSB_ENDPOINT_IN,
-    LIBUSB_ENDPOINT_OUT,
-    Device,
-    InEndpoint,
-    OutEndpoint
-} from "usb";
+import { Device, InEndpoint, OutEndpoint} from "usb";
 import { Transport } from "./";
 
+/**
+ * @hidden
+ */
+const LIBUSB_REQUEST_TYPE_CLASS = (0x01 << 5);
+/**
+ * @hidden
+ */
+const LIBUSB_RECIPIENT_INTERFACE = 0x01;
+/**
+ * @hidden
+ */
+const LIBUSB_ENDPOINT_OUT = 0x00;
+/**
+ * @hidden
+ */
+const LIBUSB_ENDPOINT_IN = 0x80;
 /**
  * @hidden
  */
