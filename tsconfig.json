@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "esNext",
         "lib": [
             "es5",
             "dom",

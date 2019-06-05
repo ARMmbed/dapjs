@@ -34,7 +34,7 @@
     "webusb"
   ],
   "scripts": {
-    "build": "rollup -c && typedoc --tsconfig ./typedoc.tsconfig.json src",
+    "build": "rollup -c && typedoc src",
     "watch": "rollup -c -w"
   },
   "engines": {
