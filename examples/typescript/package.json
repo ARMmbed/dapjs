@@ -9,8 +9,7 @@
   "devDependencies": {
     "@types/node": "^10.12.26",
     "browserify": "^16.2.3",
-    "dapjs": "^1.1.0",
-    "express": "^4.16.4",
+    "dapjs": "next",
     "tsify": "^4.0.1",
     "typescript": "^3.4.5",
     "webusb": "^1.2.2"

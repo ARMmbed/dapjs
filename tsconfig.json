@@ -15,5 +15,8 @@
         "sourceMap": true,
         "declaration": true,
         "declarationDir": "types"
-    }
+    },
+    "include": [
+        "src/**/*"
+    ]
 }
