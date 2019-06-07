@@ -56,6 +56,8 @@ const IN_REPORT = 0x100;
 export class WebUSB implements Transport {
 
     private interfaceNumber?: number;
+    private endpointIn?: USBEndpoint;
+    private endpointOut?: USBEndpoint;
     public readonly packetSize = 64;
 
     /**
@@ -63,8 +65,9 @@ export class WebUSB implements Transport {
      * @param device WebUSB device to use
      * @param interfaceClass Optional interface class to use (default: 0xFF)
      * @param configuration Optional Configuration to use (default: 1)
+     * @param alwaysControlTransfer Whether to always use control transfer instead of endpoints (default: false)
      */
-    constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION) {
+    constructor(private device: USBDevice, private interfaceClass = DEFAULT_CLASS, private configuration = DEFAULT_CONFIGURATION, private alwaysControlTransfer: boolean = false) {
     }
 
     private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
@@ -97,7 +100,29 @@ export class WebUSB implements Transport {
                 throw new Error("No valid interfaces found.");
             }
 
-            this.interfaceNumber = interfaces[0].interfaceNumber;
+            // Prefer interface with endpoints
+            let selectedInterface = interfaces.find(iface => iface.alternates[0].endpoints.length > 0);
+
+            // Otherwise use the first
+            if (!selectedInterface) {
+                selectedInterface = interfaces[0];
+            }
+
+            this.interfaceNumber = selectedInterface.interfaceNumber;
+
+            // If we always want to use control transfer, don't find/set endpoints and claim interface
+            if (!this.alwaysControlTransfer) {
+                const endpoints = selectedInterface.alternates[0].endpoints;
+
+                this.endpointIn = undefined;
+                this.endpointOut = undefined;
+
+                for (const endpoint of endpoints) {
+                    if (endpoint.direction === "in") this.endpointIn = endpoint;
+                    else this.endpointOut = endpoint;
+                }
+            }
+
             return this.device.claimInterface(this.interfaceNumber);
         });
     }
@@ -117,6 +142,16 @@ export class WebUSB implements Transport {
     public read(): Promise<DataView> {
         if (!this.interfaceNumber) return Promise.reject("No device opened");
 
+        // Use endpoint if it exists
+        if (this.endpointIn) {
+            return this.device.transferIn(
+                this.endpointIn.endpointNumber,
+                this.packetSize
+            )
+            .then(result => result.data!);
+        }
+
+        // Fallback to using control transfer
         return this.device.controlTransferIn(
             {
                 requestType: "class",
@@ -140,6 +175,16 @@ export class WebUSB implements Transport {
 
         const buffer = this.extendBuffer(data, this.packetSize);
 
+        // Use endpoint if it exists
+        if (this.endpointOut) {
+            return this.device.transferOut(
+                this.endpointOut.endpointNumber,
+                buffer
+            )
+            .then(() => undefined);
+        }
+
+        // Fallback to using control transfer
         return this.device.controlTransferOut(
             {
                 requestType: "class",
