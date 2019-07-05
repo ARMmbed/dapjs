@@ -188,7 +188,7 @@ export class USB implements Transport {
      */
     public read(): Promise<DataView> {
         return new Promise((resolve, reject) => {
-            if (!this.interfaceNumber) return reject("No device opened");
+            if (this.interfaceNumber === undefined) return reject("No device opened");
 
             // Use endpoint if it exists
             if (this.endpointIn) {
@@ -225,7 +225,7 @@ export class USB implements Transport {
         const buffer = this.bufferSourceToBuffer(extended);
 
         return new Promise((resolve, reject) => {
-            if (!this.interfaceNumber) return reject("No device opened");
+            if (this.interfaceNumber === undefined) return reject("No device opened");
 
             // Use endpoint if it exists
             if (this.endpointOut) {

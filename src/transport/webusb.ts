@@ -140,7 +140,7 @@ export class WebUSB implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
-        if (!this.interfaceNumber) return Promise.reject("No device opened");
+        if (this.interfaceNumber === undefined) return Promise.reject("No device opened");
 
         // Use endpoint if it exists
         if (this.endpointIn) {
@@ -171,7 +171,7 @@ export class WebUSB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
-        if (!this.interfaceNumber) return Promise.reject("No device opened");
+        if (this.interfaceNumber === undefined) return Promise.reject("No device opened");
 
         const buffer = this.extendBuffer(data, this.packetSize);
 
