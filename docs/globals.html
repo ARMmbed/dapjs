@@ -101,32 +101,52 @@
 <div class="container container-main">
 	<div class="content-wrap">
 		<div class="tsd-panel tsd-typography">
-			<h1 id="dap-js">DAP.js</h1>
+			<a href="#dapjs" id="dapjs" style="color: inherit; text-decoration: none;">
+				<h1>DAP.js</h1>
+			</a>
 			<p><a href="https://circleci.com/gh/ARMmbed/dapjs/"><img src="https://circleci.com/gh/ARMmbed/dapjs.svg?style=shield&circle-token=d37ef109d0134f6f8e4eb12a65214a8b159f77d8" alt="Circle CI"></a>
 				<a href="https://www.npmjs.com/package/dapjs"><img src="https://img.shields.io/npm/dm/dapjs.svg" alt="npm"></a>
 			<a href="https://spdx.org/licenses/MIT.html"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a></p>
 			<p>DAP.js is a JavaScript interface to <a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/index.html">CMSIS-DAP</a>, enabling access to Arm Microcontrollers using <a href="https://nodejs.org/">Node.js</a> or in the browser using <a href="https://wicg.github.io/webusb/">WebUSB</a>.</p>
-			<h2 id="prerequisites">Prerequisites</h2>
-			<p><a href="https://nodejs.org">Node.js &gt; v6.15.0</a>, which includes <code>npm</code></p>
-			<h2 id="installation">Installation</h2>
+			<a href="#prerequisites" id="prerequisites" style="color: inherit; text-decoration: none;">
+				<h2>Prerequisites</h2>
+			</a>
+			<p><a href="https://nodejs.org">Node.js &gt; v8.14.0</a>, which includes <code>npm</code></p>
+			<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+				<h2>Installation</h2>
+			</a>
 			<p>The package is distributed using npm. To install the package in your project:</p>
 			<pre><code class="language-bash">$ npm install dapjs</code></pre>
-			<h2 id="getting-started">Getting Started</h2>
+			<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+				<h2>Getting Started</h2>
+			</a>
 			<p>Decide on a transport layer to use (see below) and refer to the <a href="https://github.com/ARMmbed/dapjs/tree/master/examples/">examples folder</a> to get started.</p>
 			<p>The web example can be seen running at:</p>
 			<p><a href="https://armmbed.github.io/dapjs/examples/daplink-flash/web.html">https://armmbed.github.io/dapjs/examples/daplink-flash/web.html</a></p>
 			<p>Refer to the <a href="https://armmbed.github.io/dapjs/">DAPjs API Documentation</a> for more information.</p>
-			<h2 id="supported-systems">Supported Systems</h2>
-			<h3 id="browsers">Browsers</h3>
+			<a href="#supported-systems" id="supported-systems" style="color: inherit; text-decoration: none;">
+				<h2>Supported Systems</h2>
+			</a>
+			<a href="#browsers" id="browsers" style="color: inherit; text-decoration: none;">
+				<h3>Browsers</h3>
+			</a>
 			<p>Please refer to the <a href="https://github.com/WICG/webusb#implementation-status">WebUSB implementation status</a> for browser support.</p>
-			<h3 id="windows">Windows</h3>
+			<a href="#windows" id="windows" style="color: inherit; text-decoration: none;">
+				<h3>Windows</h3>
+			</a>
 			<p>All transports outlined below are known to work on Windows 7, 8 and 10. Please refer to the <a href="https://github.com/tessel/node-usb/issues/182">node-usb FAQ</a> with any issues using the <code>USB</code> or <code>WebUSB</code> transport in <code>Node.js</code>. The <code>HID</code> transport is preferred on Windows.</p>
 			<p>Please ensure you <strong>don&#39;t</strong> have the Mbed Serial driver installed on <code>Windows 10</code> as this can cause issues and isn&#39;t needed on this platform.</p>
-			<h3 id="macos">MacOS</h3>
+			<a href="#macos" id="macos" style="color: inherit; text-decoration: none;">
+				<h3>MacOS</h3>
+			</a>
 			<p>No known issues with any transports in <code>Node.js</code> Tested on MacOS 10.12.</p>
-			<h3 id="linux">Linux</h3>
+			<a href="#linux" id="linux" style="color: inherit; text-decoration: none;">
+				<h3>Linux</h3>
+			</a>
 			<p>Basic testing undertaken with no known issues. Please refer to the <a href="https://github.com/tessel/node-usb/issues/182">node-usb FAQ</a> with any issues using the <code>USB</code> or <code>WebUSB</code> transport in <code>Node.js</code>.</p>
-			<h3 id="development-boards">Development Boards</h3>
+			<a href="#development-boards" id="development-boards" style="color: inherit; text-decoration: none;">
+				<h3>Development Boards</h3>
+			</a>
 			<p>All develoment boards supporting <code>CMSIS-DAP</code> should work. For the flash and serial <code>DAPLink</code> functionality, all <a href="https://os.mbed.com/platforms/?mbed-enabled=15">Mbed Enabled boards</a> should work, but need the latest <code>DAPLink</code> firmware installed.</p>
 			<p>The latest DAPLink containing WebUSB support needs to be built from the <a href="https://github.com/ARMmbed/DAPLink">DAPLink source</a> until we have prepared a new firmware release on <a href="https://armmbed.github.io/DAPLink/">https://armmbed.github.io/DAPLink/</a>.</p>
 			<p>All examples have been tested with the latest DAPLink fiormware on the following hardware:</p>
@@ -134,15 +154,21 @@
 				<li>Freedom K64F</li>
 				<li>BBC micro:bit</li>
 			</ul>
-			<h2 id="choosing-a-transport">Choosing a Transport</h2>
+			<a href="#choosing-a-transport" id="choosing-a-transport" style="color: inherit; text-decoration: none;">
+				<h2>Choosing a Transport</h2>
+			</a>
 			<p>In order to use DAPjs, you need to install support for one of the transports. Use the following information to help you choose which to use:</p>
-			<h3 id="webusb">WebUSB</h3>
+			<a href="#webusb" id="webusb" style="color: inherit; text-decoration: none;">
+				<h3>WebUSB</h3>
+			</a>
 			<p>If you wish to use DAPjs in a browser environment, you must use WebUSB. Please refer to the <a href="https://github.com/WICG/webusb#implementation-status">implementation status</a> of WebUSB to understand browser support for this technology.</p>
 			<p><strong>Note:</strong> WebUSB in the browser doesn&#39;t require any further libraries to be installed.</p>
 			<p>If you also want your program to work in a Node.js environment a <a href="https://github.com/thegecko/webusb">WebUSB library</a> exists to allow your program to be ported to Node.js.</p>
 			<p>To install the library for Node.js, use:</p>
 			<pre><code class="language-bash">$ npm install webusb</code></pre>
-			<h4 id="example">Example</h4>
+			<a href="#example" id="example" style="color: inherit; text-decoration: none;">
+				<h4>Example</h4>
+			</a>
 			<p>In the browser, require the library:</p>
 			<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"dist/dap.umd.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
 			<p>In Node.js Require the libraries:</p>
@@ -164,19 +190,27 @@
     <span class="hljs-built_in">console</span>.error(error.message || error);
     process.exit();
 });</code></pre>
-			<h4 id="pros">Pros</h4>
+			<a href="#pros" id="pros" style="color: inherit; text-decoration: none;">
+				<h4>Pros</h4>
+			</a>
 			<ul>
 				<li>Works in the browser</li>
 				<li>Programs are portable to Node.js environments</li>
 			</ul>
-			<h4 id="cons">Cons</h4>
+			<a href="#cons" id="cons" style="color: inherit; text-decoration: none;">
+				<h4>Cons</h4>
+			</a>
 			<ul>
 				<li>Requires a recent version of <a href="https://armmbed.github.io/DAPLink/">DAPLink</a> to be installed on your target device.</li>
 			</ul>
-			<h3 id="hid">HID</h3>
+			<a href="#hid" id="hid" style="color: inherit; text-decoration: none;">
+				<h3>HID</h3>
+			</a>
 			<p>For the highest level of firmware compatibility in a Node.js environment, the HID transport is recommended. This utilises the <code>node-hid</code> library and is installed as follows:</p>
 			<pre><code class="language-bash">$ npm install node-hid</code></pre>
-			<h4 id="example">Example</h4>
+			<a href="#example-1" id="example-1" style="color: inherit; text-decoration: none;">
+				<h4>Example</h4>
+			</a>
 			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> hid = <span class="hljs-built_in">require</span>(<span class="hljs-string">"node-hid"</span>);
 <span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dapjs"</span>);
 
@@ -193,19 +227,27 @@ daplink.connect()
     <span class="hljs-built_in">console</span>.error(error.message || error);
     process.exit();
 });</code></pre>
-			<h4 id="pros">Pros</h4>
+			<a href="#pros-1" id="pros-1" style="color: inherit; text-decoration: none;">
+				<h4>Pros</h4>
+			</a>
 			<ul>
 				<li>Compatible with older CMSIS-DAP firmware.</li>
 			</ul>
-			<h4 id="cons">Cons</h4>
+			<a href="#cons-1" id="cons-1" style="color: inherit; text-decoration: none;">
+				<h4>Cons</h4>
+			</a>
 			<ul>
 				<li>Requires HID access to JavaScript in your OS.</li>
 			</ul>
-			<h3 id="usb">USB</h3>
+			<a href="#usb" id="usb" style="color: inherit; text-decoration: none;">
+				<h3>USB</h3>
+			</a>
 			<p>A &quot;pure&quot; USB transport exists which bypasses requiring <code>WebUSB</code> and <code>HID</code>.
 			This utilises the <code>usb</code> library and is installed as follows:</p>
 			<pre><code class="language-bash">$ npm install usb</code></pre>
-			<h4 id="example">Example</h4>
+			<a href="#example-2" id="example-2" style="color: inherit; text-decoration: none;">
+				<h4>Example</h4>
+			</a>
 			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> usb = <span class="hljs-built_in">require</span>(<span class="hljs-string">"usb"</span>);
 <span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dapjs"</span>);
 
@@ -222,20 +264,30 @@ daplink.connect()
     <span class="hljs-built_in">console</span>.error(error.message || error);
     process.exit();
 });</code></pre>
-			<h4 id="pros">Pros</h4>
+			<a href="#pros-2" id="pros-2" style="color: inherit; text-decoration: none;">
+				<h4>Pros</h4>
+			</a>
 			<ul>
 				<li>Doesn&#39;t require HID access to JavaScript in your OS.</li>
 			</ul>
-			<h4 id="cons">Cons</h4>
+			<a href="#cons-2" id="cons-2" style="color: inherit; text-decoration: none;">
+				<h4>Cons</h4>
+			</a>
 			<ul>
 				<li>Requires a recent version of <a href="https://armmbed.github.io/DAPLink/">DAPLink</a> to be installed on your target device.</li>
 				<li>Can have issues on Windows machines</li>
 			</ul>
-			<h2 id="architecture">Architecture</h2>
+			<a href="#architecture" id="architecture" style="color: inherit; text-decoration: none;">
+				<h2>Architecture</h2>
+			</a>
 			<p>The architecture of this project is built up in layers as follows:</p>
-			<h3 id="transport">Transport</h3>
+			<a href="#transport" id="transport" style="color: inherit; text-decoration: none;">
+				<h3>Transport</h3>
+			</a>
 			<p>The <code>Transport</code> layer offers access to the USB device plugged into the host. Different transports are available based on user needs (see above).</p>
-			<h4 id="implementation-status">Implementation Status</h4>
+			<a href="#implementation-status" id="implementation-status" style="color: inherit; text-decoration: none;">
+				<h4>Implementation Status</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> packetSize</li>
 				<li><input checked="" disabled="" type="checkbox"> open()</li>
@@ -243,10 +295,14 @@ daplink.connect()
 				<li><input checked="" disabled="" type="checkbox"> read()</li>
 				<li><input checked="" disabled="" type="checkbox"> write()</li>
 			</ul>
-			<h3 id="proxy">Proxy</h3>
+			<a href="#proxy" id="proxy" style="color: inherit; text-decoration: none;">
+				<h3>Proxy</h3>
+			</a>
 			<p>The <code>Proxy</code> layer uses the transport layer to expose low-level <code>CMSIS-DAP</code> commands to the next layer. A common use for the proxy is as a debug chip attached to the main processor accessed over USB.</p>
 			<p>A CMSIS-DAP implementation is included, however a network proxy or similar could be introduced at this layer in order to remote commands.</p>
-			<h4 id="implementation-status">Implementation Status</h4>
+			<a href="#implementation-status-1" id="implementation-status-1" style="color: inherit; text-decoration: none;">
+				<h4>Implementation Status</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> operationCount</li>
 				<li><input checked="" disabled="" type="checkbox"> blockSize</li>
@@ -280,9 +336,13 @@ daplink.connect()
 				<li><input disabled="" type="checkbox"> executeCommands()</li>
 				<li><input disabled="" type="checkbox"> queueCommands()</li>
 			</ul>
-			<h3 id="daplink">DAPLink</h3>
+			<a href="#daplink" id="daplink" style="color: inherit; text-decoration: none;">
+				<h3>DAPLink</h3>
+			</a>
 			<p>The <code>DAPLink</code> layer is a special derived implementation of the <code>CMSIS-DAP</code> proxy implementation. It adds DAPLink vendor specific functionality such as Mass Storage Device <code>firmware flashing</code> and <code>serial control</code>.</p>
-			<h4 id="implementation-status">Implementation Status</h4>
+			<a href="#implementation-status-2" id="implementation-status-2" style="color: inherit; text-decoration: none;">
+				<h4>Implementation Status</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> flash()</li>
 				<li><input checked="" disabled="" type="checkbox"> getSerialBaudrate()</li>
@@ -291,14 +351,20 @@ daplink.connect()
 				<li><input checked="" disabled="" type="checkbox"> stopSerialRead()</li>
 				<li><input checked="" disabled="" type="checkbox"> serialWrite()</li>
 			</ul>
-			<h4 id="events">Events</h4>
+			<a href="#events" id="events" style="color: inherit; text-decoration: none;">
+				<h4>Events</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> flash_progress</li>
 				<li><input checked="" disabled="" type="checkbox"> serial_data</li>
 			</ul>
-			<h3 id="dap">DAP</h3>
+			<a href="#dap" id="dap" style="color: inherit; text-decoration: none;">
+				<h3>DAP</h3>
+			</a>
 			<p>The <code>DAP</code> (Debug Access Port) layer exposes low-level access to ports, registers and memory. An implementation exists for <code>ADI</code> (Arm Debug Interface).</p>
-			<h4 id="implementation-status">Implementation Status</h4>
+			<a href="#implementation-status-3" id="implementation-status-3" style="color: inherit; text-decoration: none;">
+				<h4>Implementation Status</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> connect()</li>
 				<li><input checked="" disabled="" type="checkbox"> disconnect()</li>
@@ -315,9 +381,13 @@ daplink.connect()
 				<li><input checked="" disabled="" type="checkbox"> readBlock()</li>
 				<li><input checked="" disabled="" type="checkbox"> writeBlock()</li>
 			</ul>
-			<h3 id="processor">Processor</h3>
+			<a href="#processor" id="processor" style="color: inherit; text-decoration: none;">
+				<h3>Processor</h3>
+			</a>
 			<p>The <code>Processor</code> layer exposes access to the core processor registers.</p>
-			<h4 id="implementation-status">Implementation Status</h4>
+			<a href="#implementation-status-4" id="implementation-status-4" style="color: inherit; text-decoration: none;">
+				<h4>Implementation Status</h4>
+			</a>
 			<ul>
 				<li><input checked="" disabled="" type="checkbox"> getState()</li>
 				<li><input checked="" disabled="" type="checkbox"> isHalted()</li>
@@ -329,10 +399,14 @@ daplink.connect()
 				<li><input checked="" disabled="" type="checkbox"> execute()</li>
 				<li><input disabled="" type="checkbox"> step()</li>
 			</ul>
-			<h2 id="development">Development</h2>
+			<a href="#development" id="development" style="color: inherit; text-decoration: none;">
+				<h2>Development</h2>
+			</a>
 			<p>After cloning this repository, install the development dependencies:</p>
 			<pre><code class="language-bash">$ npm install</code></pre>
-			<h3 id="building">Building</h3>
+			<a href="#building" id="building" style="color: inherit; text-decoration: none;">
+				<h3>Building</h3>
+			</a>
 			<p><a href="https://gulpjs.com/">Gulp</a> is used as a task runner to build the project.
 			To build the project, simply run <code>gulp</code> or to continually build as source changes, run <code>gulp watch</code>:</p>
 			<pre><code class="language-bash">$ gulp
@@ -340,7 +414,9 @@ $ gulp watch</code></pre>
 			<p>A <code>package.json script</code> exists to run gulp if you don&#39;t have it installed globally:</p>
 			<pre><code class="language-bash">$ npm run gulp
 $ npm run gulp watch</code></pre>
-			<h3 id="running">Running</h3>
+			<a href="#running" id="running" style="color: inherit; text-decoration: none;">
+				<h3>Running</h3>
+			</a>
 			<p>A local <a href="https://expressjs.com/">express</a> server is included to run the web example locally:</p>
 			<pre><code class="language-bash">$ node server.js</code></pre>
 			<p>The latest build of master is always available to be installed from the <code>gh-pages</code> branch:</p>
