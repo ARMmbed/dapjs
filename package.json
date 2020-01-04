@@ -1,6 +1,6 @@
 {
   "name": "dapjs",
-  "version": "2.0.1-next.73e070c.0",
+  "version": "2.0.2-next.86372f1.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "homepage": "https://github.com/ARMmbed/dapjs",
   "license": "MIT",
@@ -41,11 +41,11 @@
     "node": ">=8.14.0"
   },
   "dependencies": {
+    "@types/node-hid": "^0.7.0",
+    "@types/usb": "^1.5.1",
     "@types/w3c-web-usb": "^1.0.4"
   },
   "devDependencies": {
-    "@types/node-hid": "^0.7.0",
-    "@types/usb": "^1.5.1",
     "node-hid": "^0.7.2",
     "progress": "^2.0.0",
     "rollup": "^1.10.1",
