@@ -21,7 +21,8 @@
 * SOFTWARE.
 */
 
-import { CmsisDAP, Proxy } from "../proxy";
+import { CmsisDAP, DAPProtocol, DEFAULT_CLOCK_FREQUENCY } from "../proxy";
+import { Transport } from "../transport";
 import { DAPLinkFlash, DAPLinkSerial } from "./enums";
 
 /**
@@ -31,16 +32,20 @@ const DEFAULT_BAUDRATE = 9600;
 /**
  * @hidden
  */
-const DEFAULT_SERIAL_DELAY = 200;
+const DEFAULT_SERIAL_DELAY = 100;
 /**
  * @hidden
  */
 const DEFAULT_PAGE_SIZE = 62;
+/**
+ * @hidden
+ */
+const SERIAL_VENDOR_CODE = 131;
 
 /**
  * DAPLink Class
  */
-export class DAPLink extends CmsisDAP implements Proxy {
+export class DAPLink extends CmsisDAP {
 
     /**
      * Progress event
@@ -54,7 +59,45 @@ export class DAPLink extends CmsisDAP implements Proxy {
      */
     public static EVENT_SERIAL_DATA: string = "serial";
 
-    private timer?: any;
+    /**
+     * @hidden
+     */
+    protected serialPolling = false;
+
+    /**
+     * @hidden
+     */
+    protected serialListeners = false;
+
+    /**
+     * DAPLink constructor
+     * @param transport Debug transport to use
+     * @param mode Debug mode to use
+     * @param clockFrequency Communication clock frequency to use (default 10000000)
+     */
+    constructor(transport: Transport, mode: DAPProtocol = DAPProtocol.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
+        super(transport, mode, clockFrequency);
+
+        this.on("newListener", async event => {
+            if (event === DAPLink.EVENT_SERIAL_DATA) {
+                const listenerCount = this.listenerCount(event);
+
+                if (listenerCount === 0) {
+                    this.serialListeners = true;
+                }
+            }
+        });
+
+        this.on("removeListener", event => {
+            if (event === DAPLink.EVENT_SERIAL_DATA) {
+                const listenerCount = this.listenerCount(event);
+
+                if (listenerCount === 0) {
+                    this.serialListeners = false;
+                }
+            }
+        });
+    }
 
     /**
      * Detect if buffer contains text or binary data
@@ -146,42 +189,6 @@ export class DAPLink extends CmsisDAP implements Proxy {
     }
 
     /**
-     * Start listening for serial data
-     * @param serialDelay The serial delay to use (defaults to 200)
-     */
-    public startSerialRead(serialDelay: number = DEFAULT_SERIAL_DELAY) {
-        this.stopSerialRead();
-        this.timer = setInterval(() => {
-            return this.send(DAPLinkSerial.READ)
-            .then(serialData => {
-                if (serialData.byteLength > 0) {
-                    // check if there is any data returned from the device
-                    // first byte contains the vendor code
-                    // second byte contains the actual length of data read from the device
-                    const dataLength = serialData.getUint8(1);
-                    if (dataLength !== 0) {
-                        const offset = 2;
-                        const dataArray = serialData.buffer.slice(offset, offset + dataLength);
-                        const numberArray = Array.prototype.slice.call(new Uint8Array(dataArray));
-                        const data = String.fromCharCode.apply(null, numberArray);
-                        this.emit(DAPLink.EVENT_SERIAL_DATA, data);
-                    }
-                }
-            });
-        }, serialDelay);
-    }
-
-    /**
-     * Stop listening for serial data
-     */
-    public stopSerialRead() {
-        if (this.timer) {
-            clearInterval(this.timer);
-            this.timer = undefined;
-        }
-    }
-
-    /**
      * Write serial data
      * @param data The data to write
      * @returns Promise
@@ -191,6 +198,79 @@ export class DAPLink extends CmsisDAP implements Proxy {
         arrayData.unshift(arrayData.length);
         return this.send(DAPLinkSerial.WRITE, new Uint8Array(arrayData).buffer)
         .then(() => undefined);
+    }
+
+    /**
+     * Read serial data
+     * @returns Promise of any arrayBuffer read
+     */
+    public serialRead(): Promise<ArrayBuffer | undefined> {
+        return this.send(DAPLinkSerial.READ)
+        .then(serialData => {
+            // Check if there is any data returned from the device
+            if (serialData.byteLength === 0) {
+                return undefined;
+            }
+
+            // First byte contains the vendor code
+            if (serialData.getUint8(0) !== SERIAL_VENDOR_CODE) {
+                return undefined;
+            }
+
+            // Second byte contains the actual length of data read from the device
+            const dataLength = serialData.getUint8(1);
+            if (dataLength === 0) {
+                return undefined;
+            }
+
+            const offset = 2;
+            return serialData.buffer.slice(offset, offset + dataLength);
+        });
+    }
+
+    /**
+     * Start listening for serial data
+     * @param serialDelay The serial delay to use (default 100)
+     * @param autoConnect whether to automatically connect to the target (default true)
+     */
+    public async startSerialRead(serialDelay: number = DEFAULT_SERIAL_DELAY, autoConnect = true) {
+        this.serialPolling = true;
+
+        while (this.serialPolling) {
+
+            // Don't read serial output unless we have event listeners
+            if (this.serialListeners) {
+
+                // Remember connection state
+                const connectedState = this.connected;
+
+                if (this.connected === false && autoConnect === true) {
+                    await this.connect();
+                }
+
+                const serialData = await this.serialRead();
+
+                // Put state back
+                if (connectedState === false && autoConnect === true) {
+                    await this.disconnect();
+                }
+
+                if (serialData !== undefined) {
+                    const numberArray = Array.prototype.slice.call(new Uint8Array(serialData));
+                    const data = String.fromCharCode.apply(null, numberArray);
+                    this.emit(DAPLink.EVENT_SERIAL_DATA, data);
+                }
+            }
+
+            await new Promise(resolve => setTimeout(() => resolve(), serialDelay));
+        }
+    }
+
+    /**
+     * Stop listening for serial data
+     */
+    public stopSerialRead() {
+        this.serialPolling = false;
     }
 }
 
