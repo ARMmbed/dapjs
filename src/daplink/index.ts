@@ -21,6 +21,7 @@
 * SOFTWARE.
 */
 
+import { StringDecoder } from "string_decoder";
 import { CmsisDAP, DAPProtocol, DEFAULT_CLOCK_FREQUENCY } from "../proxy";
 import { Transport } from "../transport";
 import { DAPLinkFlash, DAPLinkSerial } from "./enums";
@@ -256,9 +257,9 @@ export class DAPLink extends CmsisDAP {
                 }
 
                 if (serialData !== undefined) {
-                    const numberArray = Array.prototype.slice.call(new Uint8Array(serialData));
-                    const data = String.fromCharCode.apply(null, numberArray);
-                    this.emit(DAPLink.EVENT_SERIAL_DATA, data);
+                    const buffer = Buffer.from(serialData);
+                    const decoder = new StringDecoder("utf8");
+                    this.emit(DAPLink.EVENT_SERIAL_DATA, decoder.write(buffer));
                 }
             }
 
