@@ -38,10 +38,6 @@ const DEFAULT_SERIAL_DELAY = 100;
  * @hidden
  */
 const DEFAULT_PAGE_SIZE = 62;
-/**
- * @hidden
- */
-const SERIAL_VENDOR_CODE = 131;
 
 /**
  * DAPLink Class
@@ -214,7 +210,7 @@ export class DAPLink extends CmsisDAP {
             }
 
             // First byte contains the vendor code
-            if (serialData.getUint8(0) !== SERIAL_VENDOR_CODE) {
+            if (serialData.getUint8(0) !== DAPLinkSerial.READ) {
                 return undefined;
             }
 
