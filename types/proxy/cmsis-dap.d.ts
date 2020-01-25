@@ -16,6 +16,10 @@ export declare class CmsisDAP extends EventEmitter implements Proxy {
     private mode;
     private clockFrequency;
     /**
+     * Whether the device has been opened
+     */
+    connected: boolean;
+    /**
      * The maximum DAPOperations which can be transferred
      */
     operationCount: number;

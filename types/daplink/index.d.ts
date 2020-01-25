@@ -1,8 +1,9 @@
-import { CmsisDAP, Proxy } from "../proxy";
+import { CmsisDAP, DAPProtocol } from "../proxy";
+import { Transport } from "../transport";
 /**
  * DAPLink Class
  */
-export declare class DAPLink extends CmsisDAP implements Proxy {
+export declare class DAPLink extends CmsisDAP {
     /**
      * Progress event
      * @event
@@ -13,7 +14,21 @@ export declare class DAPLink extends CmsisDAP implements Proxy {
      * @event
      */
     static EVENT_SERIAL_DATA: string;
-    private timer?;
+    /**
+     * @hidden
+     */
+    protected serialPolling: boolean;
+    /**
+     * @hidden
+     */
+    protected serialListeners: boolean;
+    /**
+     * DAPLink constructor
+     * @param transport Debug transport to use
+     * @param mode Debug mode to use
+     * @param clockFrequency Communication clock frequency to use (default 10000000)
+     */
+    constructor(transport: Transport, mode?: DAPProtocol, clockFrequency?: number);
     /**
      * Detect if buffer contains text or binary data
      */
@@ -38,19 +53,25 @@ export declare class DAPLink extends CmsisDAP implements Proxy {
      */
     setSerialBaudrate(baudrate?: number): Promise<void>;
     /**
-     * Start listening for serial data
-     * @param serialDelay The serial delay to use (defaults to 200)
-     */
-    startSerialRead(serialDelay?: number): void;
-    /**
-     * Stop listening for serial data
-     */
-    stopSerialRead(): void;
-    /**
      * Write serial data
      * @param data The data to write
      * @returns Promise
      */
     serialWrite(data: string): Promise<void>;
+    /**
+     * Read serial data
+     * @returns Promise of any arrayBuffer read
+     */
+    serialRead(): Promise<ArrayBuffer | undefined>;
+    /**
+     * Start listening for serial data
+     * @param serialDelay The serial delay to use (default 100)
+     * @param autoConnect whether to automatically connect to the target (default true)
+     */
+    startSerialRead(serialDelay?: number, autoConnect?: boolean): Promise<void>;
+    /**
+     * Stop listening for serial data
+     */
+    stopSerialRead(): void;
 }
 export * from "./enums";

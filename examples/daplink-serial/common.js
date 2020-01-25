@@ -40,7 +40,7 @@ function listen(transport) {
     const target = new DAPjs.DAPLink(transport);
 
     target.on(DAPjs.DAPLink.EVENT_SERIAL_DATA, data => {
-        console.log(data);
+        process.stdout.write(data);
     });
 
     return target.connect()

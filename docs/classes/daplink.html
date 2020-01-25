@@ -72,7 +72,7 @@
 		<li class="current tsd-kind-class">
 			<a href="daplink.html" class="tsd-kind-icon">DAPLink</a>
 			<ul>
-				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+				<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 					<a href="daplink.html#constructor" class="tsd-kind-icon">constructor</a>
 				</li>
 				<li class=" tsd-kind-event tsd-parent-kind-class tsd-is-static">
@@ -83,6 +83,9 @@
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a href="daplink.html#blocksize" class="tsd-kind-icon">block<wbr>Size</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a href="daplink.html#connected" class="tsd-kind-icon">connected</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a href="daplink.html#operationcount" class="tsd-kind-icon">operation<wbr>Count</a>
@@ -151,6 +154,9 @@
 					<a href="daplink.html#reset" class="tsd-kind-icon">reset</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="daplink.html#serialread" class="tsd-kind-icon">serial<wbr>Read</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="daplink.html#serialwrite" class="tsd-kind-icon">serial<wbr>Write</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
@@ -181,6 +187,9 @@
 		</li>
 		<li class=" tsd-kind-class">
 			<a href="hid.html" class="tsd-kind-icon">HID</a>
+		</li>
+		<li class=" tsd-kind-class">
+			<a href="textdecoder.html" class="tsd-kind-icon">Text<wbr>Decoder</a>
 		</li>
 		<li class=" tsd-kind-class">
 			<a href="usb.html" class="tsd-kind-icon">USB</a>
@@ -231,17 +240,16 @@
 			<h3>Implements</h3>
 			<ul class="tsd-hierarchy">
 				<li><a href="../interfaces/proxy.html" class="tsd-signature-type">Proxy</a></li>
-				<li><a href="../interfaces/proxy.html" class="tsd-signature-type">Proxy</a></li>
 			</ul>
 		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
-					<section class="tsd-index-section tsd-is-inherited">
+					<section class="tsd-index-section ">
 						<h3>Constructors</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="daplink.html#constructor" class="tsd-kind-icon">constructor</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -255,6 +263,7 @@
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#blocksize" class="tsd-kind-icon">block<wbr>Size</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#connected" class="tsd-kind-icon">connected</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#operationcount" class="tsd-kind-icon">operation<wbr>Count</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static"><a href="daplink.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a></li>
 						</ul>
@@ -282,6 +291,7 @@
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="daplink.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="daplink.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#reset" class="tsd-kind-icon">reset</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#serialread" class="tsd-kind-icon">serial<wbr>Read</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#serialwrite" class="tsd-kind-icon">serial<wbr>Write</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="daplink.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#setserialbaudrate" class="tsd-kind-icon">set<wbr>Serial<wbr>Baudrate</a></li>
@@ -296,22 +306,22 @@
 				</div>
 			</section>
 		</section>
-		<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
+		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Constructors</h2>
-			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3>constructor</h3>
-				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 					<li class="tsd-signature tsd-kind-icon">new DAPLink<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">: </span><a href="../interfaces/transport.html" class="tsd-signature-type">Transport</a>, mode<span class="tsd-signature-symbol">?: </span><a href="../enums/dapprotocol.html" class="tsd-signature-type">DAPProtocol</a>, clockFrequency<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="daplink.html" class="tsd-signature-type">DAPLink</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
-							<p>Inherited from <a href="cmsisdap.html">CmsisDAP</a>.<a href="cmsisdap.html#constructor">constructor</a></p>
+							<p>Overrides <a href="cmsisdap.html">CmsisDAP</a>.<a href="cmsisdap.html#constructor">constructor</a></p>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>CMSIS-DAP constructor</p>
+								<p>DAPLink constructor</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -386,6 +396,19 @@
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
 						<p>The maximum block size which can be transferred</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+				<a name="connected" class="tsd-anchor"></a>
+				<h3>connected</h3>
+				<div class="tsd-signature tsd-kind-icon">connected<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
+				<aside class="tsd-sources">
+					<p>Inherited from <a href="cmsisdap.html">CmsisDAP</a>.<a href="cmsisdap.html#connected">connected</a></p>
+				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Whether the device has been opened</p>
 					</div>
 				</div>
 			</section>
@@ -1012,6 +1035,26 @@
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="serialread" class="tsd-anchor"></a>
+				<h3>serial<wbr>Read</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">serial<wbr>Read<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Read serial data</p>
+							</div>
+						</div>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBuffer</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise of any arrayBuffer read</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 				<a name="serialwrite" class="tsd-anchor"></a>
 				<h3>serial<wbr>Write</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -1095,7 +1138,7 @@
 				<a name="startserialread" class="tsd-anchor"></a>
 				<h3>start<wbr>Serial<wbr>Read</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">start<wbr>Serial<wbr>Read<span class="tsd-signature-symbol">(</span>serialDelay<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">start<wbr>Serial<wbr>Read<span class="tsd-signature-symbol">(</span>serialDelay<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span>, autoConnect<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -1111,11 +1154,17 @@
 							<li>
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> serialDelay: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;DEFAULT_SERIAL_DELAY</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The serial delay to use (defaults to 200)</p>
+									<p>The serial delay to use (default 100)</p>
+								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> autoConnect: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>whether to automatically connect to the target (default true)</p>
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 					</li>
 				</ul>
 			</section>
