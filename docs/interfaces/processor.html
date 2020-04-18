@@ -171,13 +171,6 @@
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<section class="tsd-panel tsd-comment">
-			<div class="tsd-comment tsd-typography">
-				<div class="lead">
-					<p>Processor interface</p>
-				</div>
-			</div>
-		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
@@ -244,11 +237,6 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#connect">connect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Connect to target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -265,11 +253,6 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#disconnect">disconnect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Disconnect from target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -279,54 +262,31 @@
 				<a name="execute" class="tsd-anchor"></a>
 				<h3>execute</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">execute<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Uint32Array</span>, stackPointer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, programCounter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, linkRegister<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, <span class="tsd-signature-symbol">...</span>registers<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">execute<span class="tsd-signature-symbol">(</span>address<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Uint32Array</span>, stackPointer<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, programCounter<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, linkRegister<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span>, registers<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Exucute code at a specified memory address</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>address: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The address to put the code</p>
-								</div>
 							</li>
 							<li>
 								<h5>code: <span class="tsd-signature-type">Uint32Array</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The code to use</p>
-								</div>
 							</li>
 							<li>
 								<h5>stackPointer: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The stack pointer to use</p>
-								</div>
 							</li>
 							<li>
 								<h5>programCounter: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The program counter to use</p>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> linkRegister: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The link register to use (defaults to address + 1)</p>
-								</div>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>registers: <span class="tsd-signature-type">number[]</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Values to add to the general purpose registers, R0, R1, R2, etc.</p>
-								</div>
+								<h5><span class="tsd-flag ts-flagRest">Rest</span> registers: <span class="tsd-signature-type">number[]</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -343,11 +303,6 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Get the state of the processor core</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/corestate.html" class="tsd-signature-type">CoreState</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise of CoreState</p>
 					</li>
@@ -357,30 +312,19 @@
 				<a name="halt" class="tsd-anchor"></a>
 				<h3>halt</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">halt<span class="tsd-signature-symbol">(</span>wait<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span>, timeout<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">halt<span class="tsd-signature-symbol">(</span>wait<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span>, timeout<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Halt the target</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> wait: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Wait until halted before returning</p>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> timeout: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Milliseconds to wait before aborting wait</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -398,11 +342,6 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Whether the target is halted</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise of halted state</p>
 					</li>
@@ -419,18 +358,10 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#readap">readAP</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read from an access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -449,24 +380,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#readblock">readBlock</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a block of 32-bit words from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read from</p>
-								</div>
 							</li>
 							<li>
 								<h5>count: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The count of values to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint32Array</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -484,18 +404,10 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read from a core register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/coreregister.html" class="tsd-signature-type">CoreRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -513,18 +425,10 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read an array of core registers</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>registers: <span class="tsd-signature-type">CoreRegister[]</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The registers to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -543,18 +447,10 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#readdp">readDP</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read from a debug port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -573,18 +469,10 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#readmem16">readMem16</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a 16-bit word from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -603,18 +491,10 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#readmem32">readMem32</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a 32-bit word from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -633,11 +513,6 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#reconnect">reconnect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Reconnect to target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -654,11 +529,6 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#reset">reset</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Reset target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -668,30 +538,19 @@
 				<a name="resume" class="tsd-anchor"></a>
 				<h3>resume</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">resume<span class="tsd-signature-symbol">(</span>wait<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span>, timeout<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">resume<span class="tsd-signature-symbol">(</span>wait<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span>, timeout<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Resume a target</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> wait: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Wait until resumed before returning</p>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> timeout: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Milliseconds to wait before aborting wait</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -710,24 +569,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#writeap">writeAP</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write to an access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -746,24 +594,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#writeblock">writeBlock</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a block of 32-bit words to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>values: <span class="tsd-signature-type">Uint32Array</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The values to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -781,24 +618,13 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write to a core register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/coreregister.html" class="tsd-signature-type">CoreRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -817,24 +643,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#writedp">writeDP</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write to a debug port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -853,24 +668,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#writemem16">writeMem16</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a 16-bit word to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -889,24 +693,13 @@
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="dap.html">DAP</a>.<a href="dap.html#writemem32">writeMem32</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a 32-bit word to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>

@@ -150,13 +150,6 @@
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<section class="tsd-panel tsd-comment">
-			<div class="tsd-comment tsd-typography">
-				<div class="lead">
-					<p>Arm Debug Interface class</p>
-				</div>
-			</div>
-		</section>
 		<section class="tsd-panel tsd-hierarchy">
 			<h3>Hierarchy</h3>
 			<ul class="tsd-hierarchy">
@@ -214,42 +207,22 @@
 				<a name="constructor" class="tsd-anchor"></a>
 				<h3>constructor</h3>
 				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">new ADI<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">: </span><a href="../interfaces/transport.html" class="tsd-signature-type">Transport</a>, mode<span class="tsd-signature-symbol">?: </span><a href="../enums/dapprotocol.html" class="tsd-signature-type">DAPProtocol</a>, clockFrequency<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="adi.html" class="tsd-signature-type">ADI</a></li>
+					<li class="tsd-signature tsd-kind-icon">new ADI<span class="tsd-signature-symbol">(</span>transport<span class="tsd-signature-symbol">: </span><a href="../interfaces/transport.html" class="tsd-signature-type">Transport</a>, mode<span class="tsd-signature-symbol">: </span><a href="../enums/dapprotocol.html" class="tsd-signature-type">DAPProtocol</a>, clockFrequency<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="adi.html" class="tsd-signature-type">ADI</a></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>ADI constructor</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>transport: <a href="../interfaces/transport.html" class="tsd-signature-type">Transport</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Debug transport to use</p>
-									</div>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> mode: <a href="../enums/dapprotocol.html" class="tsd-signature-type">DAPProtocol</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Debug mode to use (default 0)</p>
-									</div>
-								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> clockFrequency: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Communication clock frequency to use (default 10000000)</p>
-									</div>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="adi.html" class="tsd-signature-type">ADI</a></h4>
@@ -262,20 +235,10 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>ADI constructor</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>proxy: <a href="../interfaces/proxy.html" class="tsd-signature-type">Proxy</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<div class="lead">
-										<p>Proxy to use</p>
-									</div>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="adi.html" class="tsd-signature-type">ADI</a></h4>
@@ -296,11 +259,6 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#connect">connect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Connect to target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -317,11 +275,6 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#disconnect">disconnect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Disconnect from target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -337,18 +290,10 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read from an access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/apregister.html" class="tsd-signature-type">APRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>AP register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -367,24 +312,13 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#readblock">readBlock</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a block of 32-bit words from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read from</p>
-								</div>
 							</li>
 							<li>
 								<h5>count: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The count of values to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Uint32Array</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -402,18 +336,10 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read from a debug port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/dpregister.html" class="tsd-signature-type">DPRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>DP register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -432,18 +358,10 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#readmem16">readMem16</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a 16-bit word from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -462,18 +380,10 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#readmem32">readMem32</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Read a 32-bit word from a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to read</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -492,11 +402,6 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#reconnect">reconnect</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Reconnect to target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -513,11 +418,6 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#reset">reset</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Reset target device</p>
-							</div>
-						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -533,24 +433,13 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write to an access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/apregister.html" class="tsd-signature-type">APRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>AP register to write</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -569,24 +458,13 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#writeblock">writeBlock</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a block of 32-bit words to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>values: <span class="tsd-signature-type">Uint32Array</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The values to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -604,24 +482,13 @@
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write to a debug port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <a href="../enums/dpregister.html" class="tsd-signature-type">DPRegister</a></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>DP register to write</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -640,24 +507,13 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#writemem16">writeMem16</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a 16-bit word to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -676,24 +532,13 @@
 						<aside class="tsd-sources">
 							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#writemem32">writeMem32</a></p>
 						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Write a 32-bit word to a memory access port register</p>
-							</div>
-						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>register: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>ID of register to write to</p>
-								</div>
 							</li>
 							<li>
 								<h5>value: <span class="tsd-signature-type">number</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>The value to write</p>
-								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
