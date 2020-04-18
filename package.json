@@ -50,7 +50,7 @@
     "progress": "^2.0.0",
     "rollup": "^1.10.1",
     "rollup-plugin-delete": "^0.2.2",
-    "rollup-plugin-livereload": "^1.0.4",
+    "rollup-plugin-livereload": "^1.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-sourcemaps": "^0.4.2",
