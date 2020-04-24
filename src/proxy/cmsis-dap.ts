@@ -69,6 +69,11 @@ const TRANSFER_OPERATION_SIZE = 5;
 export class CmsisDAP extends EventEmitter implements Proxy {
 
     /**
+     * Whether the device has been opened
+     */
+    public connected = false;
+
+    /**
      * The maximum DAPOperations which can be transferred
      */
     public operationCount: number;
@@ -246,6 +251,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise
      */
     public connect(): Promise<void> {
+        if (this.connected === true) {
+            return Promise.resolve();
+        }
+
         return this.transport.open()
         .then(() => this.send(DAPCommand.DAP_SWJ_CLOCK, new Uint32Array([this.clockFrequency])))
         .then(() => this.send(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode])))
@@ -255,7 +264,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             }
         })
         .then(() => this.configureTransfer(0, 100, 0))
-        .then(() => this.selectProtocol(DAPProtocol.SWD));
+        .then(() => this.selectProtocol(DAPProtocol.SWD))
+        .then(() => {
+            this.connected = true;
+        });
     }
 
     /**
@@ -263,9 +275,14 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @returns Promise
      */
     public disconnect(): Promise<void> {
+        if (this.connected === false) {
+            return Promise.resolve();
+        }
+
         return this.send(DAPCommand.DAP_DISCONNECT)
+        .then(() => this.transport.close())
         .then(() => {
-            return this.transport.close();
+            this.connected = false;
         });
     }
 

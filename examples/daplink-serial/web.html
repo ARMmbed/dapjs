@@ -38,8 +38,10 @@
 
             await target.connect();
             const baud = await target.getSerialBaudrate();
-            target.startSerialRead();
+            await target.disconnect();
             resultsEl.innerHTML = `Listening at ${baud} baud...\n`;
+
+            target.startSerialRead();
         };
 
         document.getElementById("connect").onclick = async () => {
