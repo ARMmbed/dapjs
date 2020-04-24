@@ -48,7 +48,7 @@
   "devDependencies": {
     "node-hid": "^1.2.0",
     "progress": "^2.0.3",
-    "rollup": "^2.6.1",
+    "rollup": "^2.2.0",
     "rollup-plugin-delete": "^1.2.0",
     "rollup-plugin-livereload": "^1.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
