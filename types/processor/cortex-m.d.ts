@@ -62,4 +62,16 @@ export declare class CortexM extends ADI implements Processor {
      * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
      */
     execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister?: number, ...registers: number[]): Promise<void>;
+    /**
+     * soft reset the target
+     * @param None
+     * @returns Promise
+     */
+    softReset(): Promise<void>;
+    /**
+     * set the target to reset state
+     * @param hardwareReset use hardware reset pin or software reset
+     * @returns Promise
+     */
+    setTargetResetState(hardwareReset?: boolean): Promise<void>;
 }

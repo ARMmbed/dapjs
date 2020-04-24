@@ -28,7 +28,10 @@ import {
     DhcsrMask,
     DfsrMask,
     DcrsrMask,
-    CoreState
+    CoreState,
+    NvicRegister,
+    AircrMask,
+    DemcrMask
 } from "./enums";
 import { Processor } from "./";
 import { DAPOperation } from "../proxy";
@@ -234,10 +237,56 @@ export class CortexM extends ADI implements Processor {
             sequence.push(this.writeCoreRegisterCommand(i, registers[i]));
         }
 
+        // Add xPSR.
+        sequence.push(this.writeCoreRegisterCommand(CoreRegister.PSR, 0x01000000));
+
         return this.halt() // Halt the target
         .then(() => this.transferSequence(sequence)) // Write the registers
         .then(() => this.writeBlock(address, code)) // Write the code to the address
         .then(() => this.resume(false)) // Resume the target, without waiting
         .then(() => this.waitDelay(() => this.isHalted(), 100, EXECUTE_TIMEOUT)); // Wait for the target to halt on the breakpoint
+    }
+
+    /**
+     * soft reset the target
+     * @param None
+     * @returns Promise
+     */
+    public softReset(): Promise<void> {
+        return this.writeMem32(DebugRegister.DEMCR, 0)
+        .then(() => {
+            return this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | AircrMask.SYSRESETREQ);
+        });
+    }
+
+    /**
+     * set the target to reset state
+     * @param hardwareReset use hardware reset pin or software reset
+     * @returns Promise
+     */
+    public setTargetResetState(hardwareReset: boolean = true): Promise<void> {
+        return this.writeMem32(DebugRegister.DEMCR, DemcrMask.CORERESET)
+        .then(() => {
+            if (hardwareReset === true) {
+                return this.reset()
+                .then(() => {
+                    return this.isHalted()
+                    .then(() => {
+                        return this.writeMem32(DebugRegister.DEMCR, 0);
+                    });
+                });
+            } else {
+                return this.readMem32(NvicRegister.AIRCR)
+                .then(value => {
+                    return this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value | AircrMask.SYSRESETREQ)
+                    .then(() => {
+                        return this.isHalted()
+                        .then(() => {
+                            return this.writeMem32(DebugRegister.DEMCR, 0);
+                        });
+                    });
+                });
+            }
+        });
     }
 }

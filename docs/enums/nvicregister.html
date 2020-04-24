@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>DAPInfoRequest | DAPjs API Documentation</title>
+	<title>NvicRegister | DAPjs API Documentation</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -42,43 +42,8 @@
 		<li class=" tsd-kind-enum">
 			<a href="dapcommand.html" class="tsd-kind-icon">DAPCommand</a>
 		</li>
-		<li class="current tsd-kind-enum">
+		<li class=" tsd-kind-enum">
 			<a href="dapinforequest.html" class="tsd-kind-icon">DAPInfo<wbr>Request</a>
-			<ul>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#capabilities" class="tsd-kind-icon">CAPABILITIES</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#cmsis_dap_fw_version" class="tsd-kind-icon">CMSIS_<wbr>DAP_<wbr>FW_<wbr>VERSION</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#packet_count" class="tsd-kind-icon">PACKET_<wbr>COUNT</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#packet_size" class="tsd-kind-icon">PACKET_<wbr>SIZE</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#product_id" class="tsd-kind-icon">PRODUCT_<wbr>ID</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#serial_number" class="tsd-kind-icon">SERIAL_<wbr>NUMBER</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#swo_trace_buffer_size" class="tsd-kind-icon">SWO_<wbr>TRACE_<wbr>BUFFER_<wbr>SIZE</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#target_device_name" class="tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>NAME</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#target_device_vendor" class="tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>VENDOR</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#test_domain_timer" class="tsd-kind-icon">TEST_<wbr>DOMAIN_<wbr>TIMER</a>
-				</li>
-				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-					<a href="dapinforequest.html#vendor_id" class="tsd-kind-icon">VENDOR_<wbr>ID</a>
-				</li>
-			</ul>
 		</li>
 		<li class=" tsd-kind-enum">
 			<a href="dapport.html" class="tsd-kind-icon">DAPPort</a>
@@ -95,8 +60,22 @@
 		<li class=" tsd-kind-enum">
 			<a href="debugregister.html" class="tsd-kind-icon">Debug<wbr>Register</a>
 		</li>
-		<li class=" tsd-kind-enum">
+		<li class="current tsd-kind-enum">
 			<a href="nvicregister.html" class="tsd-kind-icon">Nvic<wbr>Register</a>
+			<ul>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="nvicregister.html#aircr" class="tsd-kind-icon">AIRCR</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="nvicregister.html#cpuid" class="tsd-kind-icon">CPUID</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="nvicregister.html#dfsr" class="tsd-kind-icon">DFSR</a>
+				</li>
+				<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+					<a href="nvicregister.html#ict" class="tsd-kind-icon">ICT</a>
+				</li>
+			</ul>
 		</li>
 		<li class=" tsd-kind-class">
 			<a href="../classes/adi.html" class="tsd-kind-icon">ADI</a>
@@ -150,8 +129,7 @@
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Get Information about CMSIS-DAP Debug Unit
-					<a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Info.html">https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Info.html</a></p>
+					<p>NVIC Registers</p>
 				</div>
 			</div>
 		</section>
@@ -162,17 +140,10 @@
 					<section class="tsd-index-section ">
 						<h3>Enumeration members</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#capabilities" class="tsd-kind-icon">CAPABILITIES</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#cmsis_dap_fw_version" class="tsd-kind-icon">CMSIS_<wbr>DAP_<wbr>FW_<wbr>VERSION</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#packet_count" class="tsd-kind-icon">PACKET_<wbr>COUNT</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#packet_size" class="tsd-kind-icon">PACKET_<wbr>SIZE</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#product_id" class="tsd-kind-icon">PRODUCT_<wbr>ID</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#serial_number" class="tsd-kind-icon">SERIAL_<wbr>NUMBER</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#swo_trace_buffer_size" class="tsd-kind-icon">SWO_<wbr>TRACE_<wbr>BUFFER_<wbr>SIZE</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#target_device_name" class="tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>NAME</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#target_device_vendor" class="tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>VENDOR</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#test_domain_timer" class="tsd-kind-icon">TEST_<wbr>DOMAIN_<wbr>TIMER</a></li>
-							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="dapinforequest.html#vendor_id" class="tsd-kind-icon">VENDOR_<wbr>ID</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="nvicregister.html#aircr" class="tsd-kind-icon">AIRCR</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="nvicregister.html#cpuid" class="tsd-kind-icon">CPUID</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="nvicregister.html#dfsr" class="tsd-kind-icon">DFSR</a></li>
+							<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="nvicregister.html#ict" class="tsd-kind-icon">ICT</a></li>
 						</ul>
 					</section>
 				</div>
@@ -181,134 +152,50 @@
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Enumeration members</h2>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="capabilities" class="tsd-anchor"></a>
-				<h3>CAPABILITIES</h3>
-				<div class="tsd-signature tsd-kind-icon">CAPABILITIES<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 240</span></div>
+				<a name="aircr" class="tsd-anchor"></a>
+				<h3>AIRCR</h3>
+				<div class="tsd-signature tsd-kind-icon">AIRCR<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3758157068</span></div>
 				<aside class="tsd-sources">
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Get information about the Capabilities (BYTE) of the Debug Unit</p>
+						<p>NVIC: Application Interrupt/Reset Control Register</p>
 					</div>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="cmsis_dap_fw_version" class="tsd-anchor"></a>
-				<h3>CMSIS_<wbr>DAP_<wbr>FW_<wbr>VERSION</h3>
-				<div class="tsd-signature tsd-kind-icon">CMSIS_<wbr>DAP_<wbr>FW_<wbr>VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 4</span></div>
+				<a name="cpuid" class="tsd-anchor"></a>
+				<h3>CPUID</h3>
+				<div class="tsd-signature tsd-kind-icon">CPUID<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3758157056</span></div>
 				<aside class="tsd-sources">
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Get the CMSIS-DAP Firmware Version (string)</p>
+						<p>NVIC: CPUID Base Register</p>
 					</div>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="packet_count" class="tsd-anchor"></a>
-				<h3>PACKET_<wbr>COUNT</h3>
-				<div class="tsd-signature tsd-kind-icon">PACKET_<wbr>COUNT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 254</span></div>
+				<a name="dfsr" class="tsd-anchor"></a>
+				<h3>DFSR</h3>
+				<div class="tsd-signature tsd-kind-icon">DFSR<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3758157104</span></div>
 				<aside class="tsd-sources">
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Get the maximum Packet Count (BYTE)</p>
+						<p>NVIC: Debug Fault Status Register</p>
 					</div>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="packet_size" class="tsd-anchor"></a>
-				<h3>PACKET_<wbr>SIZE</h3>
-				<div class="tsd-signature tsd-kind-icon">PACKET_<wbr>SIZE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 255</span></div>
+				<a name="ict" class="tsd-anchor"></a>
+				<h3>ICT</h3>
+				<div class="tsd-signature tsd-kind-icon">ICT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3758153732</span></div>
 				<aside class="tsd-sources">
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Get the maximum Packet Size (SHORT)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="product_id" class="tsd-anchor"></a>
-				<h3>PRODUCT_<wbr>ID</h3>
-				<div class="tsd-signature tsd-kind-icon">PRODUCT_<wbr>ID<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 2</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Product ID (string)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="serial_number" class="tsd-anchor"></a>
-				<h3>SERIAL_<wbr>NUMBER</h3>
-				<div class="tsd-signature tsd-kind-icon">SERIAL_<wbr>NUMBER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Serial Number (string)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="swo_trace_buffer_size" class="tsd-anchor"></a>
-				<h3>SWO_<wbr>TRACE_<wbr>BUFFER_<wbr>SIZE</h3>
-				<div class="tsd-signature tsd-kind-icon">SWO_<wbr>TRACE_<wbr>BUFFER_<wbr>SIZE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 253</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the SWO Trace Buffer Size (WORD)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="target_device_name" class="tsd-anchor"></a>
-				<h3>TARGET_<wbr>DEVICE_<wbr>NAME</h3>
-				<div class="tsd-signature tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>NAME<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 6</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Target Device Name (string)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="target_device_vendor" class="tsd-anchor"></a>
-				<h3>TARGET_<wbr>DEVICE_<wbr>VENDOR</h3>
-				<div class="tsd-signature tsd-kind-icon">TARGET_<wbr>DEVICE_<wbr>VENDOR<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 5</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Target Device Vendor (string)</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="test_domain_timer" class="tsd-anchor"></a>
-				<h3>TEST_<wbr>DOMAIN_<wbr>TIMER</h3>
-				<div class="tsd-signature tsd-kind-icon">TEST_<wbr>DOMAIN_<wbr>TIMER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 241</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Test Domain Timer parameter information</p>
-					</div>
-				</div>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-				<a name="vendor_id" class="tsd-anchor"></a>
-				<h3>VENDOR_<wbr>ID</h3>
-				<div class="tsd-signature tsd-kind-icon">VENDOR_<wbr>ID<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 1</span></div>
-				<aside class="tsd-sources">
-				</aside>
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Get the Vendor ID (string)</p>
+						<p>NVIC: Interrupt Controller Type Register</p>
 					</div>
 				</div>
 			</section>
