@@ -1,4 +1,4 @@
-import { Device } from "usb";
+import type { Device } from "usb";
 import { Transport } from "./";
 /**
  * USB Transport class

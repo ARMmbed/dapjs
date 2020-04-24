@@ -185,10 +185,24 @@
 		<li class=" tsd-kind-interface">
 			<a href="../interfaces/transport.html" class="tsd-kind-icon">Transport</a>
 		</li>
+		<li class=" tsd-kind-variable">
+			<a href="../globals.html#double_byte_replace" class="tsd-kind-icon">DOUBLE_<wbr>BYTE_<wbr>REPLACE</a>
+		</li>
+		<li class=" tsd-kind-variable">
+			<a href="../globals.html#partial_char_test" class="tsd-kind-icon">PARTIAL_<wbr>CHAR_<wbr>TEST</a>
+		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
+		<section class="tsd-panel tsd-comment">
+			<div class="tsd-comment tsd-typography">
+				<div class="lead">
+					<p>CMSIS-DAP Commands
+					<a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__genCommands__gr.html">https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__genCommands__gr.html</a></p>
+				</div>
+			</div>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
@@ -234,198 +248,338 @@
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_connect" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>CONNECT</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>CONNECT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;2</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>CONNECT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 2</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Connect to Device and selected DAP mode</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_delay" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>DELAY</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>DELAY<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;9</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>DELAY<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 9</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Wait for specified delay</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_disconnect" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>DISCONNECT</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>DISCONNECT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;3</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>DISCONNECT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 3</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Disconnect from active Debug Port</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_execute_commands" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>EXECUTE_<wbr>COMMANDS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>EXECUTE_<wbr>COMMANDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;127</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>EXECUTE_<wbr>COMMANDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 127</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Execute multiple DAP commands from a single packet</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_host_status" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>HOST_<wbr>STATUS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>HOST_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;1</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>HOST_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 1</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Sent status information of the debugger to Debug Unit</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_info" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>INFO</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>INFO<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;0</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>INFO<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 0</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Get Information about CMSIS-DAP Debug Unit</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_jtag_configure" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>JTAG_<wbr>CONFIGURE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;21</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 21</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Configure JTAG Chain</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_jtag_id_code" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>JTAG_<wbr>ID_<wbr>CODE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>ID_<wbr>CODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;22</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>ID_<wbr>CODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 22</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read JTAG IDCODE</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_jtag_sequence" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>JTAG_<wbr>SEQUENCE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;20</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>JTAG_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 20</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Generate JTAG sequence TMS, TDI and capture TDO</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_queue_commands" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>QUEUE_<wbr>COMMANDS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>QUEUE_<wbr>COMMANDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;126</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>QUEUE_<wbr>COMMANDS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 126</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Queue multiple DAP commands provided in a multiple packets</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_reset_target" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>RESET_<wbr>TARGET</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>RESET_<wbr>TARGET<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;10</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>RESET_<wbr>TARGET<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 10</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Reset Target with Device specific sequence</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swd_configure" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWD_<wbr>CONFIGURE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWD_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;19</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWD_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 19</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Configure SWD Protocol</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swd_sequence" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWD_<wbr>SEQUENCE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWD_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;29</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWD_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 29</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Generate SWD sequence and output on SWDIO or capture input from SWDIO data</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swj_clock" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWJ_<wbr>CLOCK</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>CLOCK<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;17</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>CLOCK<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 17</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Select SWD/JTAG Clock</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swj_pins" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWJ_<wbr>PINS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>PINS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;16</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>PINS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 16</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Control and monitor SWD/JTAG Pins</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swj_sequence" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWJ_<wbr>SEQUENCE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;18</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWJ_<wbr>SEQUENCE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 18</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Generate SWJ sequence SWDIO/TMS @SWCLK/TCK</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_baud_rate" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>BAUD_<wbr>RATE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>BAUD_<wbr>RATE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;25</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>BAUD_<wbr>RATE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 25</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Set SWO baudrate</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_control" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>CONTROL</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>CONTROL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;26</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>CONTROL<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 26</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Control SWO trace data capture</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_data" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>DATA</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>DATA<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;28</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>DATA<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 28</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read SWO trace data</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_extended_status" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>EXTENDED_<wbr>STATUS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>EXTENDED_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;30</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>EXTENDED_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 30</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read SWO trace extended status</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_mode" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>MODE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>MODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;24</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>MODE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 24</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Set SWO capture mode</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_status" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>STATUS</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;27</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>STATUS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 27</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read SWO trace status</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_swo_transport" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>SWO_<wbr>TRANSPORT</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>TRANSPORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;23</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>SWO_<wbr>TRANSPORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 23</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Set SWO transport mode</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_transfer" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>TRANSFER</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;5</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 5</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read/write single and multiple registers</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_transfer_abort" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>TRANSFER_<wbr>ABORT</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>ABORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;7</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>ABORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 7</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Abort current Transfer</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_transfer_block" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>TRANSFER_<wbr>BLOCK</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>BLOCK<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;6</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>BLOCK<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 6</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Read/Write a block of data from/to a single register</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_transfer_configure" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>TRANSFER_<wbr>CONFIGURE</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;4</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>TRANSFER_<wbr>CONFIGURE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 4</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Configure Transfers</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 				<a name="dap_write_abort" class="tsd-anchor"></a>
 				<h3>DAP_<wbr>WRITE_<wbr>ABORT</h3>
-				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>WRITE_<wbr>ABORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;8</span></div>
+				<div class="tsd-signature tsd-kind-icon">DAP_<wbr>WRITE_<wbr>ABORT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = 8</span></div>
 				<aside class="tsd-sources">
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Write ABORT Register</p>
+					</div>
+				</div>
 			</section>
 		</section>
 		<footer>
