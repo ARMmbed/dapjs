@@ -24,7 +24,7 @@ import { Registers } from "./registers";
 import { USB, USBDevice } from "webusb";
 import { stdin } from "process";
 
-function handleDevicesFound(devices: USBDevice[], selectFn?: (device: USBDevice) => void) {
+const devicesFound = (devices: USBDevice[], selectFn?: (device: USBDevice) => void) => {
     stdin.setRawMode!(true);
     stdin.setEncoding("utf8");
     stdin.on("readable", () => {
@@ -44,16 +44,14 @@ function handleDevicesFound(devices: USBDevice[], selectFn?: (device: USBDevice)
     devices.forEach((device, index) => {
         console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
     });
-}
+};
 
-const usb = new USB({
-    devicesFound: handleDevicesFound
-});
-
+const usb = new USB({ devicesFound });
 const registers = new Registers(usb);
-registers.read(16)
-.then(values => {
+
+(async () => {
+    const values = await registers.read(16);
     values.forEach((register, index) => {
         console.log(`R${index}: ${register}`);
     });
-});
+})();

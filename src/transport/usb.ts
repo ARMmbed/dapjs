@@ -91,21 +91,17 @@ export class USB implements Transport {
         return new DataView(arrayBuffer);
     }
 
-    private bufferSourceToBuffer(bufferSource: ArrayBuffer | ArrayBufferView): Buffer {
-        function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
-            return (source as ArrayBufferView).buffer !== undefined;
-        }
+    private isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
+        return (source as ArrayBufferView).buffer !== undefined;
+    }
 
-        const arrayBuffer = isView(bufferSource) ? bufferSource.buffer : bufferSource;
+    private bufferSourceToBuffer(bufferSource: ArrayBuffer | ArrayBufferView): Buffer {
+        const arrayBuffer = this.isView(bufferSource) ? bufferSource.buffer : bufferSource;
         return Buffer.from(arrayBuffer);
     }
 
     private extendBuffer(data: BufferSource, packetSize: number): BufferSource {
-        function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
-            return (source as ArrayBufferView).buffer !== undefined;
-        }
-
-        const arrayBuffer = isView(data) ? data.buffer : data;
+        const arrayBuffer = this.isView(data) ? data.buffer : data;
         const length = Math.min(arrayBuffer.byteLength, packetSize);
 
         const result = new Uint8Array(length);
@@ -122,13 +118,16 @@ export class USB implements Transport {
         return new Promise((resolve, reject) => {
             this.device.open();
             this.device.setConfiguration(this.configuration, error => {
-                if (error) return reject(error);
+                if (error) {
+                    return reject(new Error(error));
+                }
+
                 const interfaces = this.device.interfaces.filter(iface => {
                     return iface.descriptor.bInterfaceClass === this.interfaceClass;
                 });
 
                 if (!interfaces.length) {
-                    throw new Error("No valid interfaces found.");
+                    return reject(new Error("No valid interfaces found."));
                 }
 
                 // Prefer interface with endpoints
@@ -175,11 +174,8 @@ export class USB implements Transport {
      * Close device
      * @returns Promise
      */
-    public close(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            this.device.close();
-            resolve();
-        });
+    public async close(): Promise<void> {
+        this.device.close();
     }
 
     /**
@@ -187,13 +183,18 @@ export class USB implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
-        return new Promise((resolve, reject) => {
-            if (this.interfaceNumber === undefined) return reject("No device opened");
+        if (this.interfaceNumber === undefined) {
+            throw new Error("No device opened");
+        }
 
+        return new Promise((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointIn) {
-                this.endpointIn.transfer(this.packetSize, (error, buffer) => {
-                    if (error) return reject(error);
+                this.endpointIn.transfer(this.packetSize, (exception, buffer) => {
+                    if (exception) {
+                        return reject(exception);
+                    }
+
                     resolve(this.bufferToDataView(buffer));
                 });
                 return;
@@ -204,11 +205,17 @@ export class USB implements Transport {
                 LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 GET_REPORT,
                 IN_REPORT,
-                this.interfaceNumber,
+                this.interfaceNumber!,
                 this.packetSize,
-                (error, buffer) => {
-                    if (error) return reject(error);
-                    if (!buffer) return reject("No buffer read");
+                (exception, buffer) => {
+                    if (exception) {
+                        return reject(exception);
+                    }
+
+                    if (!buffer) {
+                        return reject(new Error("No buffer read"));
+                    }
+
                     resolve(this.bufferToDataView(buffer));
                 }
             );
@@ -221,18 +228,24 @@ export class USB implements Transport {
      * @returns Promise
      */
     public write(data: BufferSource): Promise<void> {
+        if (this.interfaceNumber === undefined) {
+            throw new Error("No device opened");
+        }
+
         const extended = this.extendBuffer(data, this.packetSize);
         const buffer = this.bufferSourceToBuffer(extended);
 
         return new Promise((resolve, reject) => {
-            if (this.interfaceNumber === undefined) return reject("No device opened");
-
             // Use endpoint if it exists
             if (this.endpointOut) {
-                this.endpointOut.transfer(buffer, error => {
-                    if (error) return reject(error);
+                this.endpointOut.transfer(buffer, exception => {
+                    if (exception) {
+                        return reject(exception);
+                    }
+
                     resolve();
                 });
+
                 return;
             }
 
@@ -241,10 +254,13 @@ export class USB implements Transport {
                 LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
                 SET_REPORT,
                 OUT_REPORT,
-                this.interfaceNumber,
+                this.interfaceNumber!,
                 buffer,
-                error => {
-                    if (error) return reject(error);
+                exception => {
+                    if (exception) {
+                        return reject(exception);
+                    }
+
                     resolve();
                 }
             );

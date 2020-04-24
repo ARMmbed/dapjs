@@ -119,7 +119,7 @@ export class DAPLink extends CmsisDAP {
         return false;
     }
 
-    private writeBuffer(buffer: ArrayBuffer, pageSize: number, offset: number = 0): Promise<void> {
+    private async writeBuffer(buffer: ArrayBuffer, pageSize: number, offset: number = 0): Promise<void> {
         const end = Math.min(buffer.byteLength, offset + pageSize);
         const page = buffer.slice(offset, end);
         const data = new Uint8Array(page.byteLength + 1);
@@ -127,14 +127,11 @@ export class DAPLink extends CmsisDAP {
         data.set([page.byteLength]);
         data.set(new Uint8Array(page), 1);
 
-        return this.send(DAPLinkFlash.WRITE, data)
-        .then(() => {
-            this.emit(DAPLink.EVENT_PROGRESS, offset / buffer.byteLength);
-            if (end < buffer.byteLength) {
-                return this.writeBuffer(buffer, pageSize, end);
-            }
-            return Promise.resolve();
-        });
+        await this.send(DAPLinkFlash.WRITE, data);
+        this.emit(DAPLink.EVENT_PROGRESS, offset / buffer.byteLength);
+        if (end < buffer.byteLength) {
+            return this.writeBuffer(buffer, pageSize, end);
+        }
     }
 
     /**
@@ -143,41 +140,40 @@ export class DAPLink extends CmsisDAP {
      * @param pageSize The page size to use (defaults to 62)
      * @returns Promise
      */
-    public flash(buffer: BufferSource, pageSize: number = DEFAULT_PAGE_SIZE): Promise<void> {
-        function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
+    public async flash(buffer: BufferSource, pageSize: number = DEFAULT_PAGE_SIZE): Promise<void> {
+        const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => {
             return (source as ArrayBufferView).buffer !== undefined;
-        }
+        };
 
         const arrayBuffer = isView(buffer) ? buffer.buffer : buffer;
         const streamType = this.isBufferBinary(arrayBuffer) ? 0 : 1;
 
-        return this.send(DAPLinkFlash.OPEN, new Uint32Array([streamType]))
-        .then(result => {
-            // An error occurred
-            if (result.getUint8(1) !== 0) return Promise.reject("Flash error");
-            return this.writeBuffer(arrayBuffer, pageSize);
-        })
-        .then(() => {
-            this.emit(DAPLink.EVENT_PROGRESS, 1.0);
-            return this.send(DAPLinkFlash.CLOSE);
-        })
-        .then(result => {
-            // An error occurred
-            if (result.getUint8(1) !== 0) return Promise.reject("Flash error");
-            return this.send(DAPLinkFlash.RESET);
-        })
-        .then(() => undefined);
+        let result = await this.send(DAPLinkFlash.OPEN, new Uint32Array([streamType]));
+
+        // An error occurred
+        if (result.getUint8(1) !== 0) {
+            throw new Error("Flash error");
+        }
+
+        await this.writeBuffer(arrayBuffer, pageSize);
+        this.emit(DAPLink.EVENT_PROGRESS, 1.0);
+        result = await this.send(DAPLinkFlash.CLOSE);
+
+        // An error occurred
+        if (result.getUint8(1) !== 0) {
+            throw new Error("Flash error");
+        }
+
+        await this.send(DAPLinkFlash.RESET);
     }
 
     /**
      * Get the serial baud rate setting
      * @returns Promise of baud rate
      */
-    public getSerialBaudrate(): Promise<number> {
-        return this.send(DAPLinkSerial.READ_SETTINGS)
-        .then(result => {
-            return result.getUint32(1, true);
-        });
+    public async getSerialBaudrate(): Promise<number> {
+        const result = await this.send(DAPLinkSerial.READ_SETTINGS);
+        return result.getUint32(1, true);
     }
 
     /**
@@ -185,9 +181,8 @@ export class DAPLink extends CmsisDAP {
      * @param baudrate The baudrate to use (defaults to 9600)
      * @returns Promise
      */
-    public setSerialBaudrate(baudrate: number = DEFAULT_BAUDRATE): Promise<void> {
-        return this.send(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]))
-        .then(() => undefined);
+    public async setSerialBaudrate(baudrate: number = DEFAULT_BAUDRATE): Promise<void> {
+        await this.send(DAPLinkSerial.WRITE_SETTINGS, new Uint32Array([baudrate]));
     }
 
     /**
@@ -195,39 +190,36 @@ export class DAPLink extends CmsisDAP {
      * @param data The data to write
      * @returns Promise
      */
-    public serialWrite(data: string): Promise<void> {
+    public async serialWrite(data: string): Promise<void> {
         const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);
-        return this.send(DAPLinkSerial.WRITE, new Uint8Array(arrayData).buffer)
-        .then(() => undefined);
+        await this.send(DAPLinkSerial.WRITE, new Uint8Array(arrayData).buffer);
     }
 
     /**
      * Read serial data
      * @returns Promise of any arrayBuffer read
      */
-    public serialRead(): Promise<ArrayBuffer | undefined> {
-        return this.send(DAPLinkSerial.READ)
-        .then(serialData => {
-            // Check if there is any data returned from the device
-            if (serialData.byteLength === 0) {
-                return undefined;
-            }
+    public async serialRead(): Promise<ArrayBuffer | undefined> {
+        const serialData = await this.send(DAPLinkSerial.READ);
+        // Check if there is any data returned from the device
+        if (serialData.byteLength === 0) {
+            return undefined;
+        }
 
-            // First byte contains the vendor code
-            if (serialData.getUint8(0) !== DAPLinkSerial.READ) {
-                return undefined;
-            }
+        // First byte contains the vendor code
+        if (serialData.getUint8(0) !== DAPLinkSerial.READ) {
+            return undefined;
+        }
 
-            // Second byte contains the actual length of data read from the device
-            const dataLength = serialData.getUint8(1);
-            if (dataLength === 0) {
-                return undefined;
-            }
+        // Second byte contains the actual length of data read from the device
+        const dataLength = serialData.getUint8(1);
+        if (dataLength === 0) {
+            return undefined;
+        }
 
-            const offset = 2;
-            return serialData.buffer.slice(offset, offset + dataLength);
-        });
+        const offset = 2;
+        return serialData.buffer.slice(offset, offset + dataLength);
     }
 
     /**
@@ -263,7 +255,7 @@ export class DAPLink extends CmsisDAP {
                 }
             }
 
-            await new Promise(resolve => setTimeout(() => resolve(), serialDelay));
+            await new Promise(resolve => setTimeout(resolve, serialDelay));
         }
     }
 

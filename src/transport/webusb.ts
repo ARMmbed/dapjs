@@ -88,43 +88,42 @@ export class WebUSB implements Transport {
      * Open device
      * @returns Promise
      */
-    public open(): Promise<void> {
-        return this.device.open()
-        .then(() => this.device.selectConfiguration(this.configuration))
-        .then(() => {
-            const interfaces = this.device.configuration!.interfaces.filter(iface => {
-                return iface.alternates[0].interfaceClass === this.interfaceClass;
-            });
+    public async open(): Promise<void> {
+        await this.device.open();
+        await this.device.selectConfiguration(this.configuration);
 
-            if (!interfaces.length) {
-                throw new Error("No valid interfaces found.");
-            }
-
-            // Prefer interface with endpoints
-            let selectedInterface = interfaces.find(iface => iface.alternates[0].endpoints.length > 0);
-
-            // Otherwise use the first
-            if (!selectedInterface) {
-                selectedInterface = interfaces[0];
-            }
-
-            this.interfaceNumber = selectedInterface.interfaceNumber;
-
-            // If we always want to use control transfer, don't find/set endpoints and claim interface
-            if (!this.alwaysControlTransfer) {
-                const endpoints = selectedInterface.alternates[0].endpoints;
-
-                this.endpointIn = undefined;
-                this.endpointOut = undefined;
-
-                for (const endpoint of endpoints) {
-                    if (endpoint.direction === "in") this.endpointIn = endpoint;
-                    else this.endpointOut = endpoint;
-                }
-            }
-
-            return this.device.claimInterface(this.interfaceNumber);
+        const interfaces = this.device.configuration!.interfaces.filter(iface => {
+            return iface.alternates[0].interfaceClass === this.interfaceClass;
         });
+
+        if (!interfaces.length) {
+            throw new Error("No valid interfaces found.");
+        }
+
+        // Prefer interface with endpoints
+        let selectedInterface = interfaces.find(iface => iface.alternates[0].endpoints.length > 0);
+
+        // Otherwise use the first
+        if (!selectedInterface) {
+            selectedInterface = interfaces[0];
+        }
+
+        this.interfaceNumber = selectedInterface.interfaceNumber;
+
+        // If we always want to use control transfer, don't find/set endpoints and claim interface
+        if (!this.alwaysControlTransfer) {
+            const endpoints = selectedInterface.alternates[0].endpoints;
+
+            this.endpointIn = undefined;
+            this.endpointOut = undefined;
+
+            for (const endpoint of endpoints) {
+                if (endpoint.direction === "in") this.endpointIn = endpoint;
+                else this.endpointOut = endpoint;
+            }
+        }
+
+        return this.device.claimInterface(this.interfaceNumber);
     }
 
     /**
@@ -139,30 +138,32 @@ export class WebUSB implements Transport {
      * Read from device
      * @returns Promise of DataView
      */
-    public read(): Promise<DataView> {
+    public async read(): Promise<DataView> {
         if (this.interfaceNumber === undefined) return Promise.reject("No device opened");
 
-        // Use endpoint if it exists
+        let result: USBInTransferResult;
+
         if (this.endpointIn) {
-            return this.device.transferIn(
+            // Use endpoint if it exists
+            result = await this.device.transferIn(
                 this.endpointIn.endpointNumber,
                 this.packetSize
-            )
-            .then(result => result.data!);
+            );
+        } else {
+            // Fallback to using control transfer
+            result = await this.device.controlTransferIn(
+                {
+                    requestType: "class",
+                    recipient: "interface",
+                    request: GET_REPORT,
+                    value: IN_REPORT,
+                    index: this.interfaceNumber
+                },
+                this.packetSize
+            );
         }
 
-        // Fallback to using control transfer
-        return this.device.controlTransferIn(
-            {
-                requestType: "class",
-                recipient: "interface",
-                request: GET_REPORT,
-                value: IN_REPORT,
-                index: this.interfaceNumber
-            },
-            this.packetSize
-        )
-        .then(result => result.data!);
+        return result.data!;
     }
 
     /**
@@ -170,31 +171,31 @@ export class WebUSB implements Transport {
      * @param data Data to write
      * @returns Promise
      */
-    public write(data: BufferSource): Promise<void> {
-        if (this.interfaceNumber === undefined) return Promise.reject("No device opened");
+    public async write(data: BufferSource): Promise<void> {
+        if (this.interfaceNumber === undefined) {
+            throw new Error("No device opened");
+        }
 
         const buffer = this.extendBuffer(data, this.packetSize);
 
-        // Use endpoint if it exists
         if (this.endpointOut) {
-            return this.device.transferOut(
+            // Use endpoint if it exists
+            await this.device.transferOut(
                 this.endpointOut.endpointNumber,
                 buffer
-            )
-            .then(() => undefined);
+            );
+        } else {
+            // Fallback to using control transfer
+            await this.device.controlTransferOut(
+                {
+                    requestType: "class",
+                    recipient: "interface",
+                    request: SET_REPORT,
+                    value: OUT_REPORT,
+                    index: this.interfaceNumber
+                },
+                buffer
+            );
         }
-
-        // Fallback to using control transfer
-        return this.device.controlTransferOut(
-            {
-                requestType: "class",
-                recipient: "interface",
-                request: SET_REPORT,
-                value: OUT_REPORT,
-                index: this.interfaceNumber
-            },
-            buffer
-        )
-        .then(() => undefined);
     }
 }

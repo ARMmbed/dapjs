@@ -40,9 +40,9 @@ export class HID implements Transport {
      * @param path Path to HID device to use
      */
     constructor(deviceOrPath: Device | string) {
-        function isDevice(source: Device | string): source is Device {
+        const isDevice = (source: Device | string): source is Device => {
             return (source as Device).path !== undefined;
-        }
+        };
 
         this.path = isDevice(deviceOrPath) ? deviceOrPath.path! : deviceOrPath;
     }
@@ -51,34 +51,23 @@ export class HID implements Transport {
      * Open device
      * @returns Promise
      */
-    public open(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!this.path.length) {
-                return reject("No path specified");
-            }
+    public async open(): Promise<void> {
+        if (!this.path.length) {
+            throw new Error("No path specified");
+        }
 
-            try {
-                const hid = require("node-hid");
-                this.device = new hid.HID(this.path);
-                resolve();
-            } catch (ex) {
-                reject(ex);
-            }
-        });
+        const hid = require("node-hid");
+        this.device = new hid.HID(this.path);
     }
 
     /**
      * Close device
      * @returns Promise
      */
-    public close(): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            if (this.device) {
-                this.device.close();
-            }
-
-            resolve();
-        });
+    public async close(): Promise<void> {
+        if (this.device) {
+            this.device.close();
+        }
     }
 
     /**
@@ -86,12 +75,14 @@ export class HID implements Transport {
      * @returns Promise of DataView
      */
     public read(): Promise<DataView> {
-        return new Promise((resolve, reject) => {
-            if (!this.device) return reject("No device opened");
+        if (!this.device) {
+            throw new Error("No device opened");
+        }
 
-            this.device.read((error: string, data: number[]) => {
+        return new Promise((resolve, reject) => {
+            this.device!.read((error: string, data: number[]) => {
                 if (error) {
-                    return reject(error);
+                    return reject(new Error(error));
                 }
 
                 const buffer = new Uint8Array(data).buffer;
@@ -105,30 +96,30 @@ export class HID implements Transport {
      * @param data Data to write
      * @returns Promise
      */
-    public write(data: BufferSource): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (!this.device) return reject("No device opened");
+    public async write(data: BufferSource): Promise<void> {
+        if (!this.device) {
+            throw new Error("No device opened");
+        }
 
-            function isView(source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView {
-                return (source as ArrayBufferView).buffer !== undefined;
-            }
+        const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => {
+            return (source as ArrayBufferView).buffer !== undefined;
+        };
 
-            const arrayBuffer = isView(data) ? data.buffer : data;
-            const array = Array.prototype.slice.call(new Uint8Array(arrayBuffer));
+        const arrayBuffer = isView(data) ? data.buffer : data;
+        const array = Array.prototype.slice.call(new Uint8Array(arrayBuffer));
 
-            // Pad to packet size
-            while (array.length < this.packetSize) array.push(0);
+        // Pad to packet size
+        while (array.length < this.packetSize) array.push(0);
 
-            // Windows requires the prepend of an extra byte
-            // https://github.com/node-hid/node-hid/blob/master/README.md#prepend-byte-to-hid_write
-            if (this.os === "win32") {
-                array.unshift(0);  // prepend throwaway byte
-            }
+        // Windows requires the prepend of an extra byte
+        // https://github.com/node-hid/node-hid/blob/master/README.md#prepend-byte-to-hid_write
+        if (this.os === "win32") {
+            array.unshift(0);  // prepend throwaway byte
+        }
 
-            const bytesWritten = this.device.write(array);
-            if (bytesWritten !== array.length) return reject("Incorrect bytecount written");
-
-            resolve();
-        });
+        const bytesWritten = this.device.write(array);
+        if (bytesWritten !== array.length) {
+            throw new Error("Incorrect bytecount written");
+        }
     }
 }
