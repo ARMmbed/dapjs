@@ -20,92 +20,123 @@
 * SOFTWARE.
 */
 
-const fs = require("fs");
-const http = require("http");
-const https = require("https");
-const readline = require("readline");
-const progress = require("progress");
-const EventEmitter = require("events");
-const DAPjs = require("../../");
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const readline = require('readline');
+const progress = require('progress');
+const DAPjs = require('../../');
 
-// Emit keyboard input
-const inputEmitter = new EventEmitter();
-function setupEmitter() {
-    process.stdin.setRawMode(true);
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("readable", () => {
-        let input;
-        while (input = process.stdin.read()) {
-            if (input === "\u0003") {
-                process.exit();
-            } else if (input !== null) {
-                let index = parseInt(input);
-                inputEmitter.emit("input", index);
-            }
-        }
-    });
-}
+const getFile = async () => {
+    const fileName = await getFileName();
+    if (!fileName) {
+        throw new Error('No file name specified');
+    }
 
-// Determine package URL or file path
-function getFileName() {
-    return new Promise((resolve) => {
-        if (process.argv[2]) {
-            return resolve(process.argv[2]);
-        }
+    if (fileName.indexOf('http') === 0) {
+        return downloadFile(fileName);
+    }
 
-        let rl = readline.createInterface(process.stdin, process.stdout);
-        rl.question("Enter a URL or file path for the firmware package: ", answer => {
-            rl.close();
-            resolve(answer);
-        });
-        rl.write("binaries/k64f-green.bin");
-    });
+    return loadFile(fileName);
 }
 
 // Load a file
-function loadFile(fileName, isJson=false) {
+const loadFile = (fileName, isJson = false) => {
     let file = fs.readFileSync(fileName);
     return isJson ? JSON.parse(file) : new Uint8Array(file).buffer;
 }
 
 // Download a file
-function downloadFile(url, isJson=false) {
-    return new Promise((resolve, reject) => {
-        console.log("Downloading file...");
-        let scheme = (url.indexOf("https") === 0) ? https : http;
+const downloadFile = async (url, isJson = false) => {
+    console.log('Downloading file...');
+    let scheme = (url.indexOf('https') === 0) ? https : http;
 
+    const data = await new Promise((resolve, reject) => {
         scheme.get(url, response => {
             let data = [];
-            response.on("data", chunk => {
+            response.on('data', chunk => {
                 data.push(chunk);
             });
-            response.on("end", () => {
-                if (response.statusCode !== 200) return reject(response.statusMessage);
-
-                let download = Buffer.concat(data);
-                if (isJson) {
-                    resolve(JSON.parse(data));
-                }
-                else {
-                    resolve(new Uint8Array(download).buffer);
+            response.on('end', () => {
+                if (response.statusCode !== 200) {
+                    reject(new Error(response.statusMessage));
+                } else {
+                    resolve(data);
                 }
             });
         })
-        .on("error", error => {
+        .on('error', error => {
             reject(error);
         });
     });
+
+    if (isJson) {
+        return JSON.parse(data);
+    } else {
+        let download = Buffer.concat(data);
+        return new Uint8Array(download).buffer;
+    }
+}
+
+// Determine package URL or file path
+const getFileName = async () => {
+    if (process.argv[2]) {
+        return process.argv[2];
+    }
+
+    const rl = readline.createInterface(process.stdin, process.stdout);
+    const fileName = await new Promise(resolve => {
+        rl.question('Enter a URL or file path for the firmware package: ', answer => {
+            rl.close();
+            resolve(answer);
+        });
+        rl.write('binaries/k64f-green.bin');
+    });
+
+    return fileName;
+}
+
+// Select a device from the list
+const selectDevice = async (devices) => {
+    if (devices.length === 0) {
+        throw new Error('No devices found');
+    }
+
+    console.log('Select a device to flash:');
+    devices.forEach((device, index) => {
+        console.log(`${index + 1}: ${device.name}`);
+    });
+
+    const device = await new Promise(resolve => {
+        process.stdin.setRawMode(true);
+        process.stdin.setEncoding('utf8');
+        process.stdin.on('readable', () => {
+            let input;
+            while (input = process.stdin.read()) {
+                if (input === '\u0003') {
+                    process.exit();
+                } else if (input !== null) {
+                    let index = parseInt(input);
+                    if (index <= devices.length) {
+                        resolve(devices[index - 1]);
+                    }
+                }
+            }
+        });
+    });
+
+    return device;
 }
 
 // Update device using image buffer
-function flash(transport, program) {
+const flash = async (transport, program) => {
     console.log(`Using binary file ${program.byteLength} words long`);
     const target = new DAPjs.DAPLink(transport);
 
     // Set up progressbar
-    const progressBar = new progress("Updating firmware [:bar] :percent :etas", {
-        complete: "=",
-        incomplete: " ",
+    const progressBar = new progress('Updating firmware [:bar] :percent :etas', {
+        complete: '=',
+        incomplete: ' ',
         width: 20,
         total: program.byteLength
     });
@@ -115,25 +146,14 @@ function flash(transport, program) {
     });
 
     // Push binary to board
-    return target.connect()
-    .then(() => {
-        return target.flash(program);
-    })
-    .then(() => {
-        return target.disconnect();
-    });
+    await target.connect();
+    await target.flash(program);
+    await target.disconnect();
 }
 
 module.exports = {
-    inputEmitter: inputEmitter,
-    setupEmitter: setupEmitter,
-    flash: flash,
-    getFile: () => {
-        return getFileName()
-        .then(fileName => {
-            if (!fileName) throw new Error("No file name specified");
-            if (fileName.indexOf("http") === 0) return downloadFile(fileName);
-            return loadFile(fileName);
-        });
-    }
+    DAPLINK_VENDOR: 0xD28,
+    getFile,
+    selectDevice,
+    flash
 };
