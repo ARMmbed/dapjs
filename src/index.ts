@@ -21,8 +21,8 @@
 * SOFTWARE.
 */
 
-export * from "./proxy";
-export * from "./daplink";
-export * from "./dap";
-export * from "./processor";
-export * from "./transport";
+export * from './proxy';
+export * from './daplink';
+export * from './dap';
+export * from './processor';
+export * from './transport';

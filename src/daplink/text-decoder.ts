@@ -61,7 +61,7 @@ export class TextDecoder {
         const leadingOnes = Math.clz32(~codePoint);
         let endPos = 0;
         const stringLen = encoded.length;
-        let result = "";
+        let result = '';
         if (leadingOnes < 5 && stringLen >= leadingOnes) {
             codePoint = (codePoint << leadingOnes) >>> (24 + leadingOnes);
             for (endPos = 1; endPos < leadingOnes; endPos = endPos + 1) {
@@ -79,7 +79,7 @@ export class TextDecoder {
             } else endPos = 0; // to fill it in with INVALIDs
         }
         for (; endPos < stringLen; endPos = endPos + 1) {
-            result += "\ufffd"; // replacement character
+            result += '\ufffd'; // replacement character
         }
         return result;
     }

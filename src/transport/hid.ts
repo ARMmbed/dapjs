@@ -21,9 +21,9 @@
 * SOFTWARE.
 */
 
-import { platform } from "os";
-import type { HID as nodeHID, Device } from "node-hid";
-import { Transport } from "./";
+import { platform } from 'os';
+import type { HID as nodeHID, Device } from 'node-hid';
+import { Transport } from './';
 
 /**
  * HID Transport class
@@ -53,10 +53,10 @@ export class HID implements Transport {
      */
     public async open(): Promise<void> {
         if (!this.path.length) {
-            throw new Error("No path specified");
+            throw new Error('No path specified');
         }
 
-        const hid = require("node-hid");
+        const hid = require('node-hid');
         this.device = new hid.HID(this.path);
     }
 
@@ -76,7 +76,7 @@ export class HID implements Transport {
      */
     public read(): Promise<DataView> {
         if (!this.device) {
-            throw new Error("No device opened");
+            throw new Error('No device opened');
         }
 
         return new Promise((resolve, reject) => {
@@ -98,7 +98,7 @@ export class HID implements Transport {
      */
     public async write(data: BufferSource): Promise<void> {
         if (!this.device) {
-            throw new Error("No device opened");
+            throw new Error('No device opened');
         }
 
         const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => {
@@ -113,13 +113,13 @@ export class HID implements Transport {
 
         // Windows requires the prepend of an extra byte
         // https://github.com/node-hid/node-hid/blob/master/README.md#prepend-byte-to-hid_write
-        if (this.os === "win32") {
+        if (this.os === 'win32') {
             array.unshift(0);  // prepend throwaway byte
         }
 
         const bytesWritten = this.device.write(array);
         if (bytesWritten !== array.length) {
-            throw new Error("Incorrect bytecount written");
+            throw new Error('Incorrect bytecount written');
         }
     }
 }

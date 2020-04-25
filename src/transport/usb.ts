@@ -21,8 +21,8 @@
 * SOFTWARE.
 */
 
-import type { Device, InEndpoint, OutEndpoint} from "usb";
-import { Transport } from "./";
+import type { Device, InEndpoint, OutEndpoint} from 'usb';
+import { Transport } from './';
 
 /**
  * @hidden
@@ -127,7 +127,7 @@ export class USB implements Transport {
                 });
 
                 if (!interfaces.length) {
-                    return reject(new Error("No valid interfaces found."));
+                    return reject(new Error('No valid interfaces found.'));
                 }
 
                 // Prefer interface with endpoints
@@ -148,7 +148,7 @@ export class USB implements Transport {
                     this.endpointOut = undefined;
 
                     for (const endpoint of endpoints) {
-                        if (endpoint.direction === "in") this.endpointIn = (endpoint as InEndpoint);
+                        if (endpoint.direction === 'in') this.endpointIn = (endpoint as InEndpoint);
                         else this.endpointOut = (endpoint as OutEndpoint);
                     }
 
@@ -184,7 +184,7 @@ export class USB implements Transport {
      */
     public read(): Promise<DataView> {
         if (this.interfaceNumber === undefined) {
-            throw new Error("No device opened");
+            throw new Error('No device opened');
         }
 
         return new Promise((resolve, reject) => {
@@ -213,7 +213,7 @@ export class USB implements Transport {
                     }
 
                     if (!buffer) {
-                        return reject(new Error("No buffer read"));
+                        return reject(new Error('No buffer read'));
                     }
 
                     resolve(this.bufferToDataView(buffer));
@@ -229,7 +229,7 @@ export class USB implements Transport {
      */
     public write(data: BufferSource): Promise<void> {
         if (this.interfaceNumber === undefined) {
-            throw new Error("No device opened");
+            throw new Error('No device opened');
         }
 
         const extended = this.extendBuffer(data, this.packetSize);

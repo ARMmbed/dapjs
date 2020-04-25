@@ -21,8 +21,8 @@
 * SOFTWARE.
 */
 
-import { EventEmitter } from "events";
-import { Transport } from "../transport";
+import { EventEmitter } from 'events';
+import { Transport } from '../transport';
 import {
     DAPPort,
     DAPTransferMode,
@@ -33,8 +33,8 @@ import {
     DAPInfoRequest,
     DAPResetTargeResponse,
     DAPTransferResponse
-} from "./enums";
-import { Proxy, DAPOperation } from "./";
+} from './enums';
+import { Proxy, DAPOperation } from './';
 
 /**
  * @hidden
@@ -181,7 +181,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         const length = result.getUint8(1);
 
         if (length === 0) {
-            throw new Error("DAP Info Failure");
+            throw new Error('DAP Info Failure');
         }
 
         switch (request) {
@@ -249,7 +249,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         const result = await this.send(DAPCommand.DAP_CONNECT, new Uint8Array([this.mode]));
 
         if (result.getUint8(1) === DAPConnectResponse.FAILED || this.mode !== DAPProtocol.DEFAULT && result.getUint8(1) !== this.mode) {
-            throw new Error("Mode not enabled.");
+            throw new Error('Mode not enabled.');
         }
 
         await this.configureTransfer(0, 100, 0);
@@ -309,7 +309,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
         let operations: DAPOperation[];
 
-        if (typeof portOrOps === "number") {
+        if (typeof portOrOps === 'number') {
             operations = [{
                 port: portOrOps,
                 mode,
@@ -341,28 +341,28 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
         // Transfer count
         if (result.getUint8(1) !== operations.length) {
-            throw new Error("Transfer count mismatch");
+            throw new Error('Transfer count mismatch');
         }
 
         // Transfer response
         const response = result.getUint8(2);
         if (response === DAPTransferResponse.WAIT) {
-            throw new Error("Transfer response WAIT");
+            throw new Error('Transfer response WAIT');
         }
         if (response === DAPTransferResponse.FAULT) {
-            throw new Error("Transfer response FAULT");
+            throw new Error('Transfer response FAULT');
         }
         if (response === DAPTransferResponse.PROTOCOL_ERROR) {
-            throw new Error("Transfer response PROTOCOL_ERROR");
+            throw new Error('Transfer response PROTOCOL_ERROR');
         }
         if (response === DAPTransferResponse.VALUE_MISMATCH) {
-            throw new Error("Transfer response VALUE_MISMATCH");
+            throw new Error('Transfer response VALUE_MISMATCH');
         }
         if (response === DAPTransferResponse.NO_ACK) {
-            throw new Error("Transfer response NO_ACK");
+            throw new Error('Transfer response NO_ACK');
         }
 
-        if (typeof portOrOps === "number") {
+        if (typeof portOrOps === 'number') {
             return result.getUint32(3, true);
         }
 
@@ -391,7 +391,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         let mode: DAPTransferMode;
         let dataSize = BLOCK_HEADER_SIZE;
 
-        if (typeof countOrValues === "number") {
+        if (typeof countOrValues === 'number') {
             operationCount = countOrValues;
             mode = DAPTransferMode.READ;
         } else {
@@ -410,7 +410,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
         // Transfer request
         view.setUint8(3, port | mode | register);
 
-        if (typeof countOrValues !== "number") {
+        if (typeof countOrValues !== 'number') {
             // Transfer data
             countOrValues.forEach((countOrValue, index) => {
                 const offset = BLOCK_HEADER_SIZE + (index * 4);
@@ -423,25 +423,25 @@ export class CmsisDAP extends EventEmitter implements Proxy {
 
         // Transfer count
         if (result.getUint16(1, true) !== operationCount) {
-            throw new Error("Transfer count mismatch");
+            throw new Error('Transfer count mismatch');
         }
 
         // Transfer response
         const response = result.getUint8(3);
         if (response === DAPTransferResponse.WAIT) {
-            throw new Error("Transfer response WAIT");
+            throw new Error('Transfer response WAIT');
         }
         if (response === DAPTransferResponse.FAULT) {
-            throw new Error("Transfer response FAULT");
+            throw new Error('Transfer response FAULT');
         }
         if (response === DAPTransferResponse.PROTOCOL_ERROR) {
-            throw new Error("Transfer response PROTOCOL_ERROR");
+            throw new Error('Transfer response PROTOCOL_ERROR');
         }
         if (response === DAPTransferResponse.NO_ACK) {
-            throw new Error("Transfer response NO_ACK");
+            throw new Error('Transfer response NO_ACK');
         }
 
-        if (typeof countOrValues === "number") {
+        if (typeof countOrValues === 'number') {
             return new Uint32Array(result.buffer.slice(4, 4 + operationCount * 4));
         }
 

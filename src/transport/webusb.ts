@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { Transport } from "./";
+import { Transport } from './';
 
 /**
  * @hidden
@@ -97,7 +97,7 @@ export class WebUSB implements Transport {
         });
 
         if (!interfaces.length) {
-            throw new Error("No valid interfaces found.");
+            throw new Error('No valid interfaces found.');
         }
 
         // Prefer interface with endpoints
@@ -118,7 +118,7 @@ export class WebUSB implements Transport {
             this.endpointOut = undefined;
 
             for (const endpoint of endpoints) {
-                if (endpoint.direction === "in") this.endpointIn = endpoint;
+                if (endpoint.direction === 'in') this.endpointIn = endpoint;
                 else this.endpointOut = endpoint;
             }
         }
@@ -139,7 +139,7 @@ export class WebUSB implements Transport {
      * @returns Promise of DataView
      */
     public async read(): Promise<DataView> {
-        if (this.interfaceNumber === undefined) return Promise.reject("No device opened");
+        if (this.interfaceNumber === undefined) return Promise.reject('No device opened');
 
         let result: USBInTransferResult;
 
@@ -153,8 +153,8 @@ export class WebUSB implements Transport {
             // Fallback to using control transfer
             result = await this.device.controlTransferIn(
                 {
-                    requestType: "class",
-                    recipient: "interface",
+                    requestType: 'class',
+                    recipient: 'interface',
                     request: GET_REPORT,
                     value: IN_REPORT,
                     index: this.interfaceNumber
@@ -173,7 +173,7 @@ export class WebUSB implements Transport {
      */
     public async write(data: BufferSource): Promise<void> {
         if (this.interfaceNumber === undefined) {
-            throw new Error("No device opened");
+            throw new Error('No device opened');
         }
 
         const buffer = this.extendBuffer(data, this.packetSize);
@@ -188,8 +188,8 @@ export class WebUSB implements Transport {
             // Fallback to using control transfer
             await this.device.controlTransferOut(
                 {
-                    requestType: "class",
-                    recipient: "interface",
+                    requestType: 'class',
+                    recipient: 'interface',
                     request: SET_REPORT,
                     value: OUT_REPORT,
                     index: this.interfaceNumber
