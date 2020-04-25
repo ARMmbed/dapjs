@@ -20,41 +20,30 @@
 * SOFTWARE.
 */
 
-const hid = require("node-hid");
-const common = require("./common");
-const DAPjs = require("../../");
+const hid = require('node-hid');
+const common = require('./common');
+const DAPjs = require('../../');
 
-// Allow user to select a device
-function selectDevice(vendorID) {
-    return new Promise((resolve, reject) => {
-        let devices = hid.devices();
-        devices = devices.filter(device => device.vendorId === vendorID);
+// List all devices
+const getDevices = (vendorID) => {
+    let devices = hid.devices();
+    devices = devices.filter(device => device.vendorId === vendorID);
 
-        if (devices.length === 0) {
-            return reject("No devices found");
-        }
-
-        common.inputEmitter.addListener("input", index => {
-            if (index <= devices.length) resolve(devices[index - 1]);
-        });
-
-        console.log("Select a device to read registers:");
-        devices.forEach((device, index) => {
-            console.log(`${index + 1}: ${device.product}`);
-        });    
-    });
+    return devices.map(device => ({
+        ...device,
+        name: device.product
+    }));
 }
 
-
-selectDevice(0xD28)
-.then(device => {
-    const transport = new DAPjs.HID(device);
-    return common.readRegisters(transport);
-})
-.then(() => {
-    process.exit();
-})
-.catch(error => {
-    console.error(error.message || error);
-    process.exit();
-});
+(async () => {
+    try {
+        const devices = getDevices(common.DAPLINK_VENDOR);
+        const device = await common.selectDevice(devices);
+        const transport = new DAPjs.HID(device);
+        await common.readRegisters(transport);
+    } catch(error) {
+        console.error(error.message || error);
+    } finally {
+        process.exit();
+    }
+})();
