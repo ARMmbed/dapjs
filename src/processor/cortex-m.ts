@@ -123,7 +123,7 @@ export class CortexM extends ADI implements Processor {
             return;
         }
 
-        return this.waitDelay(this.isHalted, timeout);
+        return this.waitDelay(() => this.isHalted(), timeout);
     }
 
     /**
@@ -243,7 +243,7 @@ export class CortexM extends ADI implements Processor {
         await this.transferSequence(sequence); // Write the registers
         await this.writeBlock(address, code); // Write the code to the address
         await this.resume(false); // Resume the target, without waiting
-        await this.waitDelay(this.isHalted, EXECUTE_TIMEOUT); // Wait for the target to halt on the breakpoint
+        await this.waitDelay(() => this.isHalted(), EXECUTE_TIMEOUT); // Wait for the target to halt on the breakpoint
     }
 
     /**
