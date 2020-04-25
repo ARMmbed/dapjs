@@ -21,10 +21,10 @@
 * SOFTWARE.
 */
 
-import { TextDecoder } from "./text-decoder";
-import { CmsisDAP, DAPProtocol, DEFAULT_CLOCK_FREQUENCY } from "../proxy";
-import { Transport } from "../transport";
-import { DAPLinkFlash, DAPLinkSerial } from "./enums";
+import { TextDecoder } from './text-decoder';
+import { CmsisDAP, DAPProtocol, DEFAULT_CLOCK_FREQUENCY } from '../proxy';
+import { Transport } from '../transport';
+import { DAPLinkFlash, DAPLinkSerial } from './enums';
 
 /**
  * @hidden
@@ -53,13 +53,13 @@ export class DAPLink extends CmsisDAP {
      * Progress event
      * @event
      */
-    public static EVENT_PROGRESS: string = "progress";
+    public static EVENT_PROGRESS: string = 'progress';
 
     /**
      * Serial read event
      * @event
      */
-    public static EVENT_SERIAL_DATA: string = "serial";
+    public static EVENT_SERIAL_DATA: string = 'serial';
 
     /**
      * @hidden
@@ -80,7 +80,7 @@ export class DAPLink extends CmsisDAP {
     constructor(transport: Transport, mode: DAPProtocol = DAPProtocol.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super(transport, mode, clockFrequency);
 
-        this.on("newListener", async event => {
+        this.on('newListener', async event => {
             if (event === DAPLink.EVENT_SERIAL_DATA) {
                 const listenerCount = this.listenerCount(event);
 
@@ -90,7 +90,7 @@ export class DAPLink extends CmsisDAP {
             }
         });
 
-        this.on("removeListener", event => {
+        this.on('removeListener', event => {
             if (event === DAPLink.EVENT_SERIAL_DATA) {
                 const listenerCount = this.listenerCount(event);
 
@@ -152,7 +152,7 @@ export class DAPLink extends CmsisDAP {
 
         // An error occurred
         if (result.getUint8(1) !== 0) {
-            throw new Error("Flash error");
+            throw new Error('Flash error');
         }
 
         await this.writeBuffer(arrayBuffer, pageSize);
@@ -161,7 +161,7 @@ export class DAPLink extends CmsisDAP {
 
         // An error occurred
         if (result.getUint8(1) !== 0) {
-            throw new Error("Flash error");
+            throw new Error('Flash error');
         }
 
         await this.send(DAPLinkFlash.RESET);
@@ -191,7 +191,7 @@ export class DAPLink extends CmsisDAP {
      * @returns Promise
      */
     public async serialWrite(data: string): Promise<void> {
-        const arrayData = data.split("").map((e: string) => e.charCodeAt(0));
+        const arrayData = data.split('').map((e: string) => e.charCodeAt(0));
         arrayData.unshift(arrayData.length);
         await this.send(DAPLinkSerial.WRITE, new Uint8Array(arrayData).buffer);
     }
@@ -267,4 +267,4 @@ export class DAPLink extends CmsisDAP {
     }
 }
 
-export * from "./enums";
+export * from './enums';

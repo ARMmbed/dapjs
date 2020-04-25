@@ -21,8 +21,8 @@
 * SOFTWARE.
 */
 
-import { DAP } from "../dap";
-import { CoreRegister, CoreState } from "./enums";
+import { DAP } from '../dap';
+import { CoreRegister, CoreState } from './enums';
 
 /**
  * Processor interface
@@ -90,5 +90,5 @@ export interface Processor extends DAP {
     execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister?: number, ...registers: number[]): Promise<void>;
 }
 
-export * from "./cortex-m";
-export * from "./enums";
+export * from './cortex-m';
+export * from './enums';

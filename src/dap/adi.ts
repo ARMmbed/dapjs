@@ -21,12 +21,12 @@
 * SOFTWARE.
 */
 
-import { Transport } from "../transport";
-import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
-import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
-import { DAP } from "./";
-import { DAPTransferMode, DAPPort, DAPProtocol } from "../proxy/enums";
-import { DEFAULT_CLOCK_FREQUENCY } from "../proxy/cmsis-dap";
+import { Transport } from '../transport';
+import { Proxy, CmsisDAP, DAPOperation } from '../proxy';
+import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from './enums';
+import { DAP } from './';
+import { DAPTransferMode, DAPPort, DAPProtocol } from '../proxy/enums';
+import { DEFAULT_CLOCK_FREQUENCY } from '../proxy/cmsis-dap';
 
 /**
  * @hidden
@@ -76,7 +76,7 @@ export class ADI implements DAP {
             setTimeout(() => {
                 if (running) {
                     running = false;
-                    throw new Error("Wait timed out");
+                    throw new Error('Wait timed out');
                 }
             }, timeout);
         }

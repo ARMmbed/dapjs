@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { ADI } from "../dap";
+import { ADI } from '../dap';
 import {
     DebugRegister,
     CoreRegister,
@@ -32,9 +32,9 @@ import {
     NvicRegister,
     AircrMask,
     DemcrMask
-} from "./enums";
-import { Processor } from "./";
-import { DAPOperation } from "../proxy";
+} from './enums';
+import { Processor } from './';
+import { DAPOperation } from '../proxy';
 
 /**
  * @hidden
@@ -165,7 +165,7 @@ export class CortexM extends ADI implements Processor {
 
         const dhcsr = results[0];
         if (!(dhcsr & DhcsrMask.S_REGRDY)) {
-            throw new Error("Register not ready");
+            throw new Error('Register not ready');
         }
 
         return this.readMem32(DebugRegister.DCRDR);
@@ -202,7 +202,7 @@ export class CortexM extends ADI implements Processor {
 
         const dhcsr = results[0];
         if (!(dhcsr & DhcsrMask.S_REGRDY)) {
-            throw new Error("Register not ready");
+            throw new Error('Register not ready');
         }
     }
 
