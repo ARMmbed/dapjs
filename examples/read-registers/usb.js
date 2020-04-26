@@ -64,7 +64,6 @@ const getDevices = async (vendorID) => {
         await common.readRegisters(transport);
     } catch(error) {
         console.error(error.message || error);
-    } finally {
-        process.exit();
     }
+    process.exit();
 })();

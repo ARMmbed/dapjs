@@ -20,45 +20,38 @@
 * SOFTWARE.
 */
 
-const USB = require("webusb").USB;
-const common = require("./common");
-const DAPjs = require("../../");
+const USB = require('webusb').USB;
+const common = require('./common');
+const DAPjs = require('../../');
 
-const data = "hello world";
+const DATA = 'hello world';
 
 // Allow user to select a device
-function handleDevicesFound(devices, selectFn) {
+const devicesFound = async (devices) => {
+    for (device of devices) {
+        device.name = device.productName || device.serialNumber;
+    }
 
-    common.inputEmitter.addListener("input", index => {
-        if (index && index <= devices.length) selectFn(devices[index - 1]);
-    });
-
-    console.log("Select a device to listen to execute on:");
-    devices.forEach((device, index) => {
-        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
-    });
+    return common.selectDevice(devices);
 }
 
-const run = async data => {
+const usb = new USB({ devicesFound });
+
+(async () => {
     try {
-        common.setupEmitter();
-        let usb = new USB({
-            devicesFound: handleDevicesFound
-        });
         const device = await usb.requestDevice({
-            filters: [{vendorId: 0xD28}]
-        });
+            filters: [{vendorId: common.DAPLINK_VENDOR}]
+        })
         const transport = new DAPjs.WebUSB(device);
-        const deviceHash = await common.deviceHash(transport, data);
-        const nodeHash = common.nodeHash(data);
+
+        const deviceHash = await common.deviceHash(transport, DATA);
+        const nodeHash = common.nodeHash(DATA);
 
         console.log(deviceHash);
         console.log(nodeHash);
-        console.log(deviceHash === nodeHash ? "match" : "mismatch");    
-    } catch (error) {
+        console.log(deviceHash === nodeHash ? 'match' : 'mismatch');
+    } catch(error) {
         console.error(error.message || error);
     }
     process.exit();
-}
-
-(async () => await run(data))();
+})();

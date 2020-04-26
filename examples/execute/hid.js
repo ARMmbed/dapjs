@@ -20,48 +20,37 @@
 * SOFTWARE.
 */
 
-const hid = require("node-hid");
-const DAPjs = require("../../");
-const common = require("./common");
+const hid = require('node-hid');
+const DAPjs = require('../../');
+const common = require('./common');
 
-const data = "hello world";
+const DATA = 'hello world';
 
-// Allow user to select a device
-const selectDevice = vendorID => {
-    return new Promise((resolve, reject) => {
-        let devices = hid.devices();
-        devices = devices.filter(device => device.vendorId === vendorID);
+// List all devices
+const getDevices = (vendorID) => {
+    let devices = hid.devices();
+    devices = devices.filter(device => device.vendorId === vendorID);
 
-        if (devices.length === 0) {
-            return reject("No devices found");
-        }
-
-        common.inputEmitter.addListener("input", index => {
-            if (index <= devices.length) resolve(devices[index - 1]);
-        });
-
-        console.log("Select a device to execute on:");
-        devices.forEach((device, index) => {
-            console.log(`${index + 1}: ${device.product}`);
-        });    
-    });
+    return devices.map(device => ({
+        ...device,
+        name: device.product
+    }));
 }
 
-const run = async data => {
+(async () => {
     try {
-        common.setupEmitter();
-        const device = await selectDevice(0xD28);
+        const devices = getDevices(common.DAPLINK_VENDOR);
+        const device = await common.selectDevice(devices);
         const transport = new DAPjs.HID(device);
-        const deviceHash = await common.deviceHash(transport, data);
-        const nodeHash = common.nodeHash(data);
+
+        const deviceHash = await common.deviceHash(transport, DATA);
+        const nodeHash = common.nodeHash(DATA);
 
         console.log(deviceHash);
         console.log(nodeHash);
-        console.log(deviceHash === nodeHash ? "match" : "mismatch");    
-    } catch (error) {
+        console.log(deviceHash === nodeHash ? 'match' : 'mismatch');
+    } catch(error) {
         console.error(error.message || error);
     }
     process.exit();
-}
-
-(async () => await run(data))();
+})();

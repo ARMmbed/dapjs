@@ -44,7 +44,6 @@ const getDevices = (vendorID) => {
         await common.flash(transport, program);
     } catch(error) {
         console.error(error.message || error);
-    } finally {
-        process.exit();
     }
+    process.exit();
 })();
