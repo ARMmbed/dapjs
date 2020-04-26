@@ -61,7 +61,7 @@ const selectDevice = async (devices) => {
         if (input === '\u0003') {
             process.exit();
         } else if (input !== null) {
-            let index = parseInt(input);
+            const index = parseInt(input);
             if (index <= devices.length) {
                 resolve(devices[index - 1]);
             }

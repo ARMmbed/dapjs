@@ -24,23 +24,22 @@
     <button id="read">Read Registers</button>
     <script src="bundle.js"></script>
     <script>
-        var count = 16
+        const count = 16
 
-        document.getElementById("read").onclick = function() {
-            var registers = new app.Registers();
-            registers.read(count)
-            .then(values => {
-                values.forEach(function(value, index) {
-                    var registerEl = document.getElementById("r" + index);
-                    registerEl.innerHTML = "Register " + index + ": " + value;
-                });
+        document.getElementById("read").onclick = async () => {
+            const registers = new app.Registers();
+            const values = await registers.read(count);
+
+            values.forEach((value, index) => {
+                const registerEl = document.getElementById(`r${index}`);
+                registerEl.innerHTML = `Register ${index}: ${value}`;
             });
         };
 
-        for (var index = 0; index < count; index++) {
-            var registerEl = document.createElement("div");
-            registerEl.id = "r" + index;
-            registerEl.innerHTML = "Register " + index + ": None";
+        for (let index = 0; index < count; index++) {
+            const registerEl = document.createElement("div");
+            registerEl.id = `r${index}`;
+            registerEl.innerHTML = `Register ${index}: None`;
             document.body.appendChild(registerEl);
         }
     </script>
