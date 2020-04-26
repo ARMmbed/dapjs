@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-import { WebUSB, CortexM } from "dapjs";
+import { WebUSB, CortexM } from 'dapjs';
 
 export interface USB {
     requestDevice(options?: USBDeviceRequestOptions): Promise<USBDevice>;
@@ -31,25 +31,24 @@ export class Registers {
     constructor(private usb: USB = navigator.usb) {
     }
 
-    public read(count: number): Promise<string[]> {
-        return this.usb.requestDevice({
+    public async read(count: number): Promise<string[]> {
+        const device = await this.usb.requestDevice({
             filters: [{vendorId: 0xD28}]
-        })
-        .then(async device => {
-            const transport = new WebUSB(device);
-            const processor = new CortexM(transport);
-
-            await processor.connect();
-            await processor.halt();
-
-            const registers = Array.from({ length: count }, (_, index) => index);
-            const values = await processor.readCoreRegisters(registers);
-
-            await processor.resume();
-            await processor.disconnect();
-
-            const result = values.map(register => ("00000000" + register.toString(16)).slice(-8));
-            return result;
         });
+
+        const transport = new WebUSB(device);
+        const processor = new CortexM(transport);
+
+        await processor.connect();
+        await processor.halt();
+
+        const registers = Array.from({ length: count }, (_, index) => index);
+        const values = await processor.readCoreRegisters(registers);
+
+        await processor.resume();
+        await processor.disconnect();
+
+        const result = values.map(register => ('00000000' + register.toString(16)).slice(-8));
+        return result;
     }
 }

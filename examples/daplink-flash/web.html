@@ -93,11 +93,11 @@
 
         let buffer = null;
 
-        function setStatus(state) {
+        const setStatus = state => {
             labelEl.textContent = state;
         }
 
-        function setTransfer(progress) {
+        const setTransfer = progress => {
             if (!progress) {
                 statusEl.style.visibility = "hidden";
                 return;
@@ -109,11 +109,11 @@
         }
 
         // Load a firmware image
-        function setImage(file) {
+        const setImage = (file) => {
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onloadend = function(evt) {
+            reader.onloadend = evt => {
                 buffer = evt.target.result;
                 setStatus(`Firmware image: ${file.name}`);
                 selectEl.style.visibility = "visible";
@@ -122,22 +122,23 @@
         }
 
         // Choose a device
-        function selectDevice() {
+        const selectDevice = async () => {
             setStatus("Selecting device...");
             setTransfer();
 
-            navigator.usb.requestDevice({
-                filters: [{vendorId: 0xD28}]
-            })
-            .then(device => update(device))
-            .catch(error => {
+            try {
+                const device = await navigator.usb.requestDevice({
+                    filters: [{vendorId: 0xD28}]
+                });
+                await update(device);
+            } catch (error) {
                 statusEl.style.visibility = "hidden";
                 setStatus(error);
-            });
+            }
         }
 
         // Update a device with the firmware image
-        function update(device) {
+        const update = async device => {
             if (!buffer) return;
 
             const transport = new DAPjs.WebUSB(device);
@@ -147,25 +148,22 @@
                 setTransfer(progress);
             });
 
-            // Push binary to board
-            return target.connect()
-            .then(() => {
+            try {
+                // Push binary to board
                 setStatus(`Flashing binary file ${buffer.byteLength} words long...`);
-                return target.flash(buffer);
-            })
-            .then(() => {
+                await target.connect();
+                await target.flash(buffer);
+
                 setStatus("Disconnecting...");
-                return target.disconnect();
-            })
-            .then(() => {
+                await target.disconnect();
+
                 setStatus("Flash complete!");
                 setTransfer();
                 fileEl.value = "";
-            })
-            .catch(error => {
+            } catch (error) {
                 statusEl.style.visibility = "hidden";
                 setStatus(error);
-            });
+            }
         }
 
         fileEl.addEventListener("change", event => {

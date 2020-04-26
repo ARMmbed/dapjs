@@ -1,8 +1,8 @@
 /// <reference types="node" />
-import { EventEmitter } from "events";
-import { Transport } from "../transport";
-import { DAPPort, DAPTransferMode, DAPProtocol, DAPInfoRequest } from "./enums";
-import { Proxy, DAPOperation } from "./";
+import { EventEmitter } from 'events';
+import { Transport } from '../transport';
+import { DAPPort, DAPTransferMode, DAPProtocol, DAPInfoRequest } from './enums';
+import { Proxy, DAPOperation } from './';
 /**
  * @hidden
  */
@@ -34,7 +34,6 @@ export declare class CmsisDAP extends EventEmitter implements Proxy {
      * @param clockFrequency Communication clock frequency to use (default 10000000)
      */
     constructor(transport: Transport, mode?: DAPProtocol, clockFrequency?: number);
-    private delay;
     private bufferSourceToUint8Array;
     /**
      * Switches the CMSIS-DAP unit to use SWD

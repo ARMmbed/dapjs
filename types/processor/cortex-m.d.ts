@@ -1,7 +1,7 @@
-import { ADI } from "../dap";
-import { CoreRegister, CoreState } from "./enums";
-import { Processor } from "./";
-import { DAPOperation } from "../proxy";
+import { ADI } from '../dap';
+import { CoreRegister, CoreState } from './enums';
+import { Processor } from './';
+import { DAPOperation } from '../proxy';
 /**
  * Cortex M class
  */

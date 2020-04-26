@@ -20,43 +20,30 @@
 * SOFTWARE.
 */
 
-const USB = require("webusb").USB;
-const common = require("./common");
-const DAPjs = require("../../");
+const USB = require('webusb').USB;
+const common = require('./common');
+const DAPjs = require('../../');
 
 // Allow user to select a device
-function handleDevicesFound(devices, selectFn) {
-    function inputHandler(input) {
-        if (input === "\u0003") {
-            process.exit();
-        }
-
-        let index = parseInt(input);
-        if (index && index <= devices.length) {
-            common.inputEmitter.removeListener("input", inputHandler);
-            selectFn(devices[index - 1]);
-        }
+const devicesFound = async (devices) => {
+    for (device of devices) {
+        device.name = device.productName || device.serialNumber;
     }
-    common.inputEmitter.addListener("input", inputHandler);
 
-    console.log("Select a device to listen to serial output:");
-    devices.forEach((device, index) => {
-        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
-    });
+    return common.selectDevice(devices);
 }
 
-let usb = new USB({
-    devicesFound: handleDevicesFound
-});
+const usb = new USB({ devicesFound });
 
-usb.requestDevice({
-    filters: [{vendorId: 0xD28}]
-})
-.then(device => {
-    const transport = new DAPjs.WebUSB(device);
-    return common.listen(transport);
-})
-.catch(error => {
-    console.error(error.message || error);
+(async () => {
+    try {
+        const device = await usb.requestDevice({
+            filters: [{vendorId: common.DAPLINK_VENDOR}]
+        })
+        const transport = new DAPjs.WebUSB(device);
+        await common.listen(transport);
+    } catch(error) {
+        console.error(error.message || error);
+    }
     process.exit();
-});
+})();

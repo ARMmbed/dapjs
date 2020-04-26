@@ -1,4 +1,4 @@
-import { DAPPort, DAPTransferMode } from "./enums";
+import { DAPPort, DAPTransferMode } from './enums';
 /**
  * CMSIS-DAP Transfer Operation
  */
@@ -83,5 +83,5 @@ export interface Proxy {
      */
     transferBlock(port: DAPPort, register: number, values: Uint32Array): Promise<void>;
 }
-export * from "./cmsis-dap";
-export * from "./enums";
+export * from './cmsis-dap';
+export * from './enums';

@@ -28,6 +28,6 @@ export interface Transport {
      */
     write(data: BufferSource): Promise<void>;
 }
-export * from "./hid";
-export * from "./usb";
-export * from "./webusb";
+export * from './hid';
+export * from './usb';
+export * from './webusb';

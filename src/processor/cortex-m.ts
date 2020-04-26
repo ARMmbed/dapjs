@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import { ADI } from "../dap";
+import { ADI } from '../dap';
 import {
     DebugRegister,
     CoreRegister,
@@ -32,9 +32,9 @@ import {
     NvicRegister,
     AircrMask,
     DemcrMask
-} from "./enums";
-import { Processor } from "./";
-import { DAPOperation } from "../proxy";
+} from './enums';
+import { Processor } from './';
+import { DAPOperation } from '../proxy';
 
 /**
  * @hidden
@@ -73,41 +73,35 @@ export class CortexM extends ADI implements Processor {
      * Get the state of the processor core
      * @returns Promise of CoreState
      */
-    public getState(): Promise<CoreState> {
-        return this.readMem32(DebugRegister.DHCSR)
-        .then(dhcsr => {
-            let state: CoreState;
+    public async getState(): Promise<CoreState> {
+        const dhcsr = await this.readMem32(DebugRegister.DHCSR);
+        let state: CoreState;
 
-            if (dhcsr & DhcsrMask.S_LOCKUP) state = CoreState.LOCKUP;
-            else if (dhcsr & DhcsrMask.S_SLEEP) state = CoreState.SLEEPING;
-            else if (dhcsr & DhcsrMask.S_HALT) state = CoreState.DEBUG;
-            else state = CoreState.RUNNING;
+        if (dhcsr & DhcsrMask.S_LOCKUP) state = CoreState.LOCKUP;
+        else if (dhcsr & DhcsrMask.S_SLEEP) state = CoreState.SLEEPING;
+        else if (dhcsr & DhcsrMask.S_HALT) state = CoreState.DEBUG;
+        else state = CoreState.RUNNING;
 
-            if (dhcsr & DhcsrMask.S_RESET_ST) {
-                // The core has been reset, check if an instruction has run
-                return this.readMem32(DebugRegister.DHCSR)
-                .then(newDhcsr => {
-                    if (newDhcsr & DhcsrMask.S_RESET_ST && !(newDhcsr & DhcsrMask.S_RETIRE_ST)) {
-                        return CoreState.RESET;
-                    } else {
-                        return state;
-                    }
-                });
+        if (dhcsr & DhcsrMask.S_RESET_ST) {
+            // The core has been reset, check if an instruction has run
+            const newDhcsr = await this.readMem32(DebugRegister.DHCSR);
+            if (newDhcsr & DhcsrMask.S_RESET_ST && !(newDhcsr & DhcsrMask.S_RETIRE_ST)) {
+                return CoreState.RESET;
             } else {
                 return state;
             }
-        });
+        } else {
+            return state;
+        }
     }
 
     /**
      * Whether the target is halted
      * @returns Promise of halted state
      */
-    public isHalted(): Promise<boolean> {
-        return this.readMem32(DebugRegister.DHCSR)
-        .then(dhcsr => {
-            return !!(dhcsr & DhcsrMask.S_HALT);
-        });
+    public async isHalted(): Promise<boolean> {
+        const dhcsr = await this.readMem32(DebugRegister.DHCSR);
+        return !!(dhcsr & DhcsrMask.S_HALT);
     }
 
     /**
@@ -116,18 +110,20 @@ export class CortexM extends ADI implements Processor {
      * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    public halt(wait: boolean = true, timeout: number = 0): Promise<void> {
-        return this.isHalted()
-        .then(halted => {
-            if (halted) return Promise.resolve();
+    public async halt(wait: boolean = true, timeout: number = 0): Promise<void> {
+        const halted = await this.isHalted();
 
-            return this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN | DhcsrMask.C_HALT)
-            .then(() => {
-                if (!wait) return Promise.resolve();
+        if (halted) {
+            return;
+        }
 
-                return this.waitDelay(() => this.isHalted(), 100, timeout);
-            });
-        });
+        await this.writeMem32(DebugRegister.DHCSR, DhcsrMask.DBGKEY | DhcsrMask.C_DEBUGEN | DhcsrMask.C_HALT);
+
+        if (!wait) {
+            return;
+        }
+
+        return this.waitDelay(() => this.isHalted(), timeout);
     }
 
     /**
@@ -136,19 +132,24 @@ export class CortexM extends ADI implements Processor {
      * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    public resume(wait: boolean = true, timeout: number = 0) {
-        return this.isHalted()
-        .then(halted => {
-            if (!halted) return Promise.resolve();
+    public async resume(wait: boolean = true, timeout: number = 0) {
+        const halted = await this.isHalted();
 
-            return this.writeMem32(DebugRegister.DFSR, DfsrMask.DWTTRAP | DfsrMask.BKPT | DfsrMask.HALTED)
-            .then(() => this.enableDebug())
-            .then(() => {
-                if (!wait) return Promise.resolve();
+        if (!halted) {
+            return;
+        }
 
-                return this.waitDelay(() => this.isHalted().then(result => !result), 100, timeout);
-            });
-        });
+        await this.writeMem32(DebugRegister.DFSR, DfsrMask.DWTTRAP | DfsrMask.BKPT | DfsrMask.HALTED);
+        await this.enableDebug();
+
+        if (!wait) {
+            return;
+        }
+
+        return this.waitDelay(async () => {
+            const result = await this.isHalted();
+            return !result;
+        }, timeout);
     }
 
     /**
@@ -156,19 +157,18 @@ export class CortexM extends ADI implements Processor {
      * @param register The register to read
      * @returns Promise of value
      */
-    public readCoreRegister(register: CoreRegister): Promise<number> {
-        return this.transferSequence([
+    public async readCoreRegister(register: CoreRegister): Promise<number> {
+        const results = await this.transferSequence([
             this.writeMem32Command(DebugRegister.DCRSR, register),
             this.readMem32Command(DebugRegister.DHCSR)
-        ])
-        .then(results => {
-            const dhcsr = results[0];
-            if (!(dhcsr & DhcsrMask.S_REGRDY)) {
-                throw new Error("Register not ready");
-            }
+        ]);
 
-            return this.readMem32(DebugRegister.DCRDR);
-        });
+        const dhcsr = results[0];
+        if (!(dhcsr & DhcsrMask.S_REGRDY)) {
+            throw new Error('Register not ready');
+        }
+
+        return this.readMem32(DebugRegister.DCRDR);
     }
 
     /**
@@ -176,14 +176,15 @@ export class CortexM extends ADI implements Processor {
      * @param registers The registers to read
      * @returns Promise of register values in an array
      */
-    public readCoreRegisters(registers: CoreRegister[]): Promise<number[]> {
-        let chain: Promise<number[]> = Promise.resolve([]);
+    public async readCoreRegisters(registers: CoreRegister[]): Promise<number[]> {
+        const results: number[] = [];
 
-        registers.forEach(register => {
-            chain = chain.then(results => this.readCoreRegister(register).then(result => [...results, result]));
-        });
+        for (const register of registers) {
+            const result = await this.readCoreRegister(register);
+            results.push(result);
+        }
 
-        return chain;
+        return results;
     }
 
     /**
@@ -192,18 +193,17 @@ export class CortexM extends ADI implements Processor {
      * @param value The value to write
      * @returns Promise
      */
-    public writeCoreRegister(register: CoreRegister, value: number): Promise<void> {
-        return this.transferSequence([
+    public async writeCoreRegister(register: CoreRegister, value: number): Promise<void> {
+        const results = await this.transferSequence([
             this.writeMem32Command(DebugRegister.DCRDR, value),
             this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR),
             this.readMem32Command(DebugRegister.DHCSR)
-        ])
-        .then(results => {
-            const dhcsr = results[0];
-            if (!(dhcsr & DhcsrMask.S_REGRDY)) {
-                throw new Error("Register not ready");
-            }
-        });
+        ]);
+
+        const dhcsr = results[0];
+        if (!(dhcsr & DhcsrMask.S_REGRDY)) {
+            throw new Error('Register not ready');
+        }
     }
 
     /**
@@ -215,8 +215,7 @@ export class CortexM extends ADI implements Processor {
      * @param linkRegister The link register to use (defaults to address + 1)
      * @param registers Values to add to the general purpose registers, R0, R1, R2, etc.
      */
-    public execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<void> {
-
+    public async execute(address: number, code: Uint32Array, stackPointer: number, programCounter: number, linkRegister: number = address + 1, ...registers: number[]): Promise<void> {
         // Ensure a breakpoint exists at the end of the code
         if (code[code.length - 1] !== BKPT_INSTRUCTION) {
             const newCode = new Uint32Array(code.length + 1);
@@ -240,11 +239,11 @@ export class CortexM extends ADI implements Processor {
         // Add xPSR.
         sequence.push(this.writeCoreRegisterCommand(CoreRegister.PSR, 0x01000000));
 
-        return this.halt() // Halt the target
-        .then(() => this.transferSequence(sequence)) // Write the registers
-        .then(() => this.writeBlock(address, code)) // Write the code to the address
-        .then(() => this.resume(false)) // Resume the target, without waiting
-        .then(() => this.waitDelay(() => this.isHalted(), 100, EXECUTE_TIMEOUT)); // Wait for the target to halt on the breakpoint
+        await this.halt(); // Halt the target
+        await this.transferSequence(sequence); // Write the registers
+        await this.writeBlock(address, code); // Write the code to the address
+        await this.resume(false); // Resume the target, without waiting
+        await this.waitDelay(() => this.isHalted(), EXECUTE_TIMEOUT); // Wait for the target to halt on the breakpoint
     }
 
     /**
@@ -252,11 +251,9 @@ export class CortexM extends ADI implements Processor {
      * @param None
      * @returns Promise
      */
-    public softReset(): Promise<void> {
-        return this.writeMem32(DebugRegister.DEMCR, 0)
-        .then(() => {
-            return this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | AircrMask.SYSRESETREQ);
-        });
+    public async softReset(): Promise<void> {
+        await this.writeMem32(DebugRegister.DEMCR, 0);
+        return this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | AircrMask.SYSRESETREQ);
     }
 
     /**
@@ -264,29 +261,16 @@ export class CortexM extends ADI implements Processor {
      * @param hardwareReset use hardware reset pin or software reset
      * @returns Promise
      */
-    public setTargetResetState(hardwareReset: boolean = true): Promise<void> {
-        return this.writeMem32(DebugRegister.DEMCR, DemcrMask.CORERESET)
-        .then(() => {
-            if (hardwareReset === true) {
-                return this.reset()
-                .then(() => {
-                    return this.isHalted()
-                    .then(() => {
-                        return this.writeMem32(DebugRegister.DEMCR, 0);
-                    });
-                });
-            } else {
-                return this.readMem32(NvicRegister.AIRCR)
-                .then(value => {
-                    return this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value | AircrMask.SYSRESETREQ)
-                    .then(() => {
-                        return this.isHalted()
-                        .then(() => {
-                            return this.writeMem32(DebugRegister.DEMCR, 0);
-                        });
-                    });
-                });
-            }
-        });
+    public async setTargetResetState(hardwareReset: boolean = true): Promise<void> {
+        await this.writeMem32(DebugRegister.DEMCR, DemcrMask.CORERESET);
+
+        if (hardwareReset === true) {
+            await this.reset();
+        } else {
+            const value = await this.readMem32(NvicRegister.AIRCR);
+            await this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value | AircrMask.SYSRESETREQ);
+        }
+
+        await this.writeMem32(DebugRegister.DEMCR, 0);
     }
 }

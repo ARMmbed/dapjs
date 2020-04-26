@@ -21,12 +21,17 @@
 * SOFTWARE.
 */
 
-import { Transport } from "../transport";
-import { Proxy, CmsisDAP, DAPOperation } from "../proxy";
-import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from "./enums";
-import { DAP } from "./";
-import { DAPTransferMode, DAPPort, DAPProtocol } from "../proxy/enums";
-import { DEFAULT_CLOCK_FREQUENCY } from "../proxy/cmsis-dap";
+import { Transport } from '../transport';
+import { Proxy, CmsisDAP, DAPOperation } from '../proxy';
+import { DPRegister, APRegister, CSWMask, BankSelectMask, AbortMask, CtrlStatMask } from './enums';
+import { DAP } from './';
+import { DAPTransferMode, DAPPort, DAPProtocol } from '../proxy/enums';
+import { DEFAULT_CLOCK_FREQUENCY } from '../proxy/cmsis-dap';
+
+/**
+ * @hidden
+ */
+const DEFAULT_WAIT_DELAY = 100;
 
 /**
  * Arm Debug Interface class
@@ -50,48 +55,43 @@ export class ADI implements DAP {
      */
     constructor(proxy: Proxy);
     constructor(transportOrDap: Transport | Proxy, mode: DAPProtocol = DAPProtocol.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
-        function isTransport(test: Transport | Proxy): test is Transport {
+        const isTransport = (test: Transport | Proxy): test is Transport => {
             return (test as Transport).open !== undefined;
-        }
-        this.proxy = isTransport(transportOrDap) ? new CmsisDAP(transportOrDap, mode, clockFrequency) : transportOrDap;
-    }
+        };
 
-    protected delay(timeout: number): Promise<void> {
-        return new Promise((resolve, _reject) => {
-            setTimeout(resolve, timeout);
-        });
+        this.proxy = isTransport(transportOrDap) ? new CmsisDAP(transportOrDap, mode, clockFrequency) : transportOrDap;
     }
 
     /**
      * Continually run a function until it returns true
      * @param fn The function to run
+     * @param timeout Optional timeout to wait before giving up and throwing
      * @param timer The milliseconds to wait between each run
-     * @param timeout Optional timeout to wait before giving up and rejecting
      * @returns Promise
      */
-    protected waitDelay(fn: () => Promise<boolean>, timer: number = 100, timeout: number = 0): Promise<void> {
-        let running: boolean = true;
+    protected async waitDelay(fn: () => Promise<boolean>, timeout: number = 0, timer: number = DEFAULT_WAIT_DELAY): Promise<void> {
+        let running = true;
 
-        const chain = (condition: boolean): Promise<void> => {
-            if (!running) return Promise.resolve();
-            return condition
-                ? Promise.resolve()
-                : this.delay(timer)
-                .then(fn)
-                .then(chain);
-        };
-
-        return new Promise((resolve, reject) => {
-            if (timeout > 0) {
-                setTimeout(() => {
+        if (timeout > 0) {
+            setTimeout(() => {
+                if (running) {
                     running = false;
-                    reject("Wait timed out");
-                }, timeout);
+                    throw new Error('Wait timed out');
+                }
+            }, timeout);
+        }
+
+        while (running) {
+            const result = await fn();
+            if (result === true) {
+                running = false;
+                return;
             }
 
-            return chain(false)
-            .then(() => resolve());
-        });
+            if (timer > 0) {
+                await new Promise(resolve => setTimeout(resolve, timeout));
+            }
+        }
     }
 
     protected concatTypedArray(arrays: Uint32Array[]): Uint32Array {
@@ -190,42 +190,43 @@ export class ADI implements DAP {
         .concat(this.writeAPCommand(APRegister.DRW, value as number));
     }
 
-    protected transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
+    protected async transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
         // Flatten operations into single array
         let merged: DAPOperation[] = [];
         merged = merged.concat(...operations);
 
-        let chain: Promise<Uint32Array[]> = Promise.resolve([]);
+        const results: Uint32Array[] = [];
 
         // Split operations into sequences no longer than operation count
         while (merged.length) {
             const sequence = merged.splice(0, this.proxy.operationCount);
-            chain = chain.then(results => this.proxy.transfer(sequence).then(result => [...results, result]));
+            const result = await this.proxy.transfer(sequence);
+            results.push(result);
         }
 
-        return chain
-        .then(arrays => this.concatTypedArray(arrays));
+        return this.concatTypedArray(results);
     }
 
     /**
      * Connect to target device
      * @returns Promise
      */
-    public connect() {
+    public async connect() {
         const mask = CtrlStatMask.CDBGPWRUPACK | CtrlStatMask.CSYSPWRUPACK;
 
-        return this.proxy.connect()
-        .then(() => this.readDP(DPRegister.DPIDR))
-        .then(() => this.transferSequence([
+        await this.proxy.connect();
+        await this.readDP(DPRegister.DPIDR);
+        await this.transferSequence([
             this.writeDPCommand(DPRegister.ABORT, AbortMask.STKERRCLR), // clear sticky error
             this.writeDPCommand(DPRegister.SELECT, APRegister.CSW), // select CTRL_STAT
             this.writeDPCommand(DPRegister.CTRL_STAT, CtrlStatMask.CSYSPWRUPREQ | CtrlStatMask.CDBGPWRUPREQ)
-        ]))
+        ]);
+
         // Wait until system and debug have powered up
-        .then(() => this.waitDelay(() => {
-            return this.readDP(DPRegister.CTRL_STAT)
-            .then(status => ((status & mask) === mask));
-        }));
+        await this.waitDelay(async () => {
+            const status = await this.readDP(DPRegister.CTRL_STAT);
+            return (status & mask) === mask;
+        });
     }
 
     /**
@@ -240,10 +241,10 @@ export class ADI implements DAP {
      * Reconnect to target device
      * @returns Promise
      */
-    public reconnect(): Promise<void> {
-        return this.disconnect()
-        .then(() => this.delay(100))
-        .then(() => this.connect());
+    public async reconnect(): Promise<void> {
+        await this.disconnect();
+        await new Promise(resolve => setTimeout(resolve, DEFAULT_WAIT_DELAY));
+        await this.connect();
     }
 
     /**
@@ -259,9 +260,9 @@ export class ADI implements DAP {
      * @param register DP register to read
      * @returns Promise of register value
      */
-    public readDP(register: DPRegister): Promise<number> {
-        return this.proxy.transfer(this.readDPCommand(register))
-        .then(result => result[0]);
+    public async readDP(register: DPRegister): Promise<number> {
+        const result = await this.proxy.transfer(this.readDPCommand(register));
+        return result[0];
     }
 
     /**
@@ -270,9 +271,8 @@ export class ADI implements DAP {
      * @param value Value to write
      * @returns Promise
      */
-    public writeDP(register: DPRegister, value: number): Promise<void> {
-        return this.proxy.transfer(this.writeDPCommand(register, value))
-        .then(() => undefined);
+    public async writeDP(register: DPRegister, value: number): Promise<void> {
+        await this.proxy.transfer(this.writeDPCommand(register, value));
     }
 
     /**
@@ -280,9 +280,9 @@ export class ADI implements DAP {
      * @param register AP register to read
      * @returns Promise of register value
      */
-    public readAP(register: APRegister): Promise<number> {
-        return this.proxy.transfer(this.readAPCommand(register))
-        .then(result => result[0]);
+    public async readAP(register: APRegister): Promise<number> {
+        const result = await this.proxy.transfer(this.readAPCommand(register));
+        return result[0];
     }
 
     /**
@@ -291,9 +291,8 @@ export class ADI implements DAP {
      * @param value Value to write
      * @returns Promise
      */
-    public writeAP(register: APRegister, value: number): Promise<void> {
-        return this.proxy.transfer(this.writeAPCommand(register, value))
-        .then(() => undefined);
+    public async writeAP(register: APRegister, value: number): Promise<void> {
+        await this.proxy.transfer(this.writeAPCommand(register, value));
     }
 
     /**
@@ -301,9 +300,9 @@ export class ADI implements DAP {
      * @param register ID of register to read
      * @returns Promise of register data
      */
-    public readMem16(register: number): Promise<number> {
-        return this.proxy.transfer(this.readMem16Command(register))
-        .then(result => result[0]);
+    public async readMem16(register: number): Promise<number> {
+        const result = await this.proxy.transfer(this.readMem16Command(register));
+        return result[0];
     }
 
     /**
@@ -312,10 +311,9 @@ export class ADI implements DAP {
      * @param value The value to write
      * @returns Promise
      */
-    public writeMem16(register: number, value: number): Promise<void> {
+    public async writeMem16(register: number, value: number): Promise<void> {
         value = value as number << ((register & 0x02) << 3);
-        return this.proxy.transfer(this.writeMem16Command(register, value))
-        .then(() => undefined);
+        await this.proxy.transfer(this.writeMem16Command(register, value));
     }
 
     /**
@@ -323,9 +321,9 @@ export class ADI implements DAP {
      * @param register ID of register to read
      * @returns Promise of register data
      */
-    public readMem32(register: number): Promise<number> {
-        return this.proxy.transfer(this.readMem32Command(register))
-        .then(result => result[0]);
+    public async readMem32(register: number): Promise<number> {
+        const result = await  this.proxy.transfer(this.readMem32Command(register));
+        return result[0];
     }
 
     /**
@@ -334,9 +332,8 @@ export class ADI implements DAP {
      * @param value The value to write
      * @returns Promise
      */
-    public writeMem32(register: number, value: number): Promise<void> {
-        return this.proxy.transfer(this.writeMem32Command(register, value))
-        .then(() => undefined);
+    public async writeMem32(register: number, value: number): Promise<void> {
+        await this.proxy.transfer(this.writeMem32Command(register, value));
     }
 
     /**
@@ -345,24 +342,24 @@ export class ADI implements DAP {
      * @param count The count of values to read
      * @returns Promise of register data
      */
-    public readBlock(register: number, count: number): Promise<Uint32Array> {
-        let chain: Promise<Uint32Array[]> = this.transferSequence([
+    public async readBlock(register: number, count: number): Promise<Uint32Array> {
+        await this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
-        ])
-        .then(() => []);
+        ]);
+
+        const results: Uint32Array[] = [];
 
         // Split into requests no longer than block size
         let remainder = count;
         while (remainder > 0) {
             const chunkSize = Math.min(remainder, Math.floor(this.proxy.blockSize / 4));
-            chain = chain.then(results => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunkSize)
-            .then(result => [...results, result]));
+            const result = await this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunkSize);
+            results.push(result);
             remainder -= chunkSize;
         }
 
-        return chain
-        .then(arrays => this.concatTypedArray(arrays));
+        return this.concatTypedArray(results);
     }
 
     /**
@@ -371,21 +368,18 @@ export class ADI implements DAP {
      * @param values The values to write
      * @returns Promise
      */
-    public writeBlock(register: number, values: Uint32Array): Promise<void> {
-        let chain: Promise<void> = this.transferSequence([
+    public async writeBlock(register: number, values: Uint32Array): Promise<void> {
+        await this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
             this.writeAPCommand(APRegister.TAR, register),
-        ])
-        .then(() => undefined);
+        ]);
 
         // Split values into chunks no longer than block size
         let index = 0;
         while (index < values.length) {
             const chunk = values.slice(index, index + Math.floor(this.proxy.blockSize / 4));
-            chain = chain.then(() => this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunk));
+            await this.proxy.transferBlock(DAPPort.ACCESS, APRegister.DRW, chunk);
             index += Math.floor(this.proxy.blockSize / 4);
         }
-
-        return chain;
     }
 }

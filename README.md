@@ -88,28 +88,26 @@ In the browser, require the library:
 In Node.js Require the libraries:
 
 ```javascript
-const usb = require("webusb").usb;
-const DAPjs = require("dapjs");
+const usb = require('webusb').usb;
+const DAPjs = require('dapjs');
 ```
 
 Then in either environment:
 
 ```javascript
-<navigator>.usb.requestDevice({
+const device = await <navigator>.usb.requestDevice({
     filters: [{vendorId: 0xD28}]
-})
-.then(device => {
-    const transport = new DAPjs.WebUSB(device);
-    const daplink = new DAPjs.DAPLink(transport);
-
-    return daplink.connect()
-    .then(() => daplink.disconnect())
-    .then(() => process.exit());
-})
-.catch(error => {
-    console.error(error.message || error);
-    process.exit();
 });
+
+const transport = new DAPjs.WebUSB(device);
+const daplink = new DAPjs.DAPLink(transport);
+
+try {
+    await daplink.connect();
+    await daplink.disconnect();
+} catch(error) {
+    console.error(error.message || error);
+}
 ```
 
 #### Pros
@@ -130,8 +128,8 @@ $ npm install node-hid
 #### Example
 
 ```javascript
-const hid = require("node-hid");
-const DAPjs = require("dapjs");
+const hid = require('node-hid');
+const DAPjs = require('dapjs');
 
 let devices = hid.devices();
 devices = devices.filter(device => device.vendorId === 0xD28);
@@ -139,13 +137,12 @@ devices = devices.filter(device => device.vendorId === 0xD28);
 const transport = new DAPjs.HID(devices[0]);
 const daplink = new DAPjs.DAPLink(transport);
 
-daplink.connect()
-.then(() => daplink.disconnect())
-.then(() => process.exit())
-.catch(error => {
+try {
+    await daplink.connect();
+    await daplink.disconnect();
+} catch(error) {
     console.error(error.message || error);
-    process.exit();
-});
+}
 ```
 
 #### Pros
@@ -166,8 +163,8 @@ $ npm install usb
 #### Example
 
 ```javascript
-const usb = require("usb");
-const DAPjs = require("dapjs");
+const usb = require('usb');
+const DAPjs = require('dapjs');
 
 let devices = usb.getDeviceList();
 devices = devices.filter(device => device.deviceDescriptor.idVendor === 0xD28);
@@ -175,13 +172,12 @@ devices = devices.filter(device => device.deviceDescriptor.idVendor === 0xD28);
 const transport = new DAPjs.USB(devices[0]);
 const daplink = new DAPjs.DAPLink(transport);
 
-daplink.connect()
-.then(() => daplink.disconnect())
-.then(() => process.exit())
-.catch(error => {
+try {
+    await daplink.connect();
+    await daplink.disconnect();
+} catch(error) {
     console.error(error.message || error);
-    process.exit();
-});
+}
 ```
 
 #### Pros

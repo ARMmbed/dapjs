@@ -1,5 +1,5 @@
-import type { Device } from "usb";
-import { Transport } from "./";
+import type { Device } from 'usb';
+import { Transport } from './';
 /**
  * USB Transport class
  */
@@ -21,6 +21,7 @@ export declare class USB implements Transport {
      */
     constructor(device: Device, interfaceClass?: number, configuration?: number, alwaysControlTransfer?: boolean);
     private bufferToDataView;
+    private isView;
     private bufferSourceToBuffer;
     private extendBuffer;
     /**

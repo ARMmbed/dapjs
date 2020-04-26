@@ -20,67 +20,58 @@
 * SOFTWARE.
 */
 
-const usb = require("usb");
-const DAPjs = require("../../");
-const common = require("./common");
+const usb = require('usb');
+const DAPjs = require('../../');
+const common = require('./common');
 
-const data = "hello world";
+const DATA = 'hello world';
 
 // Read USB device descriptor
-const getStringDescriptor = (device, index) => {
+const getStringDescriptor = async (device, index) => {
+    try {
+        device.open();
+    } catch (_e) {
+        return '';
+    }
+
     return new Promise((resolve, reject) => {
-        try {
-            device.open();
-        } catch (_e) {
-            resolve("");
-        }
         device.getStringDescriptor(index, (error, buffer) => {
             device.close();
-            if (error) return reject(error);
-            resolve(buffer.toString());
+            if (error) {
+                reject(new Error(error));
+            } else {
+                resolve(buffer.toString());
+            }
         });
     });
-};
+}
 
-// Allow user to select a device
-const selectDevice = vendorID => {
-    return new Promise((resolve, reject) => {
-        let devices = usb.getDeviceList();
-        devices = devices.filter(device => device.deviceDescriptor.idVendor === vendorID);
+// List all devices
+const getDevices = async (vendorID) => {
+    let devices = usb.getDeviceList();
+    devices = devices.filter(device => device.deviceDescriptor.idVendor === vendorID);
 
-        if (devices.length === 0) {
-            return reject("No devices found");
-        }
+    for (device of devices) {
+        device.name = await getStringDescriptor(device, device.deviceDescriptor.iProduct);
+    }
 
-        common.inputEmitter.addListener("input", index => {
-            if (index && index <= devices.length) resolve(devices[index - 1]);
-        });
+    return devices;
+}
 
-        console.log("Select a device to listen to execute on:");
-        devices.forEach((device, index) => {
-            getStringDescriptor(device, device.deviceDescriptor.iProduct)
-            .then(name => {
-                console.log(`${index + 1}: ${name}`);
-            });
-        });    
-    });
-};
-
-const run = async data => {
+(async () => {
     try {
-        common.setupEmitter();
-        const device = await selectDevice(0xD28);
+        const devices = await getDevices(common.DAPLINK_VENDOR);
+        const device = await common.selectDevice(devices);
         const transport = new DAPjs.USB(device);
-        const deviceHash = await common.deviceHash(transport, data);
-        const nodeHash = common.nodeHash(data);
+
+        const deviceHash = await common.deviceHash(transport, DATA);
+        const nodeHash = common.nodeHash(DATA);
 
         console.log(deviceHash);
         console.log(nodeHash);
-        console.log(deviceHash === nodeHash ? "match" : "mismatch");    
-    } catch (error) {
+        console.log(deviceHash === nodeHash ? 'match' : 'mismatch');
+    } catch(error) {
         console.error(error.message || error);
     }
     process.exit();
-}
-
-(async () => await run(data))();
+})();

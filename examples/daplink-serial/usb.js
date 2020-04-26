@@ -20,65 +20,50 @@
 * SOFTWARE.
 */
 
-const usb = require("usb");
-const common = require("./common");
-const DAPjs = require("../../");
+const usb = require('usb');
+const common = require('./common');
+const DAPjs = require('../../');
 
 // Read USB device descriptor
-function getStringDescriptor(device, index) {
+const getStringDescriptor = async (device, index) => {
+    try {
+        device.open();
+    } catch (_e) {
+        return '';
+    }
+
     return new Promise((resolve, reject) => {
-        try {
-            device.open();
-        } catch (_e) {
-            resolve("");
-        }
         device.getStringDescriptor(index, (error, buffer) => {
             device.close();
-            if (error) return reject(error);
-            resolve(buffer.toString());
+            if (error) {
+                reject(new Error(error));
+            } else {
+                resolve(buffer.toString());
+            }
         });
     });
 }
 
-// Allow user to select a device
-function selectDevice(vendorID) {
-    return new Promise((resolve, reject) => {
-        let devices = usb.getDeviceList();
-        devices = devices.filter(device => device.deviceDescriptor.idVendor === vendorID);
+// List all devices
+const getDevices = async (vendorID) => {
+    let devices = usb.getDeviceList();
+    devices = devices.filter(device => device.deviceDescriptor.idVendor === vendorID);
 
-        if (devices.length === 0) {
-            return reject("No devices found");
-        }
+    for (device of devices) {
+        device.name = await getStringDescriptor(device, device.deviceDescriptor.iProduct);
+    }
 
-        function inputHandler(input) {
-            if (input === "\u0003") {
-                process.exit();
-            }
-
-            let index = parseInt(input);
-            if (index && index <= devices.length) {
-                common.inputEmitter.removeListener("input", inputHandler);
-                resolve(devices[index - 1]);
-            }
-        }
-        common.inputEmitter.addListener("input", inputHandler);
-
-        console.log("Select a device to listen to serial output:");
-        devices.forEach((device, index) => {
-            getStringDescriptor(device, device.deviceDescriptor.iProduct)
-            .then(name => {
-                console.log(`${index + 1}: ${name}`);
-            });
-        });    
-    });
+    return devices;
 }
 
-selectDevice(0xD28)
-.then(device => {
-    const transport = new DAPjs.USB(device);
-    return common.listen(transport);
-})
-.catch(error => {
-    console.error(error.message || error);
+(async () => {
+    try {
+        const devices = await getDevices(common.DAPLINK_VENDOR);
+        const device = await common.selectDevice(devices);
+        const transport = new DAPjs.USB(device);
+        await common.listen(transport);
+    } catch(error) {
+        console.error(error.message || error);
+    }
     process.exit();
-});
+})();

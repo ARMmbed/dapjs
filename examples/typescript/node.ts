@@ -20,40 +20,71 @@
 * SOFTWARE.
 */
 
-import { Registers } from "./registers";
-import { USB, USBDevice } from "webusb";
-import { stdin } from "process";
+import { stdin } from 'process';
+import { USB } from 'webusb';
+import { Registers } from './registers';
 
-function handleDevicesFound(devices: USBDevice[], selectFn?: (device: USBDevice) => void) {
-    stdin.setRawMode!(true);
-    stdin.setEncoding("utf8");
-    stdin.on("readable", () => {
-        const input = process.stdin.read().toString();
-        if (input === "\u0003") {
+// Handle single character input from the user
+const readHandler = <T>(inputHandler: (input: string, onResolve: (result: T) => void) => void, stream: NodeJS.ReadStream = stdin): Promise<T> => {
+    return new Promise(resolve => {
+        stream.setRawMode!(true);
+        stream.setEncoding('utf8');
+
+        const onResolve = (result: T) => {
+            stream.removeListener('readable', read);
+            stream.setRawMode!(false);
+            resolve(result);
+        };
+
+        const read = () => {
+            let input: string | Buffer;
+            while (input = stream.read()) {
+                if (input) {
+                    inputHandler(input.toString(), onResolve);
+                }
+            }
+        };
+
+        stream.addListener('readable', read);
+    });
+};
+
+// Select a device from the list
+const devicesFound = async (devices: USBDevice[]): Promise<USBDevice | undefined> => {
+    if (devices.length === 0) {
+        throw new Error('No devices found');
+    }
+
+    console.log('Select a device to read registers:');
+    devices.forEach((device, index) => {
+        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
+    });
+
+    const device = await readHandler<USBDevice>((input, resolve) => {
+        if (input === '\u0003') {
             process.exit();
         } else {
             const index = parseInt(input);
             if (index && index <= devices.length) {
-                stdin.setRawMode!(false);
-                selectFn!(devices[index - 1]);
+                resolve(devices[index - 1]);
             }
         }
     });
 
-    console.log("select a device to see it's active configuration:");
-    devices.forEach((device, index) => {
-        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
-    });
-}
+    return device;
+};
 
-const usb = new USB({
-    devicesFound: handleDevicesFound
-});
-
+const usb = new USB({ devicesFound });
 const registers = new Registers(usb);
-registers.read(16)
-.then(values => {
-    values.forEach((register, index) => {
-        console.log(`R${index}: ${register}`);
-    });
-});
+
+(async () => {
+    try {
+        const values = await registers.read(16);
+        values.forEach((register, index) => {
+            console.log(`R${index}: ${register}`);
+        });
+    } catch(error) {
+        console.error(error.message || error);
+    }
+    process.exit();
+})();

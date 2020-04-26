@@ -20,49 +20,74 @@
 * SOFTWARE.
 */
 
-const EventEmitter = require("events");
-const DAPjs = require("../../");
+const DAPjs = require('../../');
 
-// Emit keyboard input
-const inputEmitter = new EventEmitter();
-process.stdin.setRawMode(true);
-process.stdin.setEncoding("utf8");
-process.stdin.on("readable", () => {
-    let input;
-    while (input = process.stdin.read()) {
-        if (input === "\u0003") {
-            process.exit();
-        } else if (input !== null) {
-            let index = parseInt(input);
-            inputEmitter.emit("input", index);
+// Handle single character input from the user
+const readHandler = (inputHandler, stream = process.stdin) => {
+    return new Promise(resolve => {
+        stream.setRawMode(true);
+        stream.setEncoding('utf8');
+
+        const onResolve = result => {
+            stream.off('readable', read);
+            stream.setRawMode(false);
+            resolve(result);
         }
-    }
-});
 
-// Read device registers
-function readRegisters(transport) {
-    const processor = new DAPjs.CortexM(transport);
+        const read = () => {
+            let input;
+            while (input = stream.read()) {
+                inputHandler(input, onResolve);
+            }
+        }
 
-    return processor.connect()
-    .then(() => {
-        return processor.halt();
-    })
-    .then(() => {
-        const registers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-        return processor.readCoreRegisters(registers);
-    })
-    .then(registers => {
-        registers.forEach((register, index) => {
-            console.log(`R${index}: ${("00000000" + register.toString(16)).slice(-8)}`);
-        });
-        return processor.resume();
-    })
-    .then(() => {
-        return processor.disconnect();
+        stream.on('readable', read);
     });
 }
 
+// Select a device from the list
+const selectDevice = async (devices) => {
+    if (devices.length === 0) {
+        throw new Error('No devices found');
+    }
+
+    console.log('Select a device to read registers:');
+    devices.forEach((device, index) => {
+        console.log(`${index + 1}: ${device.name}`);
+    });
+
+    const device = await readHandler((input, resolve) => {
+        if (input === '\u0003') {
+            process.exit();
+        } else if (input !== null) {
+            const index = parseInt(input);
+            if (index <= devices.length) {
+                resolve(devices[index - 1]);
+            }
+        }
+    });
+
+    return device;
+}
+
+// Read device registers
+const readRegisters = async transport => {
+    const processor = new DAPjs.CortexM(transport);
+
+    await processor.connect();
+    await processor.halt();
+    const registers = await processor.readCoreRegisters([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+
+    registers.forEach((register, index) => {
+        console.log(`R${index}: ${('00000000' + register.toString(16)).slice(-8)}`);
+    });
+
+    await processor.resume();
+    await processor.disconnect();
+}
+
 module.exports = {
-    inputEmitter: inputEmitter,
-    readRegisters: readRegisters
+    DAPLINK_VENDOR: 0xD28,
+    selectDevice,
+    readRegisters
 };

@@ -1,5 +1,5 @@
-import { CmsisDAP, DAPProtocol } from "../proxy";
-import { Transport } from "../transport";
+import { CmsisDAP, DAPProtocol } from '../proxy';
+import { Transport } from '../transport';
 /**
  * DAPLink Class
  */
@@ -74,4 +74,4 @@ export declare class DAPLink extends CmsisDAP {
      */
     stopSerialRead(): void;
 }
-export * from "./enums";
+export * from './enums';

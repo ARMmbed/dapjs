@@ -20,41 +20,31 @@
 * SOFTWARE.
 */
 
-const USB = require("webusb").USB;
-const common = require("./common");
-const DAPjs = require("../../");
+const USB = require('webusb').USB;
+const common = require('./common');
+const DAPjs = require('../../');
 
 // Allow user to select a device
-function handleDevicesFound(devices, selectFn) {
-    common.inputEmitter.addListener("input", index => {
-        if (index <= devices.length) selectFn(devices[index - 1]);
-    });
+const devicesFound = async (devices) => {
+    for (device of devices) {
+        device.name = device.productName || device.serialNumber;
+    }
 
-    console.log("Select a device to flash:");
-    devices.forEach((device, index) => {
-        console.log(`${index + 1}: ${device.productName || device.serialNumber}`);
-    });
+    return common.selectDevice(devices);
 }
 
-let usb = new USB({
-    devicesFound: handleDevicesFound
-});
+const usb = new USB({ devicesFound });
 
-common.getFile()
-.then(program => {
-    common.setupEmitter();
-    return usb.requestDevice({
-        filters: [{vendorId: 0xD28}]
-    })
-    .then(device => {
+(async () => {
+    try {
+        const program = await common.getFile();
+        const device = await usb.requestDevice({
+            filters: [{vendorId: common.DAPLINK_VENDOR}]
+        })
         const transport = new DAPjs.WebUSB(device);
-        return common.flash(transport, program);
-    });
-})
-.then(() => {
+        await common.flash(transport, program);
+    } catch(error) {
+        console.error(error.message || error);
+    }
     process.exit();
-})
-.catch(error => {
-    console.error(error.message || error);
-    process.exit();
-});
+})();

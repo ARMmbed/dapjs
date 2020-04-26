@@ -1,8 +1,8 @@
-import { Transport } from "../transport";
-import { Proxy, DAPOperation } from "../proxy";
-import { DPRegister, APRegister } from "./enums";
-import { DAP } from "./";
-import { DAPProtocol } from "../proxy/enums";
+import { Transport } from '../transport';
+import { Proxy, DAPOperation } from '../proxy';
+import { DPRegister, APRegister } from './enums';
+import { DAP } from './';
+import { DAPProtocol } from '../proxy/enums';
 /**
  * Arm Debug Interface class
  */
@@ -22,15 +22,14 @@ export declare class ADI implements DAP {
      * @param proxy Proxy to use
      */
     constructor(proxy: Proxy);
-    protected delay(timeout: number): Promise<void>;
     /**
      * Continually run a function until it returns true
      * @param fn The function to run
+     * @param timeout Optional timeout to wait before giving up and throwing
      * @param timer The milliseconds to wait between each run
-     * @param timeout Optional timeout to wait before giving up and rejecting
      * @returns Promise
      */
-    protected waitDelay(fn: () => Promise<boolean>, timer?: number, timeout?: number): Promise<void>;
+    protected waitDelay(fn: () => Promise<boolean>, timeout?: number, timer?: number): Promise<void>;
     protected concatTypedArray(arrays: Uint32Array[]): Uint32Array;
     protected readDPCommand(register: number): DAPOperation[];
     protected writeDPCommand(register: number, value: number): DAPOperation[];

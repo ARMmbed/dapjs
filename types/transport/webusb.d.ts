@@ -1,5 +1,5 @@
 /// <reference types="w3c-web-usb" />
-import { Transport } from "./";
+import { Transport } from './';
 /**
  * WebUSB Transport class
  * https://wicg.github.io/webusb/

@@ -184,24 +184,22 @@
 			<p>In the browser, require the library:</p>
 			<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"dist/dap.umd.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
 			<p>In Node.js Require the libraries:</p>
-			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> usb = <span class="hljs-built_in">require</span>(<span class="hljs-string">"webusb"</span>).usb;
-<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dapjs"</span>);</code></pre>
+			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> usb = <span class="hljs-built_in">require</span>(<span class="hljs-string">'webusb'</span>).usb;
+<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dapjs'</span>);</code></pre>
 			<p>Then in either environment:</p>
-			<pre><code class="language-javascript">&lt;navigator&gt;.usb.requestDevice({
+			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> device = <span class="hljs-keyword">await</span> &lt;navigator&gt;.usb.requestDevice({
     <span class="hljs-attr">filters</span>: [{<span class="hljs-attr">vendorId</span>: <span class="hljs-number">0xD28</span>}]
-})
-.then(<span class="hljs-function"><span class="hljs-params">device</span> =&gt;</span> {
-    <span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.WebUSB(device);
-    <span class="hljs-keyword">const</span> daplink = <span class="hljs-keyword">new</span> DAPjs.DAPLink(transport);
+});
 
-    <span class="hljs-keyword">return</span> daplink.connect()
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> daplink.disconnect())
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> process.exit());
-})
-.catch(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+<span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.WebUSB(device);
+<span class="hljs-keyword">const</span> daplink = <span class="hljs-keyword">new</span> DAPjs.DAPLink(transport);
+
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">await</span> daplink.connect();
+    <span class="hljs-keyword">await</span> daplink.disconnect();
+} <span class="hljs-keyword">catch</span>(error) {
     <span class="hljs-built_in">console</span>.error(error.message || error);
-    process.exit();
-});</code></pre>
+}</code></pre>
 			<a href="#pros" id="pros" style="color: inherit; text-decoration: none;">
 				<h4>Pros</h4>
 			</a>
@@ -223,8 +221,8 @@
 			<a href="#example-1" id="example-1" style="color: inherit; text-decoration: none;">
 				<h4>Example</h4>
 			</a>
-			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> hid = <span class="hljs-built_in">require</span>(<span class="hljs-string">"node-hid"</span>);
-<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dapjs"</span>);
+			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> hid = <span class="hljs-built_in">require</span>(<span class="hljs-string">'node-hid'</span>);
+<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dapjs'</span>);
 
 <span class="hljs-keyword">let</span> devices = hid.devices();
 devices = devices.filter(<span class="hljs-function"><span class="hljs-params">device</span> =&gt;</span> device.vendorId === <span class="hljs-number">0xD28</span>);
@@ -232,13 +230,12 @@ devices = devices.filter(<span class="hljs-function"><span class="hljs-params">d
 <span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.HID(devices[<span class="hljs-number">0</span>]);
 <span class="hljs-keyword">const</span> daplink = <span class="hljs-keyword">new</span> DAPjs.DAPLink(transport);
 
-daplink.connect()
-.then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> daplink.disconnect())
-.then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> process.exit())
-.catch(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">await</span> daplink.connect();
+    <span class="hljs-keyword">await</span> daplink.disconnect();
+} <span class="hljs-keyword">catch</span>(error) {
     <span class="hljs-built_in">console</span>.error(error.message || error);
-    process.exit();
-});</code></pre>
+}</code></pre>
 			<a href="#pros-1" id="pros-1" style="color: inherit; text-decoration: none;">
 				<h4>Pros</h4>
 			</a>
@@ -260,8 +257,8 @@ daplink.connect()
 			<a href="#example-2" id="example-2" style="color: inherit; text-decoration: none;">
 				<h4>Example</h4>
 			</a>
-			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> usb = <span class="hljs-built_in">require</span>(<span class="hljs-string">"usb"</span>);
-<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"dapjs"</span>);
+			<pre><code class="language-javascript"><span class="hljs-keyword">const</span> usb = <span class="hljs-built_in">require</span>(<span class="hljs-string">'usb'</span>);
+<span class="hljs-keyword">const</span> DAPjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dapjs'</span>);
 
 <span class="hljs-keyword">let</span> devices = usb.getDeviceList();
 devices = devices.filter(<span class="hljs-function"><span class="hljs-params">device</span> =&gt;</span> device.deviceDescriptor.idVendor === <span class="hljs-number">0xD28</span>);
@@ -269,13 +266,12 @@ devices = devices.filter(<span class="hljs-function"><span class="hljs-params">d
 <span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.USB(devices[<span class="hljs-number">0</span>]);
 <span class="hljs-keyword">const</span> daplink = <span class="hljs-keyword">new</span> DAPjs.DAPLink(transport);
 
-daplink.connect()
-.then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> daplink.disconnect())
-.then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> process.exit())
-.catch(<span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+<span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">await</span> daplink.connect();
+    <span class="hljs-keyword">await</span> daplink.disconnect();
+} <span class="hljs-keyword">catch</span>(error) {
     <span class="hljs-built_in">console</span>.error(error.message || error);
-    process.exit();
-});</code></pre>
+}</code></pre>
 			<a href="#pros-2" id="pros-2" style="color: inherit; text-decoration: none;">
 				<h4>Pros</h4>
 			</a>

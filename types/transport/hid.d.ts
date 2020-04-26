@@ -1,5 +1,5 @@
-import type { Device } from "node-hid";
-import { Transport } from "./";
+import type { Device } from 'node-hid';
+import { Transport } from './';
 /**
  * HID Transport class
  */
