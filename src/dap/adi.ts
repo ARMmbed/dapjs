@@ -322,7 +322,7 @@ export class ADI implements DAP {
      * @returns Promise of register data
      */
     public async readMem32(register: number): Promise<number> {
-        const result = await  this.proxy.transfer(this.readMem32Command(register));
+        const result = await this.proxy.transfer(this.readMem32Command(register));
         return result[0];
     }
 

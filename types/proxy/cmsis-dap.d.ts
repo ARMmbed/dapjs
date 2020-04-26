@@ -48,6 +48,11 @@ export declare class CmsisDAP extends EventEmitter implements Proxy {
      */
     protected send(command: number, data?: BufferSource): Promise<DataView>;
     /**
+     * Clears the abort register of all error flags
+     * @param abortMask Optional AbortMask to use, otherwise clears all flags
+     */
+    protected clearAbort(abortMask?: number): Promise<void>;
+    /**
      * Get DAP information
      * @param request Type of information to get
      * @returns Promise of number or string
