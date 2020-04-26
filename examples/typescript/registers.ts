@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-import { WebUSB, CortexM } from "dapjs";
+import { WebUSB, CortexM } from 'dapjs';
 
 export interface USB {
     requestDevice(options?: USBDeviceRequestOptions): Promise<USBDevice>;
@@ -48,7 +48,7 @@ export class Registers {
         await processor.resume();
         await processor.disconnect();
 
-        const result = values.map(register => ("00000000" + register.toString(16)).slice(-8));
+        const result = values.map(register => ('00000000' + register.toString(16)).slice(-8));
         return result;
     }
 }
