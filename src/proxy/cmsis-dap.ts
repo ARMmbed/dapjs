@@ -64,6 +64,31 @@ const TRANSFER_HEADER_SIZE = 2;
 const TRANSFER_OPERATION_SIZE = 5;
 
 /**
+ * @hidden
+ */
+class Mutex {
+    private locked = false;
+
+    /**
+     * Wait until the Mutex is available and claim it
+     */
+    public async lock(): Promise<void> {
+        while (this.locked) {
+            // Yield the current execution context, effectively moving it to the back of the promise queue
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        this.locked = true;
+    }
+
+    /**
+     * Unlock the Mutex
+     */
+    public unlock(): void {
+        this.locked = false;
+    }
+}
+
+/**
  * CMSIS-DAP class
  * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Commands__gr.html
  */
@@ -83,6 +108,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * The maximum block size which can be transferred
      */
     public blockSize: number;
+
+    private sendMutex = new Mutex();
 
     /**
      * CMSIS-DAP constructor
@@ -142,8 +169,10 @@ export class CmsisDAP extends EventEmitter implements Proxy {
     protected async send(command: number, data?: BufferSource): Promise<DataView> {
         const array = this.bufferSourceToUint8Array(command, data);
 
+        await this.sendMutex.lock();
         await this.transport.write(array);
         const response = await this.transport.read();
+        this.sendMutex.unlock();
 
         if (response.getUint8(0) !== command) {
             throw new Error(`Bad response for ${command} -> ${response.getUint8(0)}`);
@@ -265,7 +294,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     public async connect(): Promise<void> {
         if (this.connected === true) {
-            return Promise.resolve();
+            return;
         }
 
         await this.transport.open();
@@ -279,11 +308,18 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             }
         } catch (error) {
             await this.clearAbort();
+            await this.transport.close();
             throw error;
         }
 
-        await this.configureTransfer(0, 100, 0);
-        await this.selectProtocol(DAPProtocol.SWD);
+        try {
+            await this.configureTransfer(0, 100, 0);
+            await this.selectProtocol(DAPProtocol.SWD);
+        } catch (error) {
+            await this.transport.close();
+            throw error;
+        }
+
         this.connected = true;
     }
 
@@ -293,7 +329,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     public async disconnect(): Promise<void> {
         if (this.connected === false) {
-            return Promise.resolve();
+            return;
         }
 
         try {

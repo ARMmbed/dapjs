@@ -139,7 +139,9 @@ export class WebUSB implements Transport {
      * @returns Promise of DataView
      */
     public async read(): Promise<DataView> {
-        if (this.interfaceNumber === undefined) return Promise.reject('No device opened');
+        if (this.interfaceNumber === undefined) {
+            throw new Error('No device opened');
+        }
 
         let result: USBInTransferResult;
 
