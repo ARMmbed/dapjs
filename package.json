@@ -35,7 +35,8 @@
   ],
   "scripts": {
     "build": "rollup -c && typedoc src",
-    "watch": "rollup -c rollup.dev.config.js -w"
+    "watch": "rollup -c -w",
+    "watch:web": "rollup -c rollup.dev.config.js -w"
   },
   "engines": {
     "node": ">=8.14.0"
