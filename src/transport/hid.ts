@@ -74,21 +74,23 @@ export class HID implements Transport {
      * Read from device
      * @returns Promise of DataView
      */
-    public read(): Promise<DataView> {
+    public async read(): Promise<DataView> {
         if (!this.device) {
             throw new Error('No device opened');
         }
 
-        return new Promise((resolve, reject) => {
+        const array = await new Promise<number[]>((resolve, reject) => {
             this.device!.read((error: string, data: number[]) => {
                 if (error) {
                     return reject(new Error(error));
+                } else {
+                    resolve(data);
                 }
-
-                const buffer = new Uint8Array(data).buffer;
-                resolve(new DataView(buffer));
             });
         });
+
+        const buffer = new Uint8Array(array).buffer;
+        return new DataView(buffer);
     }
 
     /**
