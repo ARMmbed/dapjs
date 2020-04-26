@@ -27,6 +27,7 @@ export declare class CmsisDAP extends EventEmitter implements Proxy {
      * The maximum block size which can be transferred
      */
     blockSize: number;
+    private sendMutex;
     /**
      * CMSIS-DAP constructor
      * @param transport Debug transport to use
