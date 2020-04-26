@@ -114,60 +114,61 @@ export class USB implements Transport {
      * Open device
      * @returns Promise
      */
-    public open(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.device.open();
+    public async open(): Promise<void> {
+        this.device.open();
+
+        await new Promise((resolve, reject) => {
             this.device.setConfiguration(this.configuration, error => {
                 if (error) {
-                    return reject(new Error(error));
+                    reject(new Error(error));
+                } else {
+                    resolve();
                 }
-
-                const interfaces = this.device.interfaces.filter(iface => {
-                    return iface.descriptor.bInterfaceClass === this.interfaceClass;
-                });
-
-                if (!interfaces.length) {
-                    return reject(new Error('No valid interfaces found.'));
-                }
-
-                // Prefer interface with endpoints
-                let selectedInterface = interfaces.find(iface => iface.endpoints.length > 0);
-
-                // Otherwise use the first
-                if (!selectedInterface) {
-                    selectedInterface = interfaces[0];
-                }
-
-                this.interfaceNumber = selectedInterface.interfaceNumber;
-
-                // If we always want to use control transfer, don't find/set endpoints and claim interface
-                if (!this.alwaysControlTransfer) {
-                    const endpoints = selectedInterface.endpoints;
-
-                    this.endpointIn = undefined;
-                    this.endpointOut = undefined;
-
-                    for (const endpoint of endpoints) {
-                        if (endpoint.direction === 'in') this.endpointIn = (endpoint as InEndpoint);
-                        else this.endpointOut = (endpoint as OutEndpoint);
-                    }
-
-                    // If endpoints are found, claim the interface
-                    if (this.endpointIn || this.endpointOut) {
-
-                        // If the interface can't be claimed, use control transfer
-                        try {
-                            selectedInterface.claim();
-                        } catch (_e) {
-                            this.endpointIn = undefined;
-                            this.endpointOut = undefined;
-                        }
-                    }
-                }
-
-                resolve();
             });
         });
+
+        const interfaces = this.device.interfaces.filter(iface => {
+            return iface.descriptor.bInterfaceClass === this.interfaceClass;
+        });
+
+        if (!interfaces.length) {
+            throw new Error('No valid interfaces found.');
+        }
+
+        // Prefer interface with endpoints
+        let selectedInterface = interfaces.find(iface => iface.endpoints.length > 0);
+
+        // Otherwise use the first
+        if (!selectedInterface) {
+            selectedInterface = interfaces[0];
+        }
+
+        this.interfaceNumber = selectedInterface.interfaceNumber;
+
+        // If we always want to use control transfer, don't find/set endpoints and claim interface
+        if (!this.alwaysControlTransfer) {
+            const endpoints = selectedInterface.endpoints;
+
+            this.endpointIn = undefined;
+            this.endpointOut = undefined;
+
+            for (const endpoint of endpoints) {
+                if (endpoint.direction === 'in') this.endpointIn = (endpoint as InEndpoint);
+                else this.endpointOut = (endpoint as OutEndpoint);
+            }
+
+            // If endpoints are found, claim the interface
+            if (this.endpointIn || this.endpointOut) {
+
+                // If the interface can't be claimed, use control transfer
+                try {
+                    selectedInterface.claim();
+                } catch (_e) {
+                    this.endpointIn = undefined;
+                    this.endpointOut = undefined;
+                }
+            }
+        }
     }
 
     /**
@@ -182,20 +183,20 @@ export class USB implements Transport {
      * Read from device
      * @returns Promise of DataView
      */
-    public read(): Promise<DataView> {
+    public async read(): Promise<DataView> {
         if (this.interfaceNumber === undefined) {
             throw new Error('No device opened');
         }
 
-        return new Promise((resolve, reject) => {
+        const result = await new Promise<Buffer>((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointIn) {
                 this.endpointIn.transfer(this.packetSize, (exception, buffer) => {
                     if (exception) {
-                        return reject(exception);
+                        reject(exception);
+                    } else {
+                        resolve(buffer);
                     }
-
-                    resolve(this.bufferToDataView(buffer));
                 });
                 return;
             }
@@ -209,17 +210,17 @@ export class USB implements Transport {
                 this.packetSize,
                 (exception, buffer) => {
                     if (exception) {
-                        return reject(exception);
+                        reject(exception);
+                    } else if (!buffer) {
+                        reject(new Error('No buffer read'));
+                    } else {
+                        resolve(buffer);
                     }
-
-                    if (!buffer) {
-                        return reject(new Error('No buffer read'));
-                    }
-
-                    resolve(this.bufferToDataView(buffer));
                 }
             );
         });
+
+        return this.bufferToDataView(result);
     }
 
     /**
@@ -227,7 +228,7 @@ export class USB implements Transport {
      * @param data Data to write
      * @returns Promise
      */
-    public write(data: BufferSource): Promise<void> {
+    public async write(data: BufferSource): Promise<void> {
         if (this.interfaceNumber === undefined) {
             throw new Error('No device opened');
         }
@@ -235,17 +236,16 @@ export class USB implements Transport {
         const extended = this.extendBuffer(data, this.packetSize);
         const buffer = this.bufferSourceToBuffer(extended);
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointOut) {
                 this.endpointOut.transfer(buffer, exception => {
                     if (exception) {
                         return reject(exception);
+                    } else {
+                        resolve();
                     }
-
-                    resolve();
                 });
-
                 return;
             }
 
@@ -259,9 +259,9 @@ export class USB implements Transport {
                 exception => {
                     if (exception) {
                         return reject(exception);
+                    } else {
+                        resolve();
                     }
-
-                    resolve();
                 }
             );
         });

@@ -22,6 +22,29 @@
 
 const DAPjs = require('../../');
 
+// Handle single character input from the user
+const readHandler = (inputHandler, stream = process.stdin) => {
+    return new Promise(resolve => {
+        stream.setRawMode(true);
+        stream.setEncoding('utf8');
+
+        const onResolve = result => {
+            stream.off('readable', read);
+            stream.setRawMode(false);
+            resolve(result);
+        }
+
+        const read = () => {
+            let input;
+            while (input = stream.read()) {
+                inputHandler(input, onResolve);
+            }
+        }
+
+        stream.on('readable', read);
+    });
+}
+
 // Select a device from the list
 const selectDevice = async (devices) => {
     if (devices.length === 0) {
@@ -33,22 +56,15 @@ const selectDevice = async (devices) => {
         console.log(`${index + 1}: ${device.name}`);
     });
 
-    const device = await new Promise(resolve => {
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding('utf8');
-        process.stdin.on('readable', () => {
-            let input;
-            while (input = process.stdin.read()) {
-                if (input === '\u0003') {
-                    process.exit();
-                } else if (input !== null) {
-                    let index = parseInt(input);
-                    if (index <= devices.length) {
-                        resolve(devices[index - 1]);
-                    }
-                }
+    const device = await readHandler((input, resolve) => {
+        if (input === '\u0003') {
+            process.exit();
+        } else if (input !== null) {
+            let index = parseInt(input);
+            if (index <= devices.length) {
+                resolve(devices[index - 1]);
             }
-        });
+        }
     });
 
     return device;

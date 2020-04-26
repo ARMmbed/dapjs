@@ -20,46 +20,30 @@
 * SOFTWARE.
 */
 
-const hid = require("node-hid");
-const common = require("./common");
-const DAPjs = require("../../");
+const hid = require('node-hid');
+const common = require('./common');
+const DAPjs = require('../../');
 
-// Allow user to select a device
-function selectDevice(vendorID) {
-    return new Promise((resolve, reject) => {
-        let devices = hid.devices();
-        devices = devices.filter(device => device.vendorId === vendorID);
+// List all devices
+const getDevices = (vendorID) => {
+    let devices = hid.devices();
+    devices = devices.filter(device => device.vendorId === vendorID);
 
-        if (devices.length === 0) {
-            return reject("No devices found");
-        }
-
-        function inputHandler(input) {
-            if (input === "\u0003") {
-                process.exit();
-            }
-
-            let index = parseInt(input);
-            if (index && index <= devices.length) {
-                common.inputEmitter.removeListener("input", inputHandler);
-                resolve(devices[index - 1]);
-            }
-        }
-        common.inputEmitter.addListener("input", inputHandler);
-
-        console.log("Select a device to listen to serial output:");
-        devices.forEach((device, index) => {
-            console.log(`${index + 1}: ${device.product}`);
-        });    
-    });
+    return devices.map(device => ({
+        ...device,
+        name: device.product
+    }));
 }
 
-selectDevice(0xD28)
-.then(device => {
-    const transport = new DAPjs.HID(device);
-    return common.listen(transport);
-})
-.catch(error => {
-    console.error(error.message || error);
-    process.exit();
-});
+(async () => {
+    try {
+        const devices = getDevices(common.DAPLINK_VENDOR);
+        const device = await common.selectDevice(devices);
+        const transport = new DAPjs.HID(device);
+        await common.listen(transport);
+    } catch(error) {
+        console.error(error.message || error);
+    } finally {
+        process.exit();
+    }
+})();

@@ -271,7 +271,6 @@ export class CortexM extends ADI implements Processor {
             await this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value | AircrMask.SYSRESETREQ);
         }
 
-        // await this.isHalted();
         await this.writeMem32(DebugRegister.DEMCR, 0);
     }
 }
