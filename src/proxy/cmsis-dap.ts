@@ -168,37 +168,40 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      */
     protected async send(command: number, data?: BufferSource): Promise<DataView> {
         const array = this.bufferSourceToUint8Array(command, data);
-
         await this.sendMutex.lock();
-        await this.transport.write(array);
-        const response = await this.transport.read();
-        this.sendMutex.unlock();
 
-        if (response.getUint8(0) !== command) {
-            throw new Error(`Bad response for ${command} -> ${response.getUint8(0)}`);
+        try {
+            await this.transport.write(array);
+            const response = await this.transport.read();
+
+            if (response.getUint8(0) !== command) {
+                throw new Error(`Bad response for ${command} -> ${response.getUint8(0)}`);
+            }
+
+            switch (command) {
+                case DAPCommand.DAP_DISCONNECT:
+                case DAPCommand.DAP_WRITE_ABORT:
+                case DAPCommand.DAP_DELAY:
+                case DAPCommand.DAP_RESET_TARGET:
+                case DAPCommand.DAP_SWJ_CLOCK:
+                case DAPCommand.DAP_SWJ_SEQUENCE:
+                case DAPCommand.DAP_SWD_CONFIGURE:
+                case DAPCommand.DAP_SWD_SEQUENCE:
+                case DAPCommand.DAP_SWO_TRANSPORT:
+                case DAPCommand.DAP_SWO_MODE:
+                case DAPCommand.DAP_SWO_CONTROL:
+                case DAPCommand.DAP_JTAG_CONFIGURE:
+                case DAPCommand.DAP_JTAG_ID_CODE:
+                case DAPCommand.DAP_TRANSFER_CONFIGURE:
+                    if (response.getUint8(1) !== DAPResponse.DAP_OK) {
+                        throw new Error(`Bad status for ${command} -> ${response.getUint8(1)}`);
+                    }
+            }
+
+            return response;
+        } finally {
+            this.sendMutex.unlock();
         }
-
-        switch (command) {
-            case DAPCommand.DAP_DISCONNECT:
-            case DAPCommand.DAP_WRITE_ABORT:
-            case DAPCommand.DAP_DELAY:
-            case DAPCommand.DAP_RESET_TARGET:
-            case DAPCommand.DAP_SWJ_CLOCK:
-            case DAPCommand.DAP_SWJ_SEQUENCE:
-            case DAPCommand.DAP_SWD_CONFIGURE:
-            case DAPCommand.DAP_SWD_SEQUENCE:
-            case DAPCommand.DAP_SWO_TRANSPORT:
-            case DAPCommand.DAP_SWO_MODE:
-            case DAPCommand.DAP_SWO_CONTROL:
-            case DAPCommand.DAP_JTAG_CONFIGURE:
-            case DAPCommand.DAP_JTAG_ID_CODE:
-            case DAPCommand.DAP_TRANSFER_CONFIGURE:
-                if (response.getUint8(1) !== DAPResponse.DAP_OK) {
-                    throw new Error(`Bad status for ${command} -> ${response.getUint8(1)}`);
-                }
-        }
-
-        return response;
     }
 
     /**
