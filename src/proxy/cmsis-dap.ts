@@ -223,7 +223,8 @@ export class CmsisDAP extends EventEmitter implements Proxy {
             const length = result.getUint8(1);
 
             if (length === 0) {
-                throw new Error('DAP Info Failure');
+                // String information is not set
+                return '';
             }
 
             switch (request) {
