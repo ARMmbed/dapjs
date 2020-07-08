@@ -1,18 +1,17 @@
-import type { Device } from 'node-hid';
+import type { HID as nodeHID } from 'node-hid';
 import { Transport } from './';
 /**
  * HID Transport class
  */
 export declare class HID implements Transport {
+    private device;
     private os;
-    private path;
-    private device?;
     readonly packetSize = 64;
     /**
      * HID constructor
      * @param path Path to HID device to use
      */
-    constructor(deviceOrPath: Device | string);
+    constructor(device: nodeHID);
     /**
      * Open device
      * @returns Promise

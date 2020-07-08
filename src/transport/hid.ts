@@ -22,7 +22,7 @@
 */
 
 import { platform } from 'os';
-import type { HID as nodeHID, Device } from 'node-hid';
+import type { HID as nodeHID } from 'node-hid';
 import { Transport } from './';
 
 /**
@@ -31,20 +31,13 @@ import { Transport } from './';
 export class HID implements Transport {
 
     private os: string = platform();
-    private path: string;
-    private device?: nodeHID;
     public readonly packetSize = 64;
 
     /**
      * HID constructor
      * @param path Path to HID device to use
      */
-    constructor(deviceOrPath: Device | string) {
-        const isDevice = (source: Device | string): source is Device => {
-            return (source as Device).path !== undefined;
-        };
-
-        this.path = isDevice(deviceOrPath) ? deviceOrPath.path! : deviceOrPath;
+    constructor(private device: nodeHID) {
     }
 
     /**
@@ -52,12 +45,7 @@ export class HID implements Transport {
      * @returns Promise
      */
     public async open(): Promise<void> {
-        if (!this.path.length) {
-            throw new Error('No path specified');
-        }
-
-        const hid = require('node-hid');
-        this.device = new hid.HID(this.path);
+        return;
     }
 
     /**
@@ -65,9 +53,7 @@ export class HID implements Transport {
      * @returns Promise
      */
     public async close(): Promise<void> {
-        if (this.device) {
-            this.device.close();
-        }
+        this.device.close();
     }
 
     /**
@@ -75,10 +61,6 @@ export class HID implements Transport {
      * @returns Promise of DataView
      */
     public async read(): Promise<DataView> {
-        if (!this.device) {
-            throw new Error('No device opened');
-        }
-
         const array = await new Promise<number[]>((resolve, reject) => {
             this.device!.read((error: string, data: number[]) => {
                 if (error) {
@@ -99,10 +81,6 @@ export class HID implements Transport {
      * @returns Promise
      */
     public async write(data: BufferSource): Promise<void> {
-        if (!this.device) {
-            throw new Error('No device opened');
-        }
-
         const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => {
             return (source as ArrayBufferView).buffer !== undefined;
         };

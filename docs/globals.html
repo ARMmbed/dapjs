@@ -227,7 +227,8 @@
 <span class="hljs-keyword">let</span> devices = hid.devices();
 devices = devices.filter(<span class="hljs-function"><span class="hljs-params">device</span> =&gt;</span> device.vendorId === <span class="hljs-number">0xD28</span>);
 
-<span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.HID(devices[<span class="hljs-number">0</span>]);
+<span class="hljs-keyword">const</span> device = <span class="hljs-keyword">new</span> hid.HID(devices[<span class="hljs-number">0</span>].path);
+<span class="hljs-keyword">const</span> transport = <span class="hljs-keyword">new</span> DAPjs.HID(device);
 <span class="hljs-keyword">const</span> daplink = <span class="hljs-keyword">new</span> DAPjs.DAPLink(transport);
 
 <span class="hljs-keyword">try</span> {

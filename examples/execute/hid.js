@@ -40,7 +40,8 @@ const getDevices = (vendorID) => {
 (async () => {
     try {
         const devices = getDevices(common.DAPLINK_VENDOR);
-        const device = await common.selectDevice(devices);
+        const selected = await common.selectDevice(devices);
+        const device = new hid.HID(selected.path);
         const transport = new DAPjs.HID(device);
 
         const deviceHash = await common.deviceHash(transport, DATA);
