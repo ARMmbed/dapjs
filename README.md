@@ -134,7 +134,8 @@ const DAPjs = require('dapjs');
 let devices = hid.devices();
 devices = devices.filter(device => device.vendorId === 0xD28);
 
-const transport = new DAPjs.HID(devices[0]);
+const device = new hid.HID(devices[0].path);
+const transport = new DAPjs.HID(device);
 const daplink = new DAPjs.DAPLink(transport);
 
 try {
