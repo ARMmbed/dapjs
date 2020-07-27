@@ -21,7 +21,7 @@
 * SOFTWARE.
 */
 
-import type { Device, InEndpoint, OutEndpoint} from 'usb';
+import { Device, InEndpoint, OutEndpoint} from 'usb';
 import { Transport } from './';
 
 /**

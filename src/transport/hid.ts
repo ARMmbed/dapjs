@@ -22,7 +22,7 @@
 */
 
 import { platform } from 'os';
-import type { HID as nodeHID } from 'node-hid';
+import { HID as nodeHID } from 'node-hid';
 import { Transport } from './';
 
 /**
