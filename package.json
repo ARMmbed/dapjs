@@ -1,6 +1,6 @@
 {
   "name": "dapjs",
-  "version": "2.2.1-next.17e2b8a.0",
+  "version": "2.2.1-next.06017e0.0",
   "description": "JavaScript interface to on-chip debugger (CMSIS-DAP)",
   "homepage": "https://github.com/ARMmbed/dapjs",
   "license": "MIT",
