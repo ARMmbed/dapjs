@@ -120,7 +120,7 @@ export class USB implements Transport {
         await new Promise((resolve, reject) => {
             this.device.setConfiguration(this.configuration, error => {
                 if (error) {
-                    reject(new Error(error.message));
+                    reject(new Error(error));
                 } else {
                     resolve();
                 }
