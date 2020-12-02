@@ -118,8 +118,8 @@ export class WebUSB implements Transport {
             this.endpointOut = undefined;
 
             for (const endpoint of endpoints) {
-                if (endpoint.direction === 'in') this.endpointIn = endpoint;
-                else this.endpointOut = endpoint;
+                if (endpoint.direction === 'in' && !this.endpointIn) this.endpointIn = endpoint;
+                else if (endpoint.direction === 'out' && !this.endpointOut) this.endpointOut = endpoint;
             }
         }
 

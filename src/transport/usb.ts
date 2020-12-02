@@ -153,8 +153,8 @@ export class USB implements Transport {
             this.endpointOut = undefined;
 
             for (const endpoint of endpoints) {
-                if (endpoint.direction === 'in') this.endpointIn = (endpoint as InEndpoint);
-                else this.endpointOut = (endpoint as OutEndpoint);
+                if (endpoint.direction === 'in' && !this.endpointIn) this.endpointIn = (endpoint as InEndpoint);
+                else if (endpoint.direction === 'out' && !this.endpointOut) this.endpointOut = (endpoint as OutEndpoint);
             }
 
             // If endpoints are found, claim the interface
