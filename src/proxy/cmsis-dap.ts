@@ -256,12 +256,74 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @param sequence The sequence to send
      * @returns Promise
      */
-    public async swjSequence(sequence: BufferSource): Promise<void> {
-        const bitLength = sequence.byteLength * 8;
+    public async swjSequence(sequence: BufferSource, bitLength: number = sequence.byteLength * 8): Promise<void> {
         const data = this.bufferSourceToUint8Array(bitLength, sequence);
 
         try {
             await this.send(DAPCommand.DAP_SWJ_SEQUENCE, data);
+        } catch (error) {
+            await this.clearAbort();
+            throw error;
+        }
+    }
+
+    /**
+     * Send an SWJ Clock value
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Clock.html
+     * @param clock The SWJ clock value to send
+     * @returns Promise
+     */
+    public async swjClock(clock: number): Promise<void> {
+        try {
+            await this.send(DAPCommand.DAP_SWJ_CLOCK, new Uint8Array([
+                (clock & 0x000000FF),
+                (clock & 0x0000FF00) >> 8,
+                (clock & 0x00FF0000) >> 16,
+                (clock & 0xFF000000) >> 24
+            ]));
+        } catch (error) {
+            await this.clearAbort();
+            throw error;
+        }
+    }
+
+    /**
+     * Read/Write SWJ Pins
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Pins.html
+     * @param pinsOut Pin values to write
+     * @param pinSelect Maske to select output pins to change
+     * @param pinWait Time in microseconds to wait for output pin value to stabilize (0 - no wait, 1..3000000)
+     * @returns Promise
+     */
+    public async swjPins(pinsOut: number, pinSelect: number, pinWait: number): Promise<number> {
+        try {
+            const result = await this.send(DAPCommand.DAP_SWJ_PINS, new Uint8Array([
+                pinsOut,
+                pinSelect,
+                (pinWait & 0x000000FF),
+                (pinWait & 0x0000FF00) >> 8,
+                (pinWait & 0x00FF0000) >> 16,
+                (pinWait & 0xFF000000) >> 24
+            ]));
+            return result.getUint8(1);
+        } catch (error) {
+            await this.clearAbort();
+            throw error;
+        }
+    }
+
+    /**
+     * Send Delay Command
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Delay.html
+     * @param delay Time to delay in microseconds
+     * @returns Promise
+     */
+    public async dapDelay(delay: number): Promise<void> {
+        try {
+            await this.send(DAPCommand.DAP_DELAY, new Uint8Array([
+                (delay & 0x00FF),
+                (delay & 0xFF00) >> 8
+            ]));
         } catch (error) {
             await this.clearAbort();
             throw error;

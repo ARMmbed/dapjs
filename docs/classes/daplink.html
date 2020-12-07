@@ -106,6 +106,9 @@
 					<a href="daplink.html#connect" class="tsd-kind-icon">connect</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="daplink.html#dapdelay" class="tsd-kind-icon">dap<wbr>Delay</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="daplink.html#dapinfo" class="tsd-kind-icon">dap<wbr>Info</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
@@ -173,6 +176,12 @@
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="daplink.html#stopserialread" class="tsd-kind-icon">stop<wbr>Serial<wbr>Read</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="daplink.html#swjclock" class="tsd-kind-icon">swj<wbr>Clock</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a href="daplink.html#swjpins" class="tsd-kind-icon">swj<wbr>Pins</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a href="daplink.html#swjsequence" class="tsd-kind-icon">swj<wbr>Sequence</a>
@@ -283,6 +292,7 @@
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="daplink.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#configuretransfer" class="tsd-kind-icon">configure<wbr>Transfer</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#connect" class="tsd-kind-icon">connect</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#dapdelay" class="tsd-kind-icon">dap<wbr>Delay</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#dapinfo" class="tsd-kind-icon">dap<wbr>Info</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#disconnect" class="tsd-kind-icon">disconnect</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited"><a href="daplink.html#emit" class="tsd-kind-icon">emit</a></li>
@@ -306,6 +316,8 @@
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#setserialbaudrate" class="tsd-kind-icon">set<wbr>Serial<wbr>Baudrate</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#startserialread" class="tsd-kind-icon">start<wbr>Serial<wbr>Read</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="daplink.html#stopserialread" class="tsd-kind-icon">stop<wbr>Serial<wbr>Read</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#swjclock" class="tsd-kind-icon">swj<wbr>Clock</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#swjpins" class="tsd-kind-icon">swj<wbr>Pins</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#swjsequence" class="tsd-kind-icon">swj<wbr>Sequence</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#transfer" class="tsd-kind-icon">transfer</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="daplink.html#transferblock" class="tsd-kind-icon">transfer<wbr>Block</a></li>
@@ -549,6 +561,37 @@
 								<p>Connect to target device</p>
 							</div>
 						</div>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="dapdelay" class="tsd-anchor"></a>
+				<h3>dap<wbr>Delay</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">dap<wbr>Delay<span class="tsd-signature-symbol">(</span>delay<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="daplink.html">DAPLink</a>.<a href="daplink.html#dapdelay">dapDelay</a></p>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Send Delay Command
+								<a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Delay.html">https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Delay.html</a></p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>delay: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Time to delay in microseconds</p>
+								</div>
+							</li>
+						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						<p>Promise</p>
 					</li>
@@ -1197,10 +1240,84 @@
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="swjclock" class="tsd-anchor"></a>
+				<h3>swj<wbr>Clock</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">swj<wbr>Clock<span class="tsd-signature-symbol">(</span>clock<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="daplink.html">DAPLink</a>.<a href="daplink.html#swjclock">swjClock</a></p>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Send an SWJ Clock value
+								<a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Clock.html">https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Clock.html</a></p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>clock: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The SWJ clock value to send</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+				<a name="swjpins" class="tsd-anchor"></a>
+				<h3>swj<wbr>Pins</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<li class="tsd-signature tsd-kind-icon">swj<wbr>Pins<span class="tsd-signature-symbol">(</span>pinsOut<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, pinSelect<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, pinWait<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Inherited from <a href="daplink.html">DAPLink</a>.<a href="daplink.html#swjpins">swjPins</a></p>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Read/Write SWJ Pins
+								<a href="https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Pins.html">https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Pins.html</a></p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>pinsOut: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Pin values to write</p>
+								</div>
+							</li>
+							<li>
+								<h5>pinSelect: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Maske to select output pins to change</p>
+								</div>
+							</li>
+							<li>
+								<h5>pinWait: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Time in microseconds to wait for output pin value to stabilize (0 - no wait, 1..3000000)</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 				<a name="swjsequence" class="tsd-anchor"></a>
 				<h3>swj<wbr>Sequence</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-					<li class="tsd-signature tsd-kind-icon">swj<wbr>Sequence<span class="tsd-signature-symbol">(</span>sequence<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BufferSource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">swj<wbr>Sequence<span class="tsd-signature-symbol">(</span>sequence<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BufferSource</span>, bitLength<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
@@ -1220,6 +1337,9 @@
 								<div class="tsd-comment tsd-typography">
 									<p>The sequence to send</p>
 								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> bitLength: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = sequence.byteLength * 8</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>

@@ -65,7 +65,30 @@ export declare class CmsisDAP extends EventEmitter implements Proxy {
      * @param sequence The sequence to send
      * @returns Promise
      */
-    swjSequence(sequence: BufferSource): Promise<void>;
+    swjSequence(sequence: BufferSource, bitLength?: number): Promise<void>;
+    /**
+     * Send an SWJ Clock value
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Clock.html
+     * @param clock The SWJ clock value to send
+     * @returns Promise
+     */
+    swjClock(clock: number): Promise<void>;
+    /**
+     * Read/Write SWJ Pins
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__SWJ__Pins.html
+     * @param pinsOut Pin values to write
+     * @param pinSelect Maske to select output pins to change
+     * @param pinWait Time in microseconds to wait for output pin value to stabilize (0 - no wait, 1..3000000)
+     * @returns Promise
+     */
+    swjPins(pinsOut: number, pinSelect: number, pinWait: number): Promise<number>;
+    /**
+     * Send Delay Command
+     * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__Delay.html
+     * @param delay Time to delay in microseconds
+     * @returns Promise
+     */
+    dapDelay(delay: number): Promise<void>;
     /**
      * Configure Transfer
      * https://www.keil.com/pack/doc/CMSIS/DAP/html/group__DAP__TransferConfigure.html
