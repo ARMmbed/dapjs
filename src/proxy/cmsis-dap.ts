@@ -256,8 +256,7 @@ export class CmsisDAP extends EventEmitter implements Proxy {
      * @param sequence The sequence to send
      * @returns Promise
      */
-    public async swjSequence(sequence: BufferSource, bitLength?: number): Promise<void> {
-        bitLength = bitLength || sequence.byteLength * 8;
+    public async swjSequence(sequence: BufferSource, bitLength: number = sequence.byteLength * 8): Promise<void> {
         const data = this.bufferSourceToUint8Array(bitLength, sequence);
 
         try {
