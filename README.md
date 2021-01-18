@@ -22,9 +22,9 @@ $ npm install dapjs
 
 Decide on a transport layer to use (see below) and refer to the [examples folder](https://github.com/ARMmbed/dapjs/tree/master/examples/) to get started.
 
-The web example can be seen running at:
+The web examples can be seen running at:
 
-https://armmbed.github.io/dapjs/examples/daplink-flash/web.html
+https://armmbed.github.io/dapjs/examples/index.html
 
 Refer to the [DAPjs API Documentation](https://armmbed.github.io/dapjs/) for more information.
 
