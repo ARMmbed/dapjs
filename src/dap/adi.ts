@@ -166,6 +166,18 @@ export class ADI implements DAP {
         });
     }
 
+    protected readMem8Command(register: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_8)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.readAPCommand(APRegister.DRW));
+    }
+
+    protected writeMem8Command(register: number, value: number): DAPOperation[] {
+        return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_8)
+        .concat(this.writeAPCommand(APRegister.TAR, register))
+        .concat(this.writeAPCommand(APRegister.DRW, value));
+    }
+
     protected readMem16Command(register: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_16)
         .concat(this.writeAPCommand(APRegister.TAR, register))
@@ -293,6 +305,27 @@ export class ADI implements DAP {
      */
     public async writeAP(register: APRegister, value: number): Promise<void> {
         await this.proxy.transfer(this.writeAPCommand(register, value));
+    }
+
+    /**
+     * Read an 8-bit word from a memory access port register
+     * @param register ID of register to read
+     * @returns Promise of register data
+     */
+    public async readMem8(register: number): Promise<number> {
+        const result = await this.proxy.transfer(this.readMem8Command(register));
+        return result[0];
+    }
+
+    /**
+     * Write an 8-bit word to a memory access port register
+     * @param register ID of register to write to
+     * @param value The value to write
+     * @returns Promise
+     */
+    public async writeMem8(register: number, value: number): Promise<void> {
+        value = value as number << ((register & 0x03) << 3);
+        await this.proxy.transfer(this.writeMem8Command(register, value));
     }
 
     /**
