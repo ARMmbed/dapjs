@@ -314,7 +314,7 @@ export class ADI implements DAP {
      */
     public async readMem8(register: number): Promise<number> {
         const result = await this.proxy.transfer(this.readMem8Command(register));
-        return result[0];
+        return result[0] as number >> ((register & 0x03) << 3) & 0xFF;
     }
 
     /**
@@ -335,7 +335,7 @@ export class ADI implements DAP {
      */
     public async readMem16(register: number): Promise<number> {
         const result = await this.proxy.transfer(this.readMem16Command(register));
-        return result[0];
+        return result[0] as number >> ((register & 0x02) << 3) & 0xFFFF;
     }
 
     /**
