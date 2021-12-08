@@ -60,7 +60,7 @@
     "rollup-plugin-typescript2": "^0.27.0",
     "tslint": "^6.1.1",
     "tslint-eslint-rules": "^5.4.0",
-    "typedoc": "^0.17.4",
+    "typedoc": "^0.22.10",
     "typescript": "^3.8.3",
     "usb": "^1.6.3",
     "webusb": "^2.0.2"
