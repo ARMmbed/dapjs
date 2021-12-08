@@ -47,7 +47,7 @@
     "@types/w3c-web-usb": "^1.0.4"
   },
   "devDependencies": {
-    "node-hid": "^1.2.0",
+    "node-hid": "^2.1.1",
     "progress": "^2.0.3",
     "rollup": "^2.2.0",
     "rollup-plugin-delete": "^1.2.0",
@@ -62,7 +62,7 @@
     "tslint-eslint-rules": "^5.4.0",
     "typedoc": "^0.22.10",
     "typescript": "^3.8.3",
-    "usb": "^1.6.3",
-    "webusb": "^2.0.2"
+    "usb": "^1.9.2",
+    "webusb": "^2.2.0"
   }
 }
