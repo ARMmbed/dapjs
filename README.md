@@ -276,6 +276,8 @@ The `DAP` (Debug Access Port) layer exposes low-level access to ports, registers
 - [x] writeDP()
 - [x] readAP()
 - [x] writeAP()
+- [x] readMem8()
+- [x] writeMem8()
 - [x] readMem16()
 - [x] writeMem16()
 - [x] readMem32()
