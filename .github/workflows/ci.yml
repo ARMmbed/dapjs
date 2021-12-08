@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+      - name: Build
+        run: |
+          npm install
+          npm run build
+      - name: Deploy to gh-pages
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          git config --global user.name thegecko
+          git config --global user.email github@thegecko.org
+          git add --force dist types docs
+          git stash save
+          git checkout gh-pages
+          git merge master --no-commit -X theirs
+          git checkout stash -- .
+          git commit --allow-empty --message "Automatic Deployment"
+          git push
