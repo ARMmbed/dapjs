@@ -1,13 +1,9 @@
 {
     "name": "DAPjs API Documentation",
-    "readme": "./README.md",
-    "theme": "./docs-theme",
-    "module": "commonjs",
-    "mode": "file",
-    "out": "docs",
+    "entryPoints": [
+        "src"
+    ],
     "excludeExternals": true,
-    "excludeNotExported": true,
-    "excludeProtected": true,
     "excludePrivate": true,
     "hideGenerator": true
 }
