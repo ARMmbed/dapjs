@@ -35,6 +35,8 @@ export declare class ADI implements DAP {
     protected writeDPCommand(register: number, value: number): DAPOperation[];
     protected readAPCommand(register: number): DAPOperation[];
     protected writeAPCommand(register: number, value: number): DAPOperation[];
+    protected readMem8Command(register: number): DAPOperation[];
+    protected writeMem8Command(register: number, value: number): DAPOperation[];
     protected readMem16Command(register: number): DAPOperation[];
     protected writeMem16Command(register: number, value: number): DAPOperation[];
     protected readMem32Command(register: number): DAPOperation[];
@@ -86,6 +88,19 @@ export declare class ADI implements DAP {
      * @returns Promise
      */
     writeAP(register: APRegister, value: number): Promise<void>;
+    /**
+     * Read an 8-bit word from a memory access port register
+     * @param register ID of register to read
+     * @returns Promise of register data
+     */
+    readMem8(register: number): Promise<number>;
+    /**
+     * Write an 8-bit word to a memory access port register
+     * @param register ID of register to write to
+     * @param value The value to write
+     * @returns Promise
+     */
+    writeMem8(register: number, value: number): Promise<void>;
     /**
      * Read a 16-bit word from a memory access port register
      * @param register ID of register to read

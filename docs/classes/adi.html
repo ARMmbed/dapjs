@@ -91,6 +91,9 @@
 					<a href="adi.html#readmem32" class="tsd-kind-icon">read<wbr>Mem32</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="adi.html#readmem8" class="tsd-kind-icon">read<wbr>Mem8</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="adi.html#reconnect" class="tsd-kind-icon">reconnect</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -110,6 +113,9 @@
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="adi.html#writemem32" class="tsd-kind-icon">write<wbr>Mem32</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="adi.html#writemem8" class="tsd-kind-icon">write<wbr>Mem8</a>
 				</li>
 			</ul>
 		</li>
@@ -205,6 +211,7 @@
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#readdp" class="tsd-kind-icon">readDP</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#readmem16" class="tsd-kind-icon">read<wbr>Mem16</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#readmem32" class="tsd-kind-icon">read<wbr>Mem32</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#readmem8" class="tsd-kind-icon">read<wbr>Mem8</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#reconnect" class="tsd-kind-icon">reconnect</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#reset" class="tsd-kind-icon">reset</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#writeap" class="tsd-kind-icon">writeAP</a></li>
@@ -212,6 +219,7 @@
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#writedp" class="tsd-kind-icon">writeDP</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#writemem16" class="tsd-kind-icon">write<wbr>Mem16</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#writemem32" class="tsd-kind-icon">write<wbr>Mem32</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="adi.html#writemem8" class="tsd-kind-icon">write<wbr>Mem8</a></li>
 						</ul>
 					</section>
 				</div>
@@ -491,6 +499,36 @@
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="readmem8" class="tsd-anchor"></a>
+				<h3>read<wbr>Mem8</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">read<wbr>Mem8<span class="tsd-signature-symbol">(</span>register<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#readmem8">readMem8</a></p>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Read an 8-bit word from a memory access port register</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>register: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>ID of register to read</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise of register data</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 				<a name="reconnect" class="tsd-anchor"></a>
 				<h3>reconnect</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -688,6 +726,42 @@
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
 								<p>Write a 32-bit word to a memory access port register</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>register: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>ID of register to write to</p>
+								</div>
+							</li>
+							<li>
+								<h5>value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to write</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="writemem8" class="tsd-anchor"></a>
+				<h3>write<wbr>Mem8</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">write<wbr>Mem8<span class="tsd-signature-symbol">(</span>register<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<p>Implementation of <a href="../interfaces/dap.html">DAP</a>.<a href="../interfaces/dap.html#writemem8">writeMem8</a></p>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Write an 8-bit word to a memory access port register</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
