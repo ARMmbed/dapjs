@@ -128,6 +128,20 @@ export declare class ADI implements DAP {
      */
     writeMem32(register: number, value: number): Promise<void>;
     /**
+     * Read a sequence of 32-bit words from a memory access port register, without crossing TAR auto-increment boundaries
+     * @param register ID of register to read from
+     * @param count The count of values to read
+     * @returns Promise of register data
+     */
+    protected readMem32Sequence(register: number, count: number): Promise<Uint32Array>;
+    /**
+     * Write a sequence of 32-bit words to a memory access port register, without crossing TAR auto-increment boundaries
+     * @param register ID of register to write to
+     * @param values The values to write
+     * @returns Promise
+     */
+    protected writeMem32Sequence(register: number, values: Uint32Array): Promise<void>;
+    /**
      * Read a block of 32-bit words from a memory access port register
      * @param register ID of register to read from
      * @param count The count of values to read
