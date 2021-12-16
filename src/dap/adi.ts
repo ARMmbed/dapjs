@@ -461,4 +461,81 @@ export class ADI implements DAP {
             index += chunkSize;
         }
     }
+
+    /**
+     * Read a block of bytes from a memory access port register
+     * @param register ID of register to read from
+     * @param count The count of values to read
+     * @returns Promise of register data
+     */
+    public async readBytes(register: number, count: number): Promise<Uint8Array> {
+        // read a word-aligned chunk of 32-bit words containing the requested range, then trim it
+        let bytesToRead = count;
+        const startOffset = register & 0x03;
+        const endOffset = (register + count) & 0x03;
+
+        // include left-most 32-bit word
+        if (startOffset) {
+            register -= startOffset;
+            bytesToRead += startOffset;
+        }
+
+        // include right-most 32-bit word
+        if (endOffset) {
+            bytesToRead += (4 - endOffset);
+        }
+
+        const result = await this.readBlock(register, bytesToRead / 4);
+        return new Uint8Array(result.buffer).slice(startOffset, startOffset + count);
+    }
+
+    /**
+     * Write a block of bytes to a memory access port register
+     * @param register ID of register to write to
+     * @param values The values to write
+     * @returns Promise
+     */
+    public async writeBytes(register: number, values: Uint8Array): Promise<void> {
+        let bytesToWrite = values.length;
+        let index = 0;
+
+        // initial byte write
+        if ((bytesToWrite > 0) && (register & 0x01)) {
+            await this.writeMem8(register, values[index]);
+            bytesToWrite -= 1;
+            register += 1;
+            index += 1;
+        }
+
+        // initial 16-bit word write
+        if ((bytesToWrite > 1) && (register & 0x02)) {
+            await this.writeMem16(register, values[index] | (values[index + 1] << 8));
+            bytesToWrite -= 2;
+            register += 2;
+            index += 2;
+        }
+
+        // chunk of word-aligned 32-bit words
+        if (bytesToWrite >= 4) {
+            const chunkSize = bytesToWrite - bytesToWrite % 4;
+            const chunk = new Uint32Array(values.slice(index, index + chunkSize).buffer);
+            await this.writeBlock(register, chunk);
+            bytesToWrite -= chunkSize;
+            register += chunkSize;
+            index += chunkSize;
+        }
+
+        // trailing 16-bit word write
+        if (bytesToWrite > 1) {
+            await this.writeMem16(register, values[index] | (values[index + 1] << 8));
+            bytesToWrite -= 2;
+            register += 2;
+            index += 2;
+        }
+
+        // tailing byte write
+        if (bytesToWrite > 0) {
+            await this.writeMem8(register, values[index]);
+        }
+    }
 }

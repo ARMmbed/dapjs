@@ -109,33 +109,16 @@ class RTT {
         }).join('')
     }
 
-    async readBytes (addr, size) {
-        var sizeToRead = size;
-        let startOffset = addr % 4;
-        let endOffset = (addr + size) % 4;
-
-        if (startOffset) {
-            addr -= startOffset;
-            sizeToRead += startOffset;
-        }
-
-        if (endOffset)
-            sizeToRead += (4 - endOffset);
-
-        var data32 = await this.processor.readBlock(addr, sizeToRead / 4);
-        return new Uint8Array(data32.buffer).slice(startOffset, startOffset + size);
-    }
-
     async read (bufId) {
         var buf = this.bufUp[bufId];
 
         buf.WrOff = await this.processor.readMem32(buf.bufAddr + 12);
 
         if (buf.WrOff > buf.RdOff) {
-            var data = await this.readBytes(buf.pBuffer + buf.RdOff, buf.WrOff - buf.RdOff);
+            var data = await processor.readBytes(buf.pBuffer + buf.RdOff, buf.WrOff - buf.RdOff);
         } else if (buf.WrOff < buf.RdOff) {
-            let data1 = await this.readBytes(buf.pBuffer + buf.RdOff, buf.SizeOfBuffer - buf.RdOff);
-            let data2 = await this.readBytes(buf.pBuffer, buf.WrOff);
+            let data1 = await processor.readBytes(buf.pBuffer + buf.RdOff, buf.SizeOfBuffer - buf.RdOff);
+            let data2 = await processor.readBytes(buf.pBuffer, buf.WrOff);
             var data = new Uint8Array(data1.length + data2.length);
             data.set(data1, 0);
             data.set(data2, data1.length);
