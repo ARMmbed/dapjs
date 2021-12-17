@@ -40,7 +40,7 @@ class RTT {
         this.processor = processor;
     }
 
-    async init (processor) {
+    async init () {
         let scanBlockSize = 0x1000 ;
         let scanStride = 0x0800;
 
@@ -115,10 +115,10 @@ class RTT {
         buf.WrOff = await this.processor.readMem32(buf.bufAddr + 12);
 
         if (buf.WrOff > buf.RdOff) {
-            var data = await processor.readBytes(buf.pBuffer + buf.RdOff, buf.WrOff - buf.RdOff);
+            var data = await this.processor.readBytes(buf.pBuffer + buf.RdOff, buf.WrOff - buf.RdOff);
         } else if (buf.WrOff < buf.RdOff) {
-            let data1 = await processor.readBytes(buf.pBuffer + buf.RdOff, buf.SizeOfBuffer - buf.RdOff);
-            let data2 = await processor.readBytes(buf.pBuffer, buf.WrOff);
+            let data1 = await this.processor.readBytes(buf.pBuffer + buf.RdOff, buf.SizeOfBuffer - buf.RdOff);
+            let data2 = await this.processor.readBytes(buf.pBuffer, buf.WrOff);
             var data = new Uint8Array(data1.length + data2.length);
             data.set(data1, 0);
             data.set(data2, data1.length);
