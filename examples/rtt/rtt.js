@@ -112,7 +112,6 @@ class RTT {
     async read (bufId) {
         var buf = this.bufUp[bufId];
 
-        buf.RdOff = await this.processor.readMem32(buf.bufAddr + 16);
         buf.WrOff = await this.processor.readMem32(buf.bufAddr + 12);
 
         if (buf.WrOff > buf.RdOff) {
@@ -137,7 +136,6 @@ class RTT {
         var buf = this.bufDown[bufId];
 
         buf.RdOff = await this.processor.readMem32(buf.bufAddr + 16);
-        buf.WrOff = await this.processor.readMem32(buf.bufAddr + 12);
 
         if (buf.WrOff >= buf.RdOff)
             var num_avail = buf.SizeOfBuffer - (buf.WrOff - buf.RdOff);
