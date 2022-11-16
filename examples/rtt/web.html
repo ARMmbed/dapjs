@@ -103,8 +103,8 @@ SOFTWARE.
                 connected = false;
                 rtt = null;
                 await processor.disconnect();
-                transport.close();
-                device.close();
+                await transport.close();
+                await device.close();
                 term.reset();
                 document.getElementById("control").innerHTML = 'start RTT';
                 console.log('Disconnected.');
