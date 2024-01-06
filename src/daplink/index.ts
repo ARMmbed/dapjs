@@ -80,7 +80,7 @@ export class DAPLink extends CmsisDAP {
     constructor(transport: Transport, mode: DAPProtocol = DAPProtocol.DEFAULT, clockFrequency: number = DEFAULT_CLOCK_FREQUENCY) {
         super(transport, mode, clockFrequency);
 
-        this.on('newListener', async event => {
+        this.on('newListener', event => {
             if (event === DAPLink.EVENT_SERIAL_DATA) {
                 const listenerCount = this.listenerCount(event);
 
