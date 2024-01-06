@@ -117,7 +117,7 @@ export class USB implements Transport {
     public async open(): Promise<void> {
         this.device.open();
 
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
             this.device.setConfiguration(this.configuration, error => {
                 if (error) {
                     reject(new Error(error));
@@ -236,7 +236,7 @@ export class USB implements Transport {
         const extended = this.extendBuffer(data, this.packetSize);
         const buffer = this.bufferSourceToBuffer(extended);
 
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
             // Use endpoint if it exists
             if (this.endpointOut) {
                 this.endpointOut.transfer(buffer, exception => {
