@@ -1,5 +1,5 @@
 import del from 'rollup-plugin-delete';
-import tslint from 'rollup-plugin-tslint';
+import eslint from '@rollup/plugin-eslint';
 import builtins from 'rollup-plugin-node-builtins';
 import typescript from 'rollup-plugin-typescript2';
 import { terser } from 'rollup-plugin-terser';
@@ -33,7 +33,7 @@ export default {
                 'types/*'
             ]
         }),
-        tslint({
+        eslint({
             throwOnError: true
         }),
         builtins(),
