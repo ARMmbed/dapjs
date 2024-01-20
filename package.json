@@ -47,6 +47,12 @@
     "@types/w3c-web-usb": "^1.0.4"
   },
   "devDependencies": {
+    "@rollup/plugin-eslint": "^9.0.5",
+    "@stylistic/eslint-plugin-js": "^1.5.4",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-jsdoc": "^48.0.2",
     "node-hid": "^2.1.1",
     "progress": "^2.0.3",
     "rollup": "^2.2.0",
@@ -56,12 +62,10 @@
     "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-sourcemaps": "^0.5.0",
     "rollup-plugin-terser": "^5.3.0",
-    "rollup-plugin-tslint": "^0.2.2",
     "rollup-plugin-typescript2": "^0.27.0",
-    "tslint": "^6.1.1",
-    "tslint-eslint-rules": "^5.4.0",
-    "typedoc": "^0.22.10",
-    "typescript": "^3.8.3",
+    "tslib": "^2.6.2",
+    "typedoc": "^0.25.7",
+    "typescript": "^5.3.3",
     "usb": "^1.9.2",
     "webusb": "^2.2.0"
   }
