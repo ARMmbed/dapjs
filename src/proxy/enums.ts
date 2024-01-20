@@ -260,7 +260,7 @@ export const enum DAPInfoRequest {
  */
 export const enum DAPHostStatusType {
     /**
-     *  Connect: Status indicates that the debugger is connected to the Debug Unit
+     * Connect: Status indicates that the debugger is connected to the Debug Unit
      */
     CONNECT = 0,
     /**

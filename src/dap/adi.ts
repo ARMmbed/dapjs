@@ -172,38 +172,38 @@ export class ADI implements DAP {
 
     protected readMem8Command(register: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_8)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.readAPCommand(APRegister.DRW));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.readAPCommand(APRegister.DRW));
     }
 
     protected writeMem8Command(register: number, value: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_8)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.writeAPCommand(APRegister.DRW, value));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.writeAPCommand(APRegister.DRW, value));
     }
 
     protected readMem16Command(register: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_16)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.readAPCommand(APRegister.DRW));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.readAPCommand(APRegister.DRW));
     }
 
     protected writeMem16Command(register: number, value: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_16)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.writeAPCommand(APRegister.DRW, value));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.writeAPCommand(APRegister.DRW, value));
     }
 
     protected readMem32Command(register: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.readAPCommand(APRegister.DRW));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.readAPCommand(APRegister.DRW));
     }
 
     protected writeMem32Command(register: number, value: number): DAPOperation[] {
         return this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32)
-        .concat(this.writeAPCommand(APRegister.TAR, register))
-        .concat(this.writeAPCommand(APRegister.DRW, value as number));
+            .concat(this.writeAPCommand(APRegister.TAR, register))
+            .concat(this.writeAPCommand(APRegister.DRW, value as number));
     }
 
     protected async transferSequence(operations: DAPOperation[][]): Promise<Uint32Array> {
@@ -382,7 +382,7 @@ export class ADI implements DAP {
     protected async readMem32Sequence(register: number, count: number): Promise<Uint32Array> {
         await this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
-            this.writeAPCommand(APRegister.TAR, register),
+            this.writeAPCommand(APRegister.TAR, register)
         ]);
 
         const results: Uint32Array[] = [];
@@ -408,7 +408,7 @@ export class ADI implements DAP {
     protected async writeMem32Sequence(register: number, values: Uint32Array): Promise<void> {
         await this.transferSequence([
             this.writeAPCommand(APRegister.CSW, CSWMask.VALUE | CSWMask.SIZE_32),
-            this.writeAPCommand(APRegister.TAR, register),
+            this.writeAPCommand(APRegister.TAR, register)
         ]);
 
         // Split values into chunks no longer than block size

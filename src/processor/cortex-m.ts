@@ -60,13 +60,13 @@ export class CortexM extends ADI implements Processor {
 
     protected readCoreRegisterCommand(register: number): DAPOperation[] {
         return this.writeMem32Command(DebugRegister.DCRSR, register)
-        .concat(this.readMem32Command(DebugRegister.DHCSR))
-        .concat(this.readMem32Command(DebugRegister.DCRDR));
+            .concat(this.readMem32Command(DebugRegister.DHCSR))
+            .concat(this.readMem32Command(DebugRegister.DCRDR));
     }
 
     protected writeCoreRegisterCommand(register: number, value: number): DAPOperation[] {
         return this.writeMem32Command(DebugRegister.DCRDR, value)
-        .concat(this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR));
+            .concat(this.writeMem32Command(DebugRegister.DCRSR, register | DcrsrMask.REGWnR));
     }
 
     /**
