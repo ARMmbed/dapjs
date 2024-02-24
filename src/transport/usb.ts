@@ -120,18 +120,18 @@ export class USB implements Transport {
         await new Promise<void>((resolve, reject) => {
             this.device.setConfiguration(this.configuration, error => {
                 if (error) {
-                    reject(new Error(error));
+                    reject(new Error(error.message));
                 } else {
                     resolve();
                 }
             });
         });
 
-        const interfaces = this.device.interfaces.filter(iface => {
+        const interfaces = this.device.interfaces?.filter(iface => {
             return iface.descriptor.bInterfaceClass === this.interfaceClass;
         });
 
-        if (!interfaces.length) {
+        if (!interfaces?.length) {
             throw new Error('No valid interfaces found.');
         }
 
@@ -195,7 +195,11 @@ export class USB implements Transport {
                     if (exception) {
                         reject(exception);
                     } else {
-                        resolve(buffer);
+                        if (buffer !== undefined) {
+                            resolve(buffer);
+                        } else {
+                            resolve(new Buffer(0));
+                        }
                     }
                 });
                 return;
@@ -214,7 +218,8 @@ export class USB implements Transport {
                     } else if (!buffer) {
                         reject(new Error('No buffer read'));
                     } else {
-                        resolve(buffer);
+                        // Buffer type for IN transfer
+                        resolve(buffer as Buffer);
                     }
                 }
             );
