@@ -21,7 +21,7 @@
 */
 
 import { stdin } from 'process';
-import { USB } from 'webusb';
+import { WebUSB  } from 'usb';
 import { Registers } from './registers';
 
 // Handle single character input from the user
@@ -74,7 +74,7 @@ const devicesFound = async (devices: USBDevice[]): Promise<USBDevice | undefined
     return device;
 };
 
-const usb = new USB({ devicesFound });
+const usb = new WebUSB({devicesFound: devicesFound});
 const registers = new Registers(usb);
 
 (async () => {
@@ -84,7 +84,7 @@ const registers = new Registers(usb);
             console.log(`R${index}: ${register}`);
         });
     } catch(error) {
-        console.error(error.message || error);
+        console.error(error);
     }
     process.exit();
 })();
