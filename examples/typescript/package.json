@@ -12,6 +12,6 @@
     "dapjs": "next",
     "tsify": "^4.0.1",
     "typescript": "^3.4.5",
-    "webusb": "^2.0.2"
+    "usb": "^2.11.0"
   }
 }
