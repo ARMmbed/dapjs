@@ -20,7 +20,7 @@
 * SOFTWARE.
 */
 
-const USB = require('webusb').USB;
+const WebUSB = require('usb').WebUSB;
 const common = require('./common');
 const DAPjs = require('../../');
 
@@ -35,7 +35,7 @@ const devicesFound = async (devices) => {
     return common.selectDevice(devices);
 }
 
-const usb = new USB({ devicesFound });
+const usb = new WebUSB({devicesFound: devicesFound});
 
 (async () => {
     try {
