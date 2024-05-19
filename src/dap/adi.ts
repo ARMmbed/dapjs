@@ -70,10 +70,10 @@ export class ADI implements DAP {
      * Continually run a function until it returns true
      * @param fn The function to run
      * @param timeout Optional timeout to wait before giving up and throwing
-     * @param timer The milliseconds to wait between each run
+     * @param delay The milliseconds to wait between each run
      * @returns Promise
      */
-    protected async waitDelay(fn: () => Promise<boolean>, timeout: number = 0, timer: number = DEFAULT_WAIT_DELAY): Promise<void> {
+    protected async waitDelay(fn: () => Promise<boolean>, timeout: number = 0, delay: number = DEFAULT_WAIT_DELAY): Promise<void> {
         let running = true;
 
         if (timeout > 0) {
@@ -92,8 +92,8 @@ export class ADI implements DAP {
                 return;
             }
 
-            if (timer > 0) {
-                await new Promise(resolve => setTimeout(resolve, timeout));
+            if (delay > 0) {
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
