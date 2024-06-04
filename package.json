@@ -36,7 +36,7 @@
   "scripts": {
     "build": "rollup -c && typedoc src",
     "watch": "rollup -c -w",
-    "watch:web": "rollup -c rollup.web.config.js -w"
+    "watch:web": "rollup -c rollup.web.config.mjs -w"
   },
   "engines": {
     "node": ">=8.14.0"
@@ -48,22 +48,21 @@
   },
   "devDependencies": {
     "@rollup/plugin-eslint": "^9.0.5",
+    "@rollup/plugin-terser": "^0.4.4",
     "@stylistic/eslint-plugin-js": "^1.5.4",
     "@types/node": "^20.11.20",
-    "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
+    "@typescript-eslint/eslint-plugin": "^7.12.0",
+    "@typescript-eslint/parser": "^7.12.0",
     "eslint": "^8.56.0",
     "eslint-plugin-jsdoc": "^48.0.2",
     "node-hid": "^2.1.1",
     "progress": "^2.0.3",
-    "rollup": "^2.2.0",
-    "rollup-plugin-delete": "^1.2.0",
-    "rollup-plugin-livereload": "^1.2.0",
-    "rollup-plugin-node-builtins": "^2.1.2",
-    "rollup-plugin-serve": "^1.0.1",
-    "rollup-plugin-sourcemaps": "^0.5.0",
-    "rollup-plugin-terser": "^5.3.0",
-    "rollup-plugin-typescript2": "^0.27.0",
+    "rollup": "^4.18.0",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-polyfill-node": "^0.13.0",
+    "rollup-plugin-serve": "^1.1.1",
+    "rollup-plugin-typescript2": "^0.36.0",
     "tslib": "^2.6.2",
     "typedoc": "^0.25.7",
     "typescript": "^5.3.3",
