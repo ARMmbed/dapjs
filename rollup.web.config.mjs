@@ -1,14 +1,14 @@
 import del from 'rollup-plugin-delete';
 import eslint from '@rollup/plugin-eslint';
-import builtins from 'rollup-plugin-node-builtins';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 import typescript from 'rollup-plugin-typescript2';
-import { terser } from 'rollup-plugin-terser';
-import sourceMaps from 'rollup-plugin-sourcemaps'
+import terser from '@rollup/plugin-terser';
 import serve from 'rollup-plugin-serve';
 import livereload from 'rollup-plugin-livereload';
+import fs from 'fs/promises';
 
 const name = 'DAPjs';
-const pkg = require('./package.json')
+const pkg = JSON.parse(await fs.readFile('./package.json'));
 const watch = process.env.ROLLUP_WATCH;
 
 export default {
@@ -36,12 +36,11 @@ export default {
         eslint({
             throwOnError: true
         }),
-        builtins(),
+        nodePolyfills(),
         typescript({
             useTsconfigDeclarationDir: true
         }),
         terser(),
-        sourceMaps(),
         watch && serve({
             contentBase: '.',
             open: true,
