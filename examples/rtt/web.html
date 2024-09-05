@@ -120,12 +120,13 @@ SOFTWARE.
             const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
 
             if (ev.keyCode === 13) { // process newline
-                if (line_input.length) {
+                // allow empty lines too
+                // if (line_input.length) {
                     term.write('\r\n');
                     cmd = line_input;
                     console.log('sending: \"' + line_input + '\"');
                     line_input = "";
-                }
+                //}
             } else if (ev.keyCode === 8) { // process backspace
                 if (term._core.buffer.x > 0) {
                     term.write('\b \b');
