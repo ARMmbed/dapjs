@@ -123,7 +123,7 @@ SOFTWARE.
                 // allow empty lines too
                 // if (line_input.length) {
                     term.write('\r\n');
-                    cmd = line_input;
+                    cmd = line_input + "\r\n";
                     console.log('sending: \"' + line_input + '\"');
                     line_input = "";
                 //}
@@ -165,7 +165,7 @@ SOFTWARE.
                 
                 // send to target
                 if (cmd.length) {
-                    cmdBytes = new TextEncoder().encode(cmd + "\r\n");
+                    cmdBytes = new TextEncoder().encode(cmd);
                     ret = await rtt.write(0, cmdBytes);
                     if (ret < 0)
                         console.log("cannot write", cmdBytes, "chars");
