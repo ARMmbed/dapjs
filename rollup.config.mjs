@@ -11,6 +11,7 @@ const watch = process.env.ROLLUP_WATCH;
 
 export default {
     input: 'src/index.ts',
+    external: ['os'],
     output: [
         {
             file: pkg.main,
