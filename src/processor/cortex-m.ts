@@ -259,18 +259,33 @@ export class CortexM extends ADI implements Processor {
     /**
      * set the target to reset state
      * @param hardwareReset use hardware reset pin or software reset
+     * @param localReset true: Requests a local CPU reset using VECTRESET, false: Requests a reset by an external system resource using SYSRESETREQ
+     * @param timeout Milliseconds to wait before aborting wait
      * @returns Promise
      */
-    public async setTargetResetState(hardwareReset: boolean = true): Promise<void> {
+    public async setTargetResetState(hardwareReset: boolean = true, localReset: boolean = false, timeout: number = 1000): Promise<void> {
+        // Enable Reset Vector Catch
+        await this.halt();
         await this.writeMem32(DebugRegister.DEMCR, DemcrMask.CORERESET);
+
+        // Clear S_RESET_ST
+        await this.readMem32(DebugRegister.DHCSR);
 
         if (hardwareReset === true) {
             await this.reset();
-        } else {
-            const value = await this.readMem32(NvicRegister.AIRCR);
-            await this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value | AircrMask.SYSRESETREQ);
+            await this.writeMem32(DebugRegister.DEMCR, 0);
+            return;
         }
 
+        const value = localReset ? AircrMask.VECTRESET : AircrMask.SYSRESETREQ;
+        await this.writeMem32(NvicRegister.AIRCR, AircrMask.VECTKEY | value);
+
+        const waitReset = async (): Promise<boolean> => {
+            const ret = await this.readMem32(DebugRegister.DHCSR);
+            return !!(ret & DhcsrMask.S_RESET_ST); // Wait for S_RESET_ST bit set
+        };
+
+        await this.waitDelay(waitReset, timeout);
         await this.writeMem32(DebugRegister.DEMCR, 0);
     }
 }
