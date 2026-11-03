@@ -7,6 +7,15 @@
   "main": "dist/dap.umd.js",
   "module": "dist/dap.esm.js",
   "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/dap.esm.js",
+      "require": "./dist/dap.umd.js",
+      "default": "./dist/dap.umd.js"
+    },
+    "./package.json": "./package.json"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/ARMmbed/dapjs.git"
