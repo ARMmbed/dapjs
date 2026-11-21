@@ -220,7 +220,7 @@ export class CortexM extends ADI implements Processor {
         if (code[code.length - 1] !== BKPT_INSTRUCTION) {
             const newCode = new Uint32Array(code.length + 1);
             newCode.set(code);
-            newCode.set([BKPT_INSTRUCTION], code.length - 1);
+            newCode.set([BKPT_INSTRUCTION], code.length);
             code = newCode;
         }
 
